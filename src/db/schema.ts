@@ -1,0 +1,84 @@
+import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core'
+
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  username: text('username').notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  hoTen: text('ho_ten').notNull(),
+  vaiTro: text('vai_tro', { enum: ['quay', 'bep', 'quanly'] }).notNull(),
+  active: integer('active').notNull().default(1),
+})
+
+export const customers = sqliteTable('customers', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  sdt: text('sdt').notNull().unique(),
+  ten: text('ten').notNull(),
+  ghiChu: text('ghi_chu'),
+})
+
+export const products = sqliteTable('products', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  ten: text('ten').notNull(),
+  nhom: text('nhom').notNull().default('Khác'),
+  anh: text('anh'),
+  active: integer('active').notNull().default(1),
+})
+
+export const productSizes = sqliteTable('product_sizes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  productId: integer('product_id').notNull().references(() => products.id),
+  tenCo: text('ten_co').notNull(),
+  gia: integer('gia').notNull(),
+})
+
+export const orders = sqliteTable('orders', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  maDon: text('ma_don').notNull().unique(),
+  customerId: integer('customer_id').references(() => customers.id),
+  nguon: text('nguon', { enum: ['tai_quay', 'zalo', 'messenger', 'dien_thoai', 'khac'] }).notNull(),
+  ngayGioNhan: integer('ngay_gio_nhan').notNull(), // unix ms
+  hinhThucNhan: text('hinh_thuc_nhan', { enum: ['tai_tiem', 'ship', 'tu_trung_bay'] }).notNull(),
+  diaChiShip: text('dia_chi_ship'),
+  sdtNguoiNhan: text('sdt_nguoi_nhan'),
+  phiShip: integer('phi_ship').notNull().default(0),
+  tongTien: integer('tong_tien').notNull(),
+  tienCoc: integer('tien_coc').notNull().default(0),
+  hinhThucTt: text('hinh_thuc_tt', { enum: ['tien_mat', 'chuyen_khoan', 'chua_tt'] }).notNull().default('chua_tt'),
+  ghiChu: text('ghi_chu'),
+  trangThai: text('trang_thai', { enum: ['moi', 'dang_lam', 'banh_xong', 'da_nhan', 'hoan_tat', 'huy'] }).notNull().default('moi'),
+  ketThucKieu: text('ket_thuc_kieu', { enum: ['giao_khach', 'da_ship', 'len_tu'] }),
+  lyDoHuy: text('ly_do_huy'),
+  daSua: integer('da_sua').notNull().default(0),   // 1 = sửa sau khi bếp nhận, chờ bếp xác nhận đã thấy
+  nhacNho: integer('nhac_nho').notNull().default(0), // 1 = đã bắn nhắc nhở mốc 2 tiếng
+  nguoiTao: integer('nguoi_tao').notNull().references(() => users.id),
+  nguoiLam: integer('nguoi_lam').references(() => users.id),
+  nguoiGiao: integer('nguoi_giao').references(() => users.id),
+  createdAt: integer('created_at').notNull(),
+})
+
+export const orderItems = sqliteTable('order_items', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  orderId: integer('order_id').notNull().references(() => orders.id),
+  productId: integer('product_id').references(() => products.id), // null = bánh đặt riêng
+  tenMon: text('ten_mon').notNull(),
+  coBanh: text('co_banh'),
+  soLuong: integer('so_luong').notNull().default(1),
+  chuViet: text('chu_viet'),
+  ghiChu: text('ghi_chu'),
+  gia: integer('gia').notNull(),
+})
+
+export const orderItemImages = sqliteTable('order_item_images', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  orderItemId: integer('order_item_id').notNull().references(() => orderItems.id),
+  filePath: text('file_path').notNull(),
+})
+
+export const orderEvents = sqliteTable('order_events', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  orderId: integer('order_id').notNull().references(() => orders.id),
+  userId: integer('user_id').references(() => users.id), // null = hệ thống (job nhắc nhở)
+  hanhDong: text('hanh_dong').notNull(),
+  chiTiet: text('chi_tiet'),
+  thoiDiem: integer('thoi_diem').notNull(),
+})
