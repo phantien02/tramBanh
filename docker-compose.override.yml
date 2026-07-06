@@ -1,0 +1,10 @@
+# Override cho Windows (Docker Desktop): bind mount ./data không hỗ trợ
+# shared-memory file của SQLite WAL (SQLITE_IOERR_SHMOPEN) → dùng named volume.
+# Trên máy chủ Linux KHÔNG cần file này (đừng copy lên server).
+services:
+  tram-banh:
+    volumes: !override
+      - tram-banh-data:/app/data
+
+volumes:
+  tram-banh-data:

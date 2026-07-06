@@ -69,139 +69,213 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
   const tongTien = ghiDeTien && v.tongTienGhiDe != null ? v.tongTienGhiDe : tongTinh
 
   return (
-    <form className="max-w-3xl mx-auto space-y-4" onSubmit={(e) => { e.preventDefault(); onLuu({ ...v, tongTienGhiDe: ghiDeTien ? tongTien : undefined }) }}>
-      {/* Khách + nguồn */}
-      <section className="bg-white rounded-xl p-4 grid grid-cols-2 gap-3">
-        <input required className="border rounded-lg p-3" placeholder="SĐT khách *" inputMode="tel"
-          value={v.khach.sdt} onChange={(e) => traSdt(e.target.value)} />
-        <input required className="border rounded-lg p-3" placeholder="Tên khách *"
-          value={v.khach.ten} onChange={(e) => setV({ ...v, khach: { ...v.khach, ten: e.target.value } })} />
-        <div className="col-span-2 flex gap-2 flex-wrap">
-          {NGUON.map(([gt, ten]) => (
-            <button type="button" key={gt} onClick={() => setV({ ...v, nguon: gt })}
-              className={`px-3 py-2 rounded-lg border ${v.nguon === gt ? 'bg-pink-600 text-white border-pink-600' : 'bg-white'}`}>{ten}</button>
-          ))}
+    <form className="max-w-4xl mx-auto space-y-6 pb-20" onSubmit={(e) => { e.preventDefault(); onLuu({ ...v, tongTienGhiDe: ghiDeTien ? tongTien : undefined }) }}>
+      
+      {/* Khách + Nguồn */}
+      <section className="glass-panel p-6 space-y-4">
+        <h3 className="text-[var(--color-gold-500)] text-sm font-semibold uppercase tracking-wider border-b border-white/10 pb-2 mb-4">Thông tin Khách hàng</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input required className="bg-black/40 border border-[var(--color-dark-border)] rounded-xl p-3 text-white focus:outline-none focus:border-[var(--color-gold-500)] transition-colors placeholder-gray-500" placeholder="Số điện thoại *" inputMode="tel"
+            value={v.khach.sdt} onChange={(e) => traSdt(e.target.value)} />
+          <input required className="bg-black/40 border border-[var(--color-dark-border)] rounded-xl p-3 text-white focus:outline-none focus:border-[var(--color-gold-500)] transition-colors placeholder-gray-500" placeholder="Tên khách hàng *"
+            value={v.khach.ten} onChange={(e) => setV({ ...v, khach: { ...v.khach, ten: e.target.value } })} />
         </div>
-      </section>
-
-      {/* Chọn bánh */}
-      <section className="bg-white rounded-xl p-4 space-y-3">
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {sanPham.map((p) => (
-            <button type="button" key={p.id} onClick={() => themMon(p)}
-              className="shrink-0 border rounded-xl p-2 w-28 hover:border-pink-500 text-center">
-              {p.anh ? <img src={`/api/uploads/${p.anh}`} alt="" className="h-16 w-full object-cover rounded" /> : <div className="h-16 bg-pink-50 rounded flex items-center justify-center text-2xl">🎂</div>}
-              <div className="text-xs mt-1 font-medium leading-tight">{p.ten}</div>
-            </button>
-          ))}
-          <button type="button" onClick={() => setV((x) => ({ ...x, items: [...x.items, { tenMon: '', soLuong: 1, gia: 0, anhMau: [] }] }))}
-            className="shrink-0 border-2 border-dashed rounded-xl p-2 w-28 text-center text-gray-500 hover:border-pink-500">
-            <div className="h-16 flex items-center justify-center text-2xl">＋</div>
-            <div className="text-xs mt-1">Bánh đặt riêng</div>
-          </button>
-        </div>
-
-        {v.items.map((m, i) => {
-          const p = sanPham.find((s) => s.id === m.productId)
-          return (
-            <div key={i} className="border rounded-xl p-3 space-y-2 relative">
-              <button type="button" onClick={() => setV((x) => ({ ...x, items: x.items.filter((_, j) => j !== i) }))}
-                className="absolute top-2 right-2 text-red-500 font-bold px-2">✕</button>
-              <div className="flex gap-2 flex-wrap items-center">
-                <input required className="border rounded-lg p-2 flex-1 min-w-40 font-medium" placeholder="Tên bánh *"
-                  value={m.tenMon} onChange={(e) => suaMon(i, { tenMon: e.target.value })} />
-                {p ? (
-                  <select className="border rounded-lg p-2" value={m.coBanh}
-                    onChange={(e) => {
-                      const size = p.sizes.find((s) => s.tenCo === e.target.value)
-                      suaMon(i, { coBanh: e.target.value, gia: size?.gia ?? m.gia })
-                    }}>
-                    {p.sizes.map((s) => <option key={s.id} value={s.tenCo}>{s.tenCo} — {dinhDangTien(s.gia)}</option>)}
-                  </select>
-                ) : (
-                  <input className="border rounded-lg p-2 w-24" placeholder="Cỡ" value={m.coBanh ?? ''} onChange={(e) => suaMon(i, { coBanh: e.target.value })} />
-                )}
-                <input type="number" min={1} className="border rounded-lg p-2 w-20" value={m.soLuong}
-                  onChange={(e) => suaMon(i, { soLuong: Number(e.target.value) })} />
-                <input type="number" min={0} step={1000} className="border rounded-lg p-2 w-32" value={m.gia}
-                  onChange={(e) => suaMon(i, { gia: Number(e.target.value) })} />
-              </div>
-              <input className="border rounded-lg p-2 w-full bg-pink-50" placeholder="✍️ Chữ viết lên bánh"
-                value={m.chuViet ?? ''} onChange={(e) => suaMon(i, { chuViet: e.target.value })} />
-              <input className="border rounded-lg p-2 w-full" placeholder="Ghi chú món (ít ngọt, đổi màu hoa…)"
-                value={m.ghiChu ?? ''} onChange={(e) => suaMon(i, { ghiChu: e.target.value })} />
-              <div className="flex gap-2 items-center flex-wrap">
-                {m.anhMau.map((f) => <img key={f} src={`/api/uploads/${f}`} alt="" className="h-14 w-14 object-cover rounded" />)}
-                <label className="border-2 border-dashed rounded-lg h-14 w-14 flex items-center justify-center cursor-pointer text-gray-400">
-                  📷<input type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && themAnh(i, e.target.files[0])} />
-                </label>
-              </div>
-            </div>
-          )
-        })}
-      </section>
-
-      {/* Giờ nhận + giao nhận */}
-      <section className="bg-white rounded-xl p-4 grid grid-cols-2 gap-3">
-        <label className="col-span-2 font-medium">🕐 Ngày giờ khách nhận *
-          <div className="flex gap-2 mt-1">
-            <input required type="datetime-local" className="border rounded-lg p-3 flex-1"
-              value={toLocalInput(v.ngayGioNhan)} onChange={(e) => setV({ ...v, ngayGioNhan: new Date(e.target.value).getTime() })} />
-            <button type="button" className="border rounded-lg px-3" onClick={() => setV({ ...v, ngayGioNhan: Date.now() })}>Lấy ngay</button>
-          </div>
-        </label>
-        <div className="col-span-2 flex gap-2">
-          {NHAN.map(([gt, ten]) => (
-            <button type="button" key={gt} onClick={() => setV({ ...v, hinhThucNhan: gt })}
-              className={`px-3 py-2 rounded-lg border ${v.hinhThucNhan === gt ? 'bg-pink-600 text-white border-pink-600' : 'bg-white'}`}>{ten}</button>
-          ))}
-        </div>
-        {v.hinhThucNhan === 'ship' && (<>
-          <input required className="border rounded-lg p-3" placeholder="Địa chỉ ship *"
-            value={v.diaChiShip ?? ''} onChange={(e) => setV({ ...v, diaChiShip: e.target.value })} />
-          <input className="border rounded-lg p-3" placeholder="SĐT người nhận (nếu khác)"
-            value={v.sdtNguoiNhan ?? ''} onChange={(e) => setV({ ...v, sdtNguoiNhan: e.target.value })} />
-          <label className="text-sm">Phí ship
-            <input type="number" min={0} step={1000} className="border rounded-lg p-3 w-full"
-              value={v.phiShip} onChange={(e) => setV({ ...v, phiShip: Number(e.target.value) })} />
-          </label>
-        </>)}
-        <textarea className="col-span-2 border rounded-lg p-3" placeholder="Ghi chú chung của đơn"
-          value={v.ghiChu ?? ''} onChange={(e) => setV({ ...v, ghiChu: e.target.value })} />
-      </section>
-
-      {/* Tiền */}
-      <section className="bg-white rounded-xl p-4 space-y-2">
-        <div className="flex items-center gap-3 text-lg">
-          <span className="font-medium">Tổng tiền:</span>
-          {ghiDeTien
-            ? <input type="number" min={0} step={1000} className="border rounded-lg p-2 w-40 font-bold"
-                value={tongTien} onChange={(e) => setV({ ...v, tongTienGhiDe: Number(e.target.value) })} />
-            : <span className="font-bold">{dinhDangTien(tongTinh)}</span>}
-          <label className="text-sm text-gray-500 ml-auto flex items-center gap-1">
-            <input type="checkbox" checked={ghiDeTien}
-              onChange={(e) => { setGhiDeTien(e.target.checked); if (e.target.checked) setV((x) => ({ ...x, tongTienGhiDe: tongTinh })) }} />
-            Sửa tay (giảm giá…)
-          </label>
-        </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <label>Cọc: <input type="number" min={0} step={1000} className="border rounded-lg p-2 w-32"
-            value={v.tienCoc} onChange={(e) => setV({ ...v, tienCoc: Number(e.target.value) })} /></label>
-          <span className="font-semibold text-pink-700">Còn lại: {dinhDangTien(tinhConLai(tongTien, v.tienCoc))}</span>
-          <div className="flex gap-2 ml-auto">
-            {TT.map(([gt, ten]) => (
-              <button type="button" key={gt} onClick={() => setV({ ...v, hinhThucTt: gt })}
-                className={`px-3 py-1.5 rounded-lg border text-sm ${v.hinhThucTt === gt ? 'bg-gray-800 text-white' : 'bg-white'}`}>{ten}</button>
+        
+        <div className="pt-2">
+          <p className="text-sm text-gray-400 mb-2">Nguồn đơn:</p>
+          <div className="flex gap-2 flex-wrap">
+            {NGUON.map(([gt, ten]) => (
+              <button type="button" key={gt} onClick={() => setV({ ...v, nguon: gt })}
+                className={`px-4 py-2 rounded-xl border transition-colors ${v.nguon === gt ? 'bg-[var(--color-gold-500)] text-black font-semibold border-[var(--color-gold-500)] shadow-[0_0_10px_rgba(234,179,8,0.2)]' : 'bg-white/5 border-[var(--color-dark-border)] text-gray-300 hover:bg-white/10'}`}>{ten}</button>
             ))}
           </div>
         </div>
       </section>
 
-      {loi && <p className="text-red-600 font-medium">{loi}</p>}
-      <button disabled={dangLuu || v.items.length === 0}
-        className="w-full bg-pink-600 text-white rounded-xl p-4 text-xl font-bold disabled:opacity-40">
-        {dangLuu ? 'Đang lưu…' : donCu ? '💾 Lưu thay đổi' : '✅ Tạo đơn'}
-      </button>
+      {/* Chọn bánh */}
+      <section className="glass-panel p-6 space-y-5">
+        <h3 className="text-[var(--color-gold-500)] text-sm font-semibold uppercase tracking-wider border-b border-white/10 pb-2 mb-4 flex justify-between items-center">
+          <span>Chi tiết Sản phẩm</span>
+          <span className="text-gray-400 text-xs font-normal bg-black/30 px-2 py-1 rounded">Đã chọn {v.items.length} món</span>
+        </h3>
+        
+        {/* Menu chọn */}
+        <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar">
+          {sanPham.map((p) => (
+            <button type="button" key={p.id} onClick={() => themMon(p)}
+              className="shrink-0 bg-black/40 border border-[var(--color-dark-border)] rounded-2xl p-2 w-32 hover:border-[var(--color-gold-500)] transition-colors group text-center flex flex-col">
+              {p.anh ? <img src={`/api/uploads/${p.anh}`} alt="" className="h-20 w-full object-cover rounded-xl group-hover:opacity-80 transition-opacity" /> : <div className="h-20 bg-white/5 rounded-xl flex items-center justify-center text-3xl">🎂</div>}
+              <div className="text-sm mt-2 text-gray-300 group-hover:text-[var(--color-gold-400)] leading-tight px-1 flex-1 flex items-center justify-center">{p.ten}</div>
+            </button>
+          ))}
+          <button type="button" onClick={() => setV((x) => ({ ...x, items: [...x.items, { tenMon: '', soLuong: 1, gia: 0, anhMau: [] }] }))}
+            className="shrink-0 border-2 border-dashed border-[var(--color-dark-border)] rounded-2xl p-2 w-32 text-center text-gray-500 hover:border-[var(--color-gold-500)] hover:text-[var(--color-gold-400)] transition-colors flex flex-col">
+            <div className="h-20 flex items-center justify-center text-3xl">＋</div>
+            <div className="text-sm mt-2 leading-tight px-1 flex-1 flex items-center justify-center">Sản phẩm tuỳ chọn</div>
+          </button>
+        </div>
+
+        {/* Danh sách đã chọn */}
+        <div className="space-y-4">
+          {v.items.map((m, i) => {
+            const p = sanPham.find((s) => s.id === m.productId)
+            return (
+              <div key={i} className="bg-black/30 border border-[var(--color-dark-border)] rounded-2xl p-5 space-y-4 relative group">
+                <button type="button" onClick={() => setV((x) => ({ ...x, items: x.items.filter((_, j) => j !== i) }))}
+                  className="absolute top-4 right-4 text-gray-500 hover:text-red-400 font-bold px-2 py-1 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                
+                <div className="flex gap-3 flex-wrap items-center pt-2 md:pt-0">
+                  <div className="flex-1 min-w-[200px]">
+                    <p className="text-xs text-gray-500 mb-1">Tên món</p>
+                    <input required className="w-full bg-black/50 border border-[var(--color-dark-border)] rounded-xl p-2.5 text-[var(--color-gold-300)] font-medium focus:outline-none focus:border-[var(--color-gold-500)] transition-colors" placeholder="Tên bánh *"
+                      value={m.tenMon} onChange={(e) => suaMon(i, { tenMon: e.target.value })} />
+                  </div>
+                  
+                  <div className="w-32">
+                    <p className="text-xs text-gray-500 mb-1">Kích cỡ</p>
+                    {p ? (
+                      <select className="w-full bg-black/50 border border-[var(--color-dark-border)] rounded-xl p-2.5 text-white focus:outline-none focus:border-[var(--color-gold-500)]" value={m.coBanh}
+                        onChange={(e) => {
+                          const size = p.sizes.find((s) => s.tenCo === e.target.value)
+                          suaMon(i, { coBanh: e.target.value, gia: size?.gia ?? m.gia })
+                        }}>
+                        {p.sizes.map((s) => <option key={s.id} value={s.tenCo} className="bg-gray-900">{s.tenCo} — {dinhDangTien(s.gia)}</option>)}
+                      </select>
+                    ) : (
+                      <input className="w-full bg-black/50 border border-[var(--color-dark-border)] rounded-xl p-2.5 text-white focus:outline-none focus:border-[var(--color-gold-500)]" placeholder="Cỡ" value={m.coBanh ?? ''} onChange={(e) => suaMon(i, { coBanh: e.target.value })} />
+                    )}
+                  </div>
+
+                  <div className="w-24">
+                    <p className="text-xs text-gray-500 mb-1">SL</p>
+                    <input type="number" min={1} className="w-full bg-black/50 border border-[var(--color-dark-border)] rounded-xl p-2.5 text-white text-center focus:outline-none focus:border-[var(--color-gold-500)]" value={m.soLuong}
+                      onChange={(e) => suaMon(i, { soLuong: Number(e.target.value) })} />
+                  </div>
+
+                  <div className="w-36">
+                    <p className="text-xs text-gray-500 mb-1">Đơn giá</p>
+                    <input type="number" min={0} step={1000} className="w-full bg-black/50 border border-[var(--color-dark-border)] rounded-xl p-2.5 text-white focus:outline-none focus:border-[var(--color-gold-500)]" value={m.gia}
+                      onChange={(e) => suaMon(i, { gia: Number(e.target.value) })} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input className="bg-[var(--color-gold-500)]/10 border border-[var(--color-gold-500)]/30 rounded-xl p-3 text-[var(--color-gold-100)] placeholder-[var(--color-gold-500)]/50 focus:outline-none focus:border-[var(--color-gold-400)] transition-colors" placeholder="✍️ Chữ viết lên bánh"
+                    value={m.chuViet ?? ''} onChange={(e) => suaMon(i, { chuViet: e.target.value })} />
+                  <input className="bg-black/50 border border-[var(--color-dark-border)] rounded-xl p-3 text-white placeholder-gray-600 focus:outline-none focus:border-[var(--color-gold-500)] transition-colors" placeholder="📝 Ghi chú món (ít ngọt, đổi hoa...)"
+                    value={m.ghiChu ?? ''} onChange={(e) => suaMon(i, { ghiChu: e.target.value })} />
+                </div>
+
+                <div className="flex gap-2 items-center flex-wrap pt-2">
+                  <span className="text-sm text-gray-500 mr-2">Ảnh mẫu:</span>
+                  {m.anhMau.map((f) => <img key={f} src={`/api/uploads/${f}`} alt="" className="h-16 w-16 object-cover rounded-lg border border-white/10 shadow-lg" />)}
+                  <label className="border-2 border-dashed border-[var(--color-dark-border)] hover:border-[var(--color-gold-500)] rounded-lg h-16 w-16 flex items-center justify-center cursor-pointer text-gray-400 hover:text-[var(--color-gold-400)] transition-colors bg-black/20">
+                    <span className="text-xl">📷</span>
+                    <input type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && themAnh(i, e.target.files[0])} />
+                  </label>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* Giao nhận */}
+      <section className="glass-panel p-6 space-y-4">
+        <h3 className="text-[var(--color-gold-500)] text-sm font-semibold uppercase tracking-wider border-b border-white/10 pb-2 mb-4">Giao hàng & Nhận bánh</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+             <label className="block text-gray-300 font-medium mb-2">🕐 Ngày giờ khách lấy bánh *</label>
+             <div className="flex gap-2">
+               <input required type="datetime-local" className="bg-black/40 border border-[var(--color-dark-border)] rounded-xl p-3 flex-1 text-white focus:outline-none focus:border-[var(--color-gold-500)] css-dark-calendar"
+                 value={toLocalInput(v.ngayGioNhan)} onChange={(e) => setV({ ...v, ngayGioNhan: new Date(e.target.value).getTime() })} />
+               <button type="button" className="border border-[var(--color-dark-border)] bg-white/5 hover:bg-white/10 text-white rounded-xl px-4 transition-colors font-medium whitespace-nowrap" onClick={() => setV({ ...v, ngayGioNhan: Date.now() })}>Lấy ngay</button>
+             </div>
+          </div>
+          
+          <div>
+            <label className="block text-gray-300 font-medium mb-2">Hình thức nhận</label>
+            <div className="flex gap-2">
+              {NHAN.map(([gt, ten]) => (
+                <button type="button" key={gt} onClick={() => setV({ ...v, hinhThucNhan: gt })}
+                  className={`px-4 py-3 flex-1 rounded-xl border transition-colors ${v.hinhThucNhan === gt ? 'bg-[var(--color-gold-500)] text-black font-semibold border-[var(--color-gold-500)] shadow-[0_0_10px_rgba(234,179,8,0.2)]' : 'bg-white/5 border-[var(--color-dark-border)] text-gray-300 hover:bg-white/10'}`}>{ten}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {v.hinhThucNhan === 'ship' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 bg-black/20 p-4 rounded-xl border border-[var(--color-dark-border)]">
+            <input required className="bg-black/40 border border-[var(--color-dark-border)] rounded-xl p-3 text-white focus:outline-none focus:border-[var(--color-gold-500)] md:col-span-2" placeholder="Địa chỉ ship chi tiết *"
+              value={v.diaChiShip ?? ''} onChange={(e) => setV({ ...v, diaChiShip: e.target.value })} />
+            <input className="bg-black/40 border border-[var(--color-dark-border)] rounded-xl p-3 text-white focus:outline-none focus:border-[var(--color-gold-500)]" placeholder="SĐT người nhận (nếu khác)"
+              value={v.sdtNguoiNhan ?? ''} onChange={(e) => setV({ ...v, sdtNguoiNhan: e.target.value })} />
+            <div className="flex items-center gap-3">
+              <span className="text-gray-400 whitespace-nowrap px-2">Phí ship</span>
+              <input type="number" min={0} step={1000} className="bg-black/40 border border-[var(--color-dark-border)] rounded-xl p-3 text-white focus:outline-none focus:border-[var(--color-gold-500)] flex-1 text-right"
+                value={v.phiShip} onChange={(e) => setV({ ...v, phiShip: Number(e.target.value) })} />
+            </div>
+          </div>
+        )}
+        
+        <div className="pt-2">
+          <textarea className="w-full bg-black/40 border border-[var(--color-dark-border)] rounded-xl p-4 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-gold-500)] min-h-[100px]" placeholder="Ghi chú chung của đơn hàng..."
+            value={v.ghiChu ?? ''} onChange={(e) => setV({ ...v, ghiChu: e.target.value })} />
+        </div>
+      </section>
+
+      {/* Tiền */}
+      <section className="glass-panel p-6 space-y-6">
+        <h3 className="text-[var(--color-gold-500)] text-sm font-semibold uppercase tracking-wider border-b border-white/10 pb-2 mb-4">Thanh toán</h3>
+        
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-black/30 p-4 rounded-xl border border-[var(--color-dark-border)]">
+          <div className="flex items-center gap-4 text-xl">
+            <span className="text-gray-300 font-medium">Tổng thanh toán:</span>
+            {ghiDeTien
+              ? <input type="number" min={0} step={1000} className="bg-black/50 border border-[var(--color-gold-500)]/50 rounded-xl p-2 w-48 text-[var(--color-gold-400)] font-bold text-right shadow-[0_0_15px_rgba(234,179,8,0.1)] focus:outline-none"
+                  value={tongTien} onChange={(e) => setV({ ...v, tongTienGhiDe: Number(e.target.value) })} />
+              : <span className="font-bold text-[var(--color-gold-400)] text-2xl tracking-wide">{dinhDangTien(tongTinh)}</span>}
+          </div>
+          
+          <label className="text-sm text-gray-400 flex items-center gap-2 cursor-pointer hover:text-white transition-colors bg-white/5 px-3 py-2 rounded-lg">
+            <input type="checkbox" className="w-4 h-4 rounded border-gray-600 bg-black/50 accent-[var(--color-gold-500)]" checked={ghiDeTien}
+              onChange={(e) => { setGhiDeTien(e.target.checked); if (e.target.checked) setV((x) => ({ ...x, tongTienGhiDe: tongTinh })) }} />
+            Cho phép sửa giá thủ công (VD: Giảm giá)
+          </label>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end pt-2">
+          <div className="md:col-span-4">
+            <label className="block text-gray-400 text-sm mb-2">Đã đặt cọc</label>
+            <input type="number" min={0} step={1000} className="w-full bg-black/40 border border-[var(--color-dark-border)] rounded-xl p-3.5 text-white text-lg focus:outline-none focus:border-[var(--color-gold-500)]"
+              value={v.tienCoc} onChange={(e) => setV({ ...v, tienCoc: Number(e.target.value) })} />
+          </div>
+          
+          <div className="md:col-span-8 flex flex-col items-end w-full">
+             <div className="mb-3 text-right">
+               <span className="text-gray-400 text-lg mr-3">Còn lại:</span>
+               <span className="font-bold text-2xl text-[var(--color-gold-400)]">{dinhDangTien(tinhConLai(tongTien, v.tienCoc))}</span>
+             </div>
+             
+             <div className="flex gap-2 w-full justify-end">
+               {TT.map(([gt, ten]) => (
+                 <button type="button" key={gt} onClick={() => setV({ ...v, hinhThucTt: gt })}
+                   className={`px-4 py-3 rounded-xl border text-sm transition-colors ${v.hinhThucTt === gt ? 'bg-white/20 text-white font-medium border-white/40' : 'bg-transparent text-gray-400 border-[var(--color-dark-border)] hover:bg-white/5'}`}>{ten}</button>
+               ))}
+             </div>
+          </div>
+        </div>
+      </section>
+
+      {loi && <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl font-medium text-center">{loi}</div>}
+      
+      <div className="sticky bottom-6 z-50 mt-8">
+        <button disabled={dangLuu || v.items.length === 0}
+          className="w-full btn-primary py-4 text-xl tracking-wide disabled:opacity-40 shadow-[0_10px_30px_rgba(234,179,8,0.2)]">
+          {dangLuu ? 'Đang lưu…' : donCu ? '💾 Lưu thay đổi' : '✅ Đặt Hàng Mới'}
+        </button>
+      </div>
     </form>
   )
 }

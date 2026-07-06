@@ -19,16 +19,50 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4">
-      <form onSubmit={dangNhap} className="bg-white rounded-2xl shadow p-8 w-full max-w-sm space-y-4">
-        <h1 className="text-2xl font-bold text-center">🎂 Trạm Bánh</h1>
-        <input className="w-full border rounded-lg p-3 text-lg" placeholder="Tên đăng nhập" value={username}
-          onChange={(e) => setUsername(e.target.value)} autoFocus autoCapitalize="none" />
-        <input className="w-full border rounded-lg p-3 text-lg" placeholder="Mật khẩu" type="password"
-          value={password} onChange={(e) => setPassword(e.target.value)} />
-        {loi && <p className="text-red-600 text-sm">{loi}</p>}
-        <button disabled={dangGui} className="w-full bg-pink-600 text-white rounded-lg p-3 text-lg font-semibold disabled:opacity-50">
-          {dangGui ? 'Đang đăng nhập…' : 'Đăng nhập'}
+    <main className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[var(--color-dark-bg)]">
+      {/* Background decoration */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--color-gold-500)]/5 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[var(--color-gold-600)]/10 rounded-full blur-[80px] pointer-events-none"></div>
+      
+      <form onSubmit={dangNhap} className="glass-panel p-10 w-full max-w-sm space-y-6 relative z-10">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-[var(--color-gold-400)] mb-2 tracking-wide">Trạm Bánh</h1>
+          <p className="text-gray-400 text-sm">Hệ thống quản lý nội bộ</p>
+        </div>
+        
+        <div className="space-y-4">
+          <div>
+            <input 
+              className="w-full bg-black/40 border border-[var(--color-dark-border)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[var(--color-gold-500)] transition-colors placeholder-gray-500" 
+              placeholder="Tên đăng nhập" 
+              value={username}
+              onChange={(e) => setUsername(e.target.value)} 
+              autoFocus 
+              autoCapitalize="none" 
+            />
+          </div>
+          <div>
+            <input 
+              className="w-full bg-black/40 border border-[var(--color-dark-border)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[var(--color-gold-500)] transition-colors placeholder-gray-500" 
+              placeholder="Mật khẩu" 
+              type="password"
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+            />
+          </div>
+        </div>
+
+        {loi && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+            <p className="text-red-400 text-sm text-center font-medium">{loi}</p>
+          </div>
+        )}
+        
+        <button 
+          disabled={dangGui} 
+          className="w-full btn-primary disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+        >
+          {dangGui ? 'Đang xác thực...' : 'Đăng nhập'}
         </button>
       </form>
     </main>
