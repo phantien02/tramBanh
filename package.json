@@ -6,7 +6,7 @@
     "dev": "cross-env TZ=Asia/Ho_Chi_Minh next dev",
     "build": "next build",
     "start": "cross-env TZ=Asia/Ho_Chi_Minh next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "cross-env TZ=Asia/Ho_Chi_Minh vitest run --passWithNoTests",
     "db:generate": "drizzle-kit generate",
     "db:seed": "cross-env TZ=Asia/Ho_Chi_Minh tsx src/db/seed.ts"
