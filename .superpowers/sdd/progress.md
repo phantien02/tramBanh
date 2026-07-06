@@ -25,9 +25,11 @@ Task 11: complete (commit 527a73d, review approved)
   - Note môi trường: curl Git-Bash Windows corrupt UTF-8 inline -d; dùng --data-binary @file.
 Task 12: complete (commit 90a9b09, review approved)
   - Minor ghi nhận: .claude/launch.json (dev config Preview tool) đi kèm commit feat; AudioContext mới mỗi lần chuông (plan-mandated pattern).
-Task 13: DỞ DANG (wip commit 27c4af7) — RESUME TẠI ĐÂY
-  - Cả 7 file của brief đã được viết (OrderForm, quay/page, don-moi, don/[id], don/[id]/sua, OrderDetail, api/me) nhưng CHƯA verify: chưa chạy npm test / npm run build, chưa E2E, chưa review.
-  - Việc cần làm khi resume: (1) dispatch subagent verify+sửa nếu cần (đối chiếu code với task-13-brief.md, chạy test+build, E2E vòng đời đơn theo brief Step 5) rồi review như quy trình; KHÔNG viết lại từ đầu.
+Task 13: complete (wip 27c4af7 hoàn thiện thành commit verify, xem git log) — RESUME TẠI ĐÂY
+  - Verify: cả 7 file (OrderForm, quay/page, don-moi, don/[id], don/[id]/sua, OrderDetail, api/me) khớp task-13-brief.md verbatim — không cần sửa gì, wip đã hoàn chỉnh trước khi crash.
+  - npm test: 25 passed. npm run build: PASS (Turbopack, TS ok, 15 route generated đủ /quay, /quay/don-moi, /quay/don/[id], /quay/don/[id]/sua).
+  - E2E qua API (Chrome extension không kết nối được, dùng curl có session cookie thay preview browser): login admin → tạo đơn (POST /api/orders) → xuất hiện đúng cột "moi" trong query board Hôm nay (den=cuối ngày) → chuyển đủ vòng đời moi→dang_lam→banh_xong→da_nhan→hoan_tat(ketThucKieu=giao_khach) đều 200 → hủy đơn không lyDoHuy → 409 "Nhập lý do hủy", có lyDoHuy → 200 → PATCH sửa đơn (đổi tên khách + số lượng) → tongTien tự tính lại đúng, event log "sua_don". Cả 4 trang /quay, /quay/don-moi, /quay/don/[id], /quay/don/[id]/sua trả 200 và render đúng nội dung khi có session.
+  - Chưa review theo quy trình subagent-driven-development (chưa dispatch reviewer riêng) — cân nhắc làm trước khi sang Task 14 nếu muốn giữ đúng quy trình từng task.
   - Sau đó: Task 14 (bếp), 15 (quản lý), 16 (Docker+README) → final whole-branch review (model mạnh nhất) → finishing-a-development-branch.
 
 == HƯỚNG DẪN RESUME (cho phiên sau) ==
