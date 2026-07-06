@@ -1,4 +1,4 @@
-import { and, eq, gte, lte, inArray, like, or, sql } from 'drizzle-orm'
+import { and, eq, gte, lte, inArray, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { customers, orders, orderItems, orderItemImages, orderEvents } from '@/db/schema'
 import { chuyenHopLe, type TrangThai } from './status'
