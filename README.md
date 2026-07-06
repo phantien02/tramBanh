@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Trạm Bánh
 
-## Getting Started
+Ứng dụng quản lý đơn hàng cho tiệm bánh: quầy tiếp nhận/tạo đơn, bếp theo dõi và
+xử lý đơn theo ngày, quản lý theo dõi sản phẩm/nhân viên/thống kê. Dữ liệu (cơ
+sở dữ liệu SQLite + ảnh sản phẩm) được lưu cục bộ trong thư mục `data/` để dễ
+sao lưu và triển khai trên một máy chủ nhỏ.
 
-First, run the development server:
+## Yêu cầu
+
+- Chạy dev: Node.js 22+ và npm.
+- Triển khai: Docker + Docker Compose (khuyến nghị — không cần cài Node trên máy chủ).
+
+## Chạy ở môi trường dev
 
 ```bash
+npm i
+npm run db:seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Mở `http://localhost:3000`. Lần đầu seed sẽ tạo tài khoản quản lý
+`admin` / `admin123` và vài bánh mẫu — **đổi mật khẩu ngay** sau khi đăng nhập lần đầu.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Các lệnh khác:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build   # build production
+npm run start   # chạy bản build (không dùng khi triển khai bằng Docker)
+npm test        # chạy test
+npm run lint    # kiểm tra lint
+```
 
-## Learn More
+## Triển khai bằng Docker
 
-To learn more about Next.js, take a look at the following resources:
+1. Tạo file `.env` chứa khóa bí mật ký phiên đăng nhập (mỗi lần triển khai mới nên tạo khóa riêng):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   echo "SESSION_SECRET=$(openssl rand -hex 32)" > .env
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. Build và chạy:
 
-## Deploy on Vercel
+   ```bash
+   docker compose up -d --build
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   Ứng dụng chạy ở cổng `3000` (`http://<ip-may-chu>:3000`). Toàn bộ dữ liệu
+   (file SQLite `tram-banh.db` và ảnh upload) được lưu trong thư mục `data/`
+   trên máy chủ, gắn vào container qua volume `./data:/app/data` — dữ liệu vẫn
+   còn nguyên khi restart hoặc rebuild container.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. Lần đầu chạy, cơ sở dữ liệu trống. Seed tài khoản quản lý và vài bánh mẫu
+   **trước khi** khởi động container, bằng cách chạy seed ngay trên máy chủ
+   (cần Node.js tạm thời) trỏ vào đúng thư mục `data/` sẽ được mount:
+
+   ```bash
+   DATA_DIR=./data npm run db:seed
+   ```
+
+   Lệnh này tạo file `data/tram-banh.db` với tài khoản quản lý mẫu. Sau đó
+   chạy `docker compose up -d --build` như bước 2 — container sẽ dùng đúng dữ
+   liệu vừa seed vì cùng thư mục `data/` được mount vào.
+
+   Nếu máy chủ không có Node.js, seed ở máy dev rồi copy thư mục `data/` lên
+   máy chủ (đặt cạnh `docker-compose.yml`) trước khi `docker compose up -d --build`.
+
+   Đăng nhập lần đầu bằng `admin` / `admin123` — **đổi mật khẩu ngay** trong
+   mục quản lý nhân viên.
+
+4. Xem log / dừng / khởi động lại:
+
+   ```bash
+   docker compose logs -f
+   docker compose restart
+   docker compose down
+   ```
+
+### Sao lưu (backup)
+
+Toàn bộ dữ liệu nằm trong thư mục `data/` (cơ sở dữ liệu + ảnh). Sao lưu định kỳ
+bằng cách copy thư mục này sang nơi lưu trữ khác, ví dụ:
+
+```bash
+cp -r data data-backup-$(date +%Y%m%d)
+```
+
+Khôi phục: dừng container (`docker compose down`), thay thế thư mục `data/`
+bằng bản sao lưu, rồi `docker compose up -d` lại.
+
+### HTTPS
+
+Container chỉ phục vụ HTTP ở cổng 3000. Nếu cần HTTPS, đặt ứng dụng sau một
+reverse proxy như nginx hoặc Caddy và trỏ tên miền/cổng 443 về `localhost:3000`
+trên máy chủ.
+
+## Cấu trúc dữ liệu
+
+- `data/tram-banh.db` — cơ sở dữ liệu SQLite (đơn hàng, sản phẩm, nhân viên...).
+- `data/uploads/` — ảnh sản phẩm đã upload.
+
+Không commit thư mục `data/` vào git (đã có trong `.gitignore`).

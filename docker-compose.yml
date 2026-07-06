@@ -1,0 +1,10 @@
+services:
+  tram-banh:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - SESSION_SECRET=${SESSION_SECRET:?Đặt SESSION_SECRET trong file .env}
+    restart: unless-stopped
