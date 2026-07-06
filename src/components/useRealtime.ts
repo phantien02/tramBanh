@@ -2,9 +2,14 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SuKien } from '@/lib/sse'
 
+// dùng chung 1 AudioContext cho cả app — trình duyệt giới hạn số context sống,
+// tạo mới mỗi lần chuông kêu sẽ khiến chuông "chết" âm thầm trên tablet chạy lâu ngày
+let ctx: AudioContext | undefined
+
 function phatChuong() {
   try {
-    const ctx = new AudioContext()
+    ctx ??= new AudioContext()
+    ctx.resume()
     const o = ctx.createOscillator()
     const g = ctx.createGain()
     o.connect(g); g.connect(ctx.destination)

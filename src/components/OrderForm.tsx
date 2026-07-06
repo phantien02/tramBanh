@@ -59,8 +59,10 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
 
   async function themAnh(i: number, file: File) {
     const fd = new FormData(); fd.append('file', file)
-    const { filePath } = await fetch('/api/upload', { method: 'POST', body: fd }).then((r) => r.json())
-    suaMon(i, { anhMau: [...v.items[i].anhMau, filePath] })
+    const res = await fetch('/api/upload', { method: 'POST', body: fd })
+    const data = await res.json()
+    if (!res.ok) { alert(`Tải ảnh thất bại: ${data.error}`); return }
+    suaMon(i, { anhMau: [...v.items[i].anhMau, data.filePath] })
   }
 
   const tongTinh = tinhTongTien(v.items, v.phiShip)

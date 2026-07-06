@@ -3,6 +3,10 @@ import type { VaiTro } from './status'
 
 export type SessionUser = { id: number; username: string; hoTen: string; vaiTro: VaiTro }
 
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  throw new Error('Thiếu biến môi trường SESSION_SECRET — bắt buộc khi chạy production để bảo mật phiên đăng nhập')
+}
+
 const secret = () => new TextEncoder().encode(process.env.SESSION_SECRET ?? 'dev-secret-thay-toi-khi-deploy')
 
 export async function taoSessionCookie(user: SessionUser): Promise<string> {
