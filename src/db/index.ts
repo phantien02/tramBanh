@@ -7,16 +7,22 @@ import * as schema from './schema'
 
 const DATA_DIR = process.env.DATA_DIR ?? path.join(process.cwd(), 'data')
 
-function taoDb() {
+function taoKetNoi() {
   fs.mkdirSync(path.join(DATA_DIR, 'uploads'), { recursive: true })
-  const sqlite = new Database(path.join(DATA_DIR, 'tram-banh.db'))
-  sqlite.pragma('journal_mode = WAL')
-  sqlite.pragma('foreign_keys = ON')
-  const db = drizzle(sqlite, { schema })
+  const conn = new Database(path.join(DATA_DIR, 'tram-banh.db'))
+  conn.pragma('journal_mode = WAL')
+  conn.pragma('foreign_keys = ON')
+  return conn
+}
+
+function taoDb(conn: Database.Database) {
+  const db = drizzle(conn, { schema })
   migrate(db, { migrationsFolder: path.join(process.cwd(), 'drizzle') })
   return db
 }
 
 // singleton qua globalThis để Next dev không mở nhiều kết nối
-const g = globalThis as unknown as { __db?: ReturnType<typeof taoDb> }
-export const db = (g.__db ??= taoDb())
+const g = globalThis as unknown as { __db?: ReturnType<typeof taoDb>; __sqlite?: Database.Database }
+
+export const sqlite = (g.__sqlite ??= taoKetNoi())
+export const db = (g.__db ??= taoDb(sqlite))

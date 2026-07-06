@@ -11,7 +11,7 @@ type ChiTiet = {
   daSua: number; lyDoHuy?: string | null
   khach?: { ten: string; sdt: string } | null
   items: { id: number; tenMon: string; coBanh?: string | null; soLuong: number; chuViet?: string | null; ghiChu?: string | null; gia: number; anhMau: string[] }[]
-  events: { id: number; hanhDong: string; chiTiet?: string | null; thoiDiem: number; userId?: number | null }[]
+  events: { id: number; hanhDong: string; chiTiet?: string | null; thoiDiem: number; userId?: number | null; tenNguoiThucHien: string }[]
 }
 
 // nút hành động khả dụng theo trạng thái + vai trò (khớp máy trạng thái Task 4)
@@ -124,7 +124,7 @@ export default function OrderDetail({ id, vaiTro, onDong }: { id: number; vaiTro
         <summary className="cursor-pointer">Nhật ký đơn</summary>
         <ul className="mt-1 space-y-0.5">
           {don.events.map((e) => (
-            <li key={e.id}>{new Date(e.thoiDiem).toLocaleString('vi-VN')} — {e.hanhDong}{e.chiTiet ? ` (${e.chiTiet})` : ''}</li>
+            <li key={e.id}>{new Date(e.thoiDiem).toLocaleString('vi-VN')} — {e.tenNguoiThucHien} — {e.hanhDong}{e.chiTiet ? ` (${e.chiTiet})` : ''}</li>
           ))}
         </ul>
       </details>

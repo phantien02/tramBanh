@@ -2,12 +2,13 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
+import { eq } from 'drizzle-orm'
 
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'trambanh-test-'))
 
 const { taoDon, chuyenTrangThai, suaDon, layDanhSachDon } = await import('./orders-service')
 const { db } = await import('@/db')
-const { users, orders } = await import('@/db/schema')
+const { users, orders, orderItems } = await import('@/db/schema')
 
 let quayId: number, bepId: number
 
@@ -69,6 +70,41 @@ describe('suaDon', () => {
     suaDon(id, { ...donMau(Date.now() + 86400000), ghiChu: 'Đổi màu hoa' }, quayId)
     const don = db.select().from(orders).all().find((o) => o.id === id)!
     expect(don.daSua).toBe(1)
+  })
+
+  it('lưu với hinhThucNhan khác ship → xóa diaChiShip/sdtNguoiNhan, phiShip=0', () => {
+    const { id } = taoDon(donMau(Date.now() + 86400000), quayId)
+    const dataShip = {
+      ...donMau(Date.now() + 86400000),
+      hinhThucNhan: 'ship' as const,
+      diaChiShip: '123 Lê Lợi', sdtNguoiNhan: '0909009009', phiShip: 20000,
+    }
+    suaDon(id, dataShip, quayId)
+    let don = db.select().from(orders).all().find((o) => o.id === id)!
+    expect(don.diaChiShip).toBe('123 Lê Lợi')
+    expect(don.phiShip).toBe(20000)
+
+    suaDon(id, { ...donMau(Date.now() + 86400000), hinhThucNhan: 'tai_tiem' }, quayId)
+    don = db.select().from(orders).all().find((o) => o.id === id)!
+    expect(don.diaChiShip).toBeNull()
+    expect(don.sdtNguoiNhan).toBeNull()
+    expect(don.phiShip).toBe(0)
+  })
+
+  it('rollback khi item hỏng (productId không tồn tại) → items gốc của đơn còn nguyên', () => {
+    const { id } = taoDon(donMau(Date.now() + 86400000), quayId)
+    const truoc = db.select().from(orderItems).where(eq(orderItems.orderId, id)).all()
+    expect(truoc.length).toBe(1)
+
+    const hong = {
+      ...donMau(Date.now() + 86400000),
+      items: [{ productId: 999999, tenMon: 'Bánh lỗi', soLuong: 1, gia: 100000 }],
+    }
+    expect(() => suaDon(id, hong, quayId)).toThrow()
+
+    const sau = db.select().from(orderItems).where(eq(orderItems.orderId, id)).all()
+    expect(sau.length).toBe(1)
+    expect(sau[0].tenMon).toBe(truoc[0].tenMon)
   })
 })
 
