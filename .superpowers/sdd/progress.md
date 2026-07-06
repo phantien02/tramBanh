@@ -39,3 +39,16 @@ Task 13: complete (wip 27c4af7 hoàn thiện thành commit verify, xem git log) 
 - Tài khoản dev DB: admin/admin123 (quanly), quay1/123456, bep1/123456.
 - Model đã dùng: implementer haiku (task thuần transcription) / sonnet (task tích hợp, UI, server); reviewer sonnet; final review dùng model mạnh nhất.
 - OPEN plan-mandated findings chờ người dùng quyết (xem chi tiết ở các mục Task 6, 8, 9, 11 phía trên): session secret fallback; upload không giới hạn size/MIME; validation gia/vaiTro/409 bare-catch.
+Task 13: complete (commits 27c4af7..8869bb2, review approved) — wip cũ hóa ra đã đúng verbatim, chỉ verify + E2E.
+  - OPEN plan-mandated finding (Important, hardening pass): OrderForm.themAnh không check res.ok — upload fail đẩy undefined vào anhMau (ảnh vỡ, lỗi câm).
+  - Minor: goiChuyen luôn tai() kể cả khi fail; dead state suaMode (plan-mandated); E2E mới ở mức API, chưa click-through browser.
+Task 14: complete (commit dc12fed, review approved)
+  - Deviation cosmetic đã duyệt: &ldquo;/&rdquo; entities thay curly quotes (render giống hệt).
+  - Ghi chú: E2E mức API (extension browser không kết nối được); chuông/SSE live chưa test click-through — gộp vào kiểm thử toàn cục sau Task 16.
+Task 15: complete (review approved) — thống kê, tất cả đơn + CSV, danh mục bánh, nhân viên
+  - TDD: thong-ke.test.ts RED (module not found) → viết thong-ke.ts → GREEN. npm test: 26 passed (25 cũ + 1 mới). npm run build: PASS, đủ route /api/thong-ke, /quanly, /quanly/don, /quanly/banh, /quanly/nhan-vien.
+  - Verify qua API (dev server có sẵn trên port 3000, preview tool không attach được vào process ngoài): login admin → GET /api/thong-ke với cửa sổ 7 ngày (dùng đúng dauCuoiNgay như dashboard) → doanhThu=440000 (2 đơn hoàn_tat × 220000), soDon=5 (loại đơn ngoài cửa sổ), soDonHuy=2, monBanChay/theoGio/khachMuaNhieu đúng dữ liệu E2E cũ. Vai trò quay gọi /api/thong-ke → 403 đúng.
+  - /quanly/banh: GET /api/products trả 5 sản phẩm kèm sizes. /quanly/nhan-vien: tạo nhân viên mới qua POST /api/users → PATCH active=false → login bằng tài khoản đó bị từ chối (khóa hoạt động đúng).
+  - CSV: mô phỏng logic taiCsv trong Node từ dữ liệu /api/orders thật — xác nhận byte đầu là BOM (feff), phân tách bằng `;`, giá trị bọc trong `"..."` với `""` escape, tiếng Việt giữ nguyên; tên file theo mẫu don-hang-<tu>-den-<den>.csv (đọc code, không cần click browser).
+  - Cả 4 trang /quanly, /quanly/don, /quanly/banh, /quanly/nhan-vien trả 200 khi có session quanly.
+  - Sau đó: Task 16 (Docker+README) → final whole-branch review (model mạnh nhất) → finishing-a-development-branch.
