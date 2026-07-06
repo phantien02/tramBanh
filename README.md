@@ -38,7 +38,20 @@ npm run lint    # kiểm tra lint
    echo "SESSION_SECRET=$(openssl rand -hex 32)" > .env
    ```
 
-2. Build và chạy:
+2. Seed dữ liệu lần đầu — cần cài npm dependencies trước:
+
+   ```bash
+   npm i
+   DATA_DIR=./data npm run db:seed
+   ```
+
+   Lệnh này tạo file `data/tram-banh.db` với tài khoản quản lý mẫu. Nếu máy chủ
+   không có Node.js, seed ở máy dev rồi copy thư mục `data/` lên máy chủ (đặt
+   cạnh `docker-compose.yml`).
+
+   _Lưu ý: tsx và cross-env là devDependencies nên cần `npm i` trước khi seed._
+
+3. Build và chạy:
 
    ```bash
    docker compose up -d --build
@@ -48,21 +61,6 @@ npm run lint    # kiểm tra lint
    (file SQLite `tram-banh.db` và ảnh upload) được lưu trong thư mục `data/`
    trên máy chủ, gắn vào container qua volume `./data:/app/data` — dữ liệu vẫn
    còn nguyên khi restart hoặc rebuild container.
-
-3. Lần đầu chạy, cơ sở dữ liệu trống. Seed tài khoản quản lý và vài bánh mẫu
-   **trước khi** khởi động container, bằng cách chạy seed ngay trên máy chủ
-   (cần Node.js tạm thời) trỏ vào đúng thư mục `data/` sẽ được mount:
-
-   ```bash
-   DATA_DIR=./data npm run db:seed
-   ```
-
-   Lệnh này tạo file `data/tram-banh.db` với tài khoản quản lý mẫu. Sau đó
-   chạy `docker compose up -d --build` như bước 2 — container sẽ dùng đúng dữ
-   liệu vừa seed vì cùng thư mục `data/` được mount vào.
-
-   Nếu máy chủ không có Node.js, seed ở máy dev rồi copy thư mục `data/` lên
-   máy chủ (đặt cạnh `docker-compose.yml`) trước khi `docker compose up -d --build`.
 
    Đăng nhập lần đầu bằng `admin` / `admin123` — **đổi mật khẩu ngay** trong
    mục quản lý nhân viên.
