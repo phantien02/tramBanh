@@ -52,3 +52,17 @@ Task 15: complete (review approved) — thống kê, tất cả đơn + CSV, dan
   - CSV: mô phỏng logic taiCsv trong Node từ dữ liệu /api/orders thật — xác nhận byte đầu là BOM (feff), phân tách bằng `;`, giá trị bọc trong `"..."` với `""` escape, tiếng Việt giữ nguyên; tên file theo mẫu don-hang-<tu>-den-<den>.csv (đọc code, không cần click browser).
   - Cả 4 trang /quanly, /quanly/don, /quanly/banh, /quanly/nhan-vien trả 200 khi có session quanly.
   - Sau đó: Task 16 (Docker+README) → final whole-branch review (model mạnh nhất) → finishing-a-development-branch.
+Task 15: complete (commit dee3ccb, review approved)
+  - OPEN plan-mandated findings (hardening pass): N+1 trong thong-ke (items/events/customers per đơn); thiếu res.ok trên GET/PATCH ở cả 4 trang quanly (cùng class với Task 13).
+  - Ghi chú plan: filter "nguồn" ở /quanly/don có trong prose của plan nhưng không có trong code plan — bỏ theo code.
+Task 16: complete (commits 6c61ac1..5490a0e, review approved sau fix README)
+  - Fix theo review: thứ tự seed trước container + bổ sung npm i (5490a0e).
+  - Deviation hợp lý đã duyệt: seed trên host thay vì exec trong container (tsx là devDependency, không có trong prod image).
+  - VIỆC NGƯỜI DÙNG CẦN LÀM: chạy `docker compose up -d --build` một lần trên máy có Docker daemon để xác nhận container (máy dev này daemon không bật).
+== TẤT CẢ 16 TASK XONG — bước cuối: final whole-branch review ==
+Final review toàn branch (model mạnh nhất): READY TO MERGE — Yes. Không Critical.
+  - Xác nhận adjudication race mã đơn: ACCEPT (đúng như controller phân tích).
+  - Hardening wave đã áp (006e5c2 + b833bb8): khóa tài khoản hiệu lực ngay (layUser recheck DB), transaction taoDon/suaDon/sizes, AudioContext dùng chung, upload validate size/MIME + themAnh check res.ok, fail-fast SESSION_SECRET ở production, X-Accel-Buffering:no cho SSE, log hiện hoTen người bấm, dọn field ship khi không phải ship. 28/28 test.
+  - Còn lại (ACCEPT/ghi nhận, không chặn merge): res.ok các trang quanly (degrade êm), N+1 (plan choice), cột "Bánh xong nhấp nháy" spec §8.1 thay bằng chuông+màu, secure cookie khi nào có TLS, rate-limit login.
+  - VIỆC NGƯỜI DÙNG: (1) chạy `docker compose up -d --build` một lần trên máy có Docker để xác nhận container; (2) quyết định merge xay-dung-app → master.
+== DỰ ÁN HOÀN TẤT — 16/16 task + final review + hardening ==
