@@ -31,6 +31,15 @@ export const productSizes = sqliteTable('product_sizes', {
   gia: integer('gia').notNull(),
 })
 
+// Danh sách vị cho "Bánh kem sinh nhật theo mẫu" — sửa được ở màn Quản lý > Sản phẩm
+export const banhOptions = sqliteTable('banh_options', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  loai: text('loai', { enum: ['cot', 'mut', 'topping', 'size'] }).notNull(),
+  ten: text('ten').notNull(),
+  thuTu: integer('thu_tu').notNull().default(0),
+  active: integer('active').notNull().default(1),
+})
+
 export const orders = sqliteTable('orders', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   maDon: text('ma_don').notNull().unique(),
@@ -39,6 +48,7 @@ export const orders = sqliteTable('orders', {
   ngayGioNhan: integer('ngay_gio_nhan').notNull(), // unix ms
   hinhThucNhan: text('hinh_thuc_nhan', { enum: ['tai_tiem', 'ship', 'tu_trung_bay'] }).notNull(),
   diaChiShip: text('dia_chi_ship'),
+  tenNguoiNhan: text('ten_nguoi_nhan'),
   sdtNguoiNhan: text('sdt_nguoi_nhan'),
   phiShip: integer('phi_ship').notNull().default(0),
   tongTien: integer('tong_tien').notNull(),
@@ -61,7 +71,10 @@ export const orderItems = sqliteTable('order_items', {
   orderId: integer('order_id').notNull().references(() => orders.id),
   productId: integer('product_id').references(() => products.id), // null = bánh đặt riêng
   tenMon: text('ten_mon').notNull(),
-  coBanh: text('co_banh'),
+  coBanh: text('co_banh'),          // size (T10, C12, T12, … C18, T18)
+  cot: text('cot'),                 // vị cốt bánh
+  mut: text('mut'),                 // vị mứt
+  topping: text('topping'),         // JSON mảng topping (chọn nhiều)
   soLuong: integer('so_luong').notNull().default(1),
   chuViet: text('chu_viet'),
   ghiChu: text('ghi_chu'),

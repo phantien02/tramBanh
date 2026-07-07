@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { layUser, loiJson } from '@/lib/api-helpers'
 import { taoDon, layDanhSachDon } from '@/lib/orders-service'
+import { laSdtVN } from '@/lib/phone'
 
 export async function GET(req: NextRequest) {
   const user = await layUser()
@@ -21,5 +22,7 @@ export async function POST(req: NextRequest) {
   if (!['quay', 'quanly'].includes(user.vaiTro)) return loiJson(403, 'Chỉ quầy hoặc quản lý được tạo đơn')
   const data = await req.json()
   if (!data?.khach?.sdt || !data?.ngayGioNhan || !data?.items?.length) return loiJson(400, 'Thiếu thông tin bắt buộc')
+  if (!laSdtVN(data.khach.sdt)) return loiJson(400, 'Số điện thoại khách không hợp lệ (số di động VN 10 chữ số)')
+  if (data.hinhThucNhan === 'ship' && data.sdtNguoiNhan && !laSdtVN(data.sdtNguoiNhan)) return loiJson(400, 'Số điện thoại người nhận không hợp lệ')
   return NextResponse.json(taoDon(data, user.id), { status: 201 })
 }

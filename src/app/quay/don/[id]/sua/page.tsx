@@ -15,8 +15,15 @@ export default function SuaDonPage({ params }: { params: Promise<{ id: string }>
       khach: { sdt: d.khach?.sdt ?? '', ten: d.khach?.ten ?? '' },
       nguon: d.nguon, ngayGioNhan: d.ngayGioNhan, hinhThucNhan: d.hinhThucNhan,
       diaChiShip: d.diaChiShip ?? undefined, sdtNguoiNhan: d.sdtNguoiNhan ?? undefined,
+      tenNguoiNhan: d.tenNguoiNhan ?? undefined,
       phiShip: d.phiShip, tienCoc: d.tienCoc, hinhThucTt: d.hinhThucTt, ghiChu: d.ghiChu ?? undefined,
-      items: d.items.map((it: { productId?: number; tenMon: string; coBanh?: string; soLuong: number; chuViet?: string; ghiChu?: string; gia: number; anhMau: string[] }) => ({ ...it })),
+      items: d.items.map((it: { productId?: number; tenMon: string; coBanh?: string; cot?: string; mut?: string; topping?: string[]; soLuong: number; chuViet?: string; ghiChu?: string; gia: number; anhMau: string[] }) => ({
+        ...it,
+        cot: it.cot ?? '',
+        mut: it.mut ?? '',
+        topping: it.topping ?? [],
+        anhMau: it.anhMau ?? [],
+      })),
     }))
   }, [id])
 
@@ -27,10 +34,10 @@ export default function SuaDonPage({ params }: { params: Promise<{ id: string }>
     else { setLoi((await res.json()).error ?? 'Lỗi'); setDangLuu(false) }
   }
 
-  if (!donCu) return <p className="p-4">Đang tải…</p>
+  if (!donCu) return <p className="p-4 text-[var(--color-xam)]">Đang tải…</p>
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold max-w-3xl mx-auto mb-3">✏️ Sửa đơn</h1>
+      <h1 className="font-display text-xl font-bold max-w-3xl mx-auto mb-3 text-[var(--color-caphe)]">✏️ Sửa đơn</h1>
       <OrderForm donCu={donCu} onLuu={luu} dangLuu={dangLuu} loi={loi} />
     </div>
   )

@@ -19,13 +19,14 @@ export type DonMoi = {
   ngayGioNhan: number
   hinhThucNhan: HinhThucNhan
   diaChiShip?: string
+  tenNguoiNhan?: string
   sdtNguoiNhan?: string
   phiShip?: number
   tienCoc?: number
   hinhThucTt?: HinhThucTt
   ghiChu?: string
   tongTienGhiDe?: number
-  items: { productId?: number; tenMon: string; coBanh?: string; soLuong: number; chuViet?: string; ghiChu?: string; gia: number; anhMau?: string[] }[]
+  items: { productId?: number; tenMon: string; coBanh?: string; cot?: string; mut?: string; topping?: string[]; soLuong: number; chuViet?: string; ghiChu?: string; gia: number; anhMau?: string[] }[]
 }
 
 function ghiEvent(orderId: number, userId: number | null, hanhDong: string, chiTiet?: string) {
@@ -45,6 +46,7 @@ function chenItems(orderId: number, items: DonMoi['items']) {
   for (const it of items) {
     const row = db.insert(orderItems).values({
       orderId, productId: it.productId ?? null, tenMon: it.tenMon, coBanh: it.coBanh,
+      cot: it.cot, mut: it.mut, topping: JSON.stringify(it.topping ?? []),
       soLuong: it.soLuong, chuViet: it.chuViet, ghiChu: it.ghiChu, gia: it.gia,
     }).returning().get()
     for (const f of it.anhMau ?? []) {
@@ -57,7 +59,7 @@ function chenItems(orderId: number, items: DonMoi['items']) {
 // (dùng null thay vì undefined vì set()/values() của drizzle bỏ qua field undefined thay vì xóa)
 function chuanHoaShip(data: DonMoi): DonMoi {
   if (data.hinhThucNhan === 'ship') return data
-  return { ...data, diaChiShip: null as unknown as undefined, sdtNguoiNhan: null as unknown as undefined, phiShip: 0 }
+  return { ...data, diaChiShip: null as unknown as undefined, tenNguoiNhan: null as unknown as undefined, sdtNguoiNhan: null as unknown as undefined, phiShip: 0 }
 }
 
 export function taoDon(data: DonMoi, userId: number): { id: number; maDon: string } {
@@ -73,7 +75,8 @@ export function taoDon(data: DonMoi, userId: number): { id: number; maDon: strin
 
     const don = db.insert(orders).values({
       maDon, customerId, nguon: data.nguon, ngayGioNhan: data.ngayGioNhan,
-      hinhThucNhan: data.hinhThucNhan, diaChiShip: data.diaChiShip, sdtNguoiNhan: data.sdtNguoiNhan,
+      hinhThucNhan: data.hinhThucNhan, diaChiShip: data.diaChiShip,
+      tenNguoiNhan: data.tenNguoiNhan, sdtNguoiNhan: data.sdtNguoiNhan,
       phiShip: data.phiShip ?? 0, tongTien, tienCoc: data.tienCoc ?? 0,
       hinhThucTt: data.hinhThucTt ?? 'chua_tt', ghiChu: data.ghiChu,
       nguoiTao: userId, createdAt: Date.now(),
@@ -98,7 +101,7 @@ export function suaDon(id: number, data: DonMoi, userId: number): { ok: boolean;
     db.update(orders).set({
       customerId: upsertKhach(data.khach.sdt, data.khach.ten),
       nguon: data.nguon, ngayGioNhan: data.ngayGioNhan, hinhThucNhan: data.hinhThucNhan,
-      diaChiShip: data.diaChiShip, sdtNguoiNhan: data.sdtNguoiNhan, phiShip: data.phiShip ?? 0,
+      diaChiShip: data.diaChiShip, tenNguoiNhan: data.tenNguoiNhan, sdtNguoiNhan: data.sdtNguoiNhan, phiShip: data.phiShip ?? 0,
       tongTien, tienCoc: data.tienCoc ?? 0, hinhThucTt: data.hinhThucTt ?? 'chua_tt',
       ghiChu: data.ghiChu, daSua,
     }).where(eq(orders.id, id)).run()
@@ -172,6 +175,7 @@ export function layDanhSachDon(loc: { tuNgay?: number; denNgay?: number; trangTh
     const items = db.select().from(orderItems).where(eq(orderItems.orderId, r.orders.id)).all()
       .map((it) => ({
         ...it,
+        topping: it.topping ? (JSON.parse(it.topping) as string[]) : [],
         anhMau: db.select().from(orderItemImages).where(eq(orderItemImages.orderItemId, it.id)).all().map((a) => a.filePath),
       }))
     return { ...r.orders, khach: r.customers, items }
@@ -195,6 +199,7 @@ function layDanhSachDonTheoId(id: number) {
   const items = db.select().from(orderItems).where(eq(orderItems.orderId, id)).all()
     .map((it) => ({
       ...it,
+      topping: it.topping ? (JSON.parse(it.topping) as string[]) : [],
       anhMau: db.select().from(orderItemImages).where(eq(orderItemImages.orderItemId, it.id)).all().map((a) => a.filePath),
     }))
   return [{ ...r.orders, khach: r.customers, items }]

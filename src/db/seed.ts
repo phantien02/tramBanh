@@ -1,29 +1,35 @@
+import { eq } from 'drizzle-orm'
 import { db } from './index'
-import { users, products, productSizes } from './schema'
+import { users, products, banhOptions } from './schema'
 import { hashPassword } from '../lib/auth'
+import { SAN_PHAM_MAU } from '../lib/seed-const'
 
-const daCoDuLieu = db.select().from(users).all().length > 0
-if (daCoDuLieu) {
-  console.log('Đã có dữ liệu, bỏ qua seed.')
-} else {
+// Danh sách vị mặc định cho sản phẩm mẫu
+const VI_MAC_DINH: { loai: 'cot' | 'mut' | 'topping' | 'size'; ten: string }[] = [
+  ...['Vanilla', 'Chocolate', 'Matcha', 'Red Velvet'].map((ten) => ({ loai: 'cot' as const, ten })),
+  ...['Chanh leo', 'Dâu tây', 'Xoài', 'Đào', 'Việt quất', 'Sốt đường đen', 'Sốt socola'].map((ten) => ({ loai: 'mut' as const, ten })),
+  ...['Trái cây hỗn hợp theo mùa', 'Trân châu đường đen', 'Marshmallow', 'Oreo vụn'].map((ten) => ({ loai: 'topping' as const, ten })),
+  ...['T10', 'C12', 'T12', 'C14', 'T14', 'C16', 'T16', 'C18', 'T18'].map((ten) => ({ loai: 'size' as const, ten })),
+]
+
+// 1) Tài khoản admin (chỉ khi chưa có user nào)
+if (db.select().from(users).all().length === 0) {
   db.insert(users).values({
-    username: 'admin',
-    passwordHash: hashPassword('admin123'),
-    hoTen: 'Quản lý',
-    vaiTro: 'quanly',
+    username: 'admin', passwordHash: hashPassword('admin123'), hoTen: 'Quản lý', vaiTro: 'quanly',
   }).run()
-
-  const banhMau: [string, string, [string, number][]][] = [
-    ['Bánh kem bắp', 'Bánh kem sinh nhật', [['16cm', 150000], ['20cm', 220000], ['24cm', 300000]]],
-    ['Bánh kem socola', 'Bánh kem sinh nhật', [['16cm', 160000], ['20cm', 230000], ['24cm', 320000]]],
-    ['Bông lan trứng muối', 'Bông lan', [['Nhỏ', 90000], ['Lớn', 160000]]],
-    ['Bánh su kem', 'Bánh nhỏ', [['Hộp 6 cái', 45000], ['Hộp 12 cái', 85000]]],
-  ]
-  for (const [ten, nhom, sizes] of banhMau) {
-    const p = db.insert(products).values({ ten, nhom }).returning().get()
-    for (const [tenCo, gia] of sizes) {
-      db.insert(productSizes).values({ productId: p.id, tenCo, gia }).run()
-    }
-  }
-  console.log('Seed xong: tài khoản admin/admin123 + 4 bánh mẫu.')
+  console.log('Seed: tạo tài khoản admin/admin123.')
 }
+
+// 2) Sản phẩm mẫu (chỉ khi chưa có)
+if (!db.select().from(products).where(eq(products.ten, SAN_PHAM_MAU)).get()) {
+  db.insert(products).values({ ten: SAN_PHAM_MAU, nhom: 'Bánh kem sinh nhật' }).run()
+  console.log(`Seed: tạo sản phẩm "${SAN_PHAM_MAU}".`)
+}
+
+// 3) Danh sách vị mặc định (chỉ khi bảng options rỗng)
+if (db.select().from(banhOptions).all().length === 0) {
+  VI_MAC_DINH.forEach((v, i) => db.insert(banhOptions).values({ ...v, thuTu: i }).run())
+  console.log(`Seed: tạo ${VI_MAC_DINH.length} vị mặc định (cốt/mứt/topping/size).`)
+}
+
+console.log('Seed hoàn tất.')

@@ -17,7 +17,7 @@ export default function DonMoiPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold max-w-3xl mx-auto mb-3">＋ Đơn mới</h1>
+      <h1 className="font-display text-xl font-bold max-w-3xl mx-auto mb-3 text-[var(--color-caphe)]">＋ Đơn mới</h1>
       <OrderForm onLuu={luu} dangLuu={dangLuu} loi={loi} />
     </div>
   )

@@ -31,38 +31,40 @@ export default function NhanVienPage() {
   if (!user) return null
   return (
     <AppShell user={user} tieuDe="Nhân viên">
-      <form onSubmit={them} className="bg-white rounded-xl p-4 flex gap-2 flex-wrap items-end mb-4">
-        <input required className="border rounded-lg p-2" placeholder="Tên đăng nhập" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
-        <input required className="border rounded-lg p-2" placeholder="Mật khẩu" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-        <input required className="border rounded-lg p-2" placeholder="Họ tên" value={form.hoTen} onChange={(e) => setForm({ ...form, hoTen: e.target.value })} />
-        <select className="border rounded-lg p-2" value={form.vaiTro} onChange={(e) => setForm({ ...form, vaiTro: e.target.value })}>
+      <form onSubmit={them} className="tb-card p-4 flex gap-2 flex-wrap items-end mb-4">
+        <input required className="tb-input w-auto" placeholder="Tên đăng nhập" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+        <input required className="tb-input w-auto" placeholder="Mật khẩu" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+        <input required className="tb-input w-auto" placeholder="Họ tên" value={form.hoTen} onChange={(e) => setForm({ ...form, hoTen: e.target.value })} />
+        <select className="tb-input w-auto" value={form.vaiTro} onChange={(e) => setForm({ ...form, vaiTro: e.target.value })}>
           {Object.entries(TEN_VAI_TRO).map(([gt, ten]) => <option key={gt} value={gt}>{ten}</option>)}
         </select>
-        <button className="bg-pink-600 text-white rounded-lg px-4 py-2 font-bold">＋ Thêm</button>
-        {loi && <span className="text-red-600">{loi}</span>}
+        <button className="btn-primary">＋ Thêm</button>
+        {loi && <span className="text-[var(--color-dau)]">{loi}</span>}
       </form>
 
-      <table className="w-full bg-white rounded-xl overflow-hidden text-sm">
-        <thead className="bg-gray-100 text-left"><tr>{['Tên đăng nhập', 'Họ tên', 'Vai trò', 'Trạng thái', ''].map((h) => <th key={h} className="p-2">{h}</th>)}</tr></thead>
+      <div className="tb-card overflow-hidden">
+      <table className="w-full text-sm">
+        <thead className="bg-[var(--color-surface-2)] text-left"><tr>{['Tên đăng nhập', 'Họ tên', 'Vai trò', 'Trạng thái', ''].map((h) => <th key={h} className="p-2 text-[var(--color-caphe)] font-semibold">{h}</th>)}</tr></thead>
         <tbody>
           {ds.map((nv) => (
-            <tr key={nv.id} className="border-t">
-              <td className="p-2 font-medium">{nv.username}</td>
-              <td className="p-2">{nv.hoTen}</td>
+            <tr key={nv.id} className="border-t border-[var(--color-line)] hover:bg-[var(--color-surface-2)]">
+              <td className="p-2 font-medium text-[var(--color-caphe)]">{nv.username}</td>
+              <td className="p-2 text-[var(--color-caphe)]">{nv.hoTen}</td>
               <td className="p-2">
-                <select value={nv.vaiTro} onChange={(e) => capNhat(nv.id, { vaiTro: e.target.value })} className="border rounded p-1">
+                <select value={nv.vaiTro} onChange={(e) => capNhat(nv.id, { vaiTro: e.target.value })} className="tb-input w-auto py-1">
                   {Object.entries(TEN_VAI_TRO).map(([gt, ten]) => <option key={gt} value={gt}>{ten}</option>)}
                 </select>
               </td>
-              <td className="p-2">{nv.active ? '✅ Hoạt động' : '🔒 Đã khóa'}</td>
+              <td className="p-2"><span className={`tb-chip ${nv.active ? 'tb-chip-tra' : 'tb-chip-dau'}`}>{nv.active ? '✅ Hoạt động' : '🔒 Đã khóa'}</span></td>
               <td className="p-2 space-x-2">
-                <button onClick={() => capNhat(nv.id, { active: !nv.active })} className="border rounded-lg px-3 py-1">{nv.active ? 'Khóa' : 'Mở khóa'}</button>
-                <button onClick={() => { const mk = window.prompt('Mật khẩu mới:'); if (mk) capNhat(nv.id, { password: mk }) }} className="border rounded-lg px-3 py-1">Đổi mật khẩu</button>
+                <button onClick={() => capNhat(nv.id, { active: !nv.active })} className="tb-btn-ghost px-3 py-1">{nv.active ? 'Khóa' : 'Mở khóa'}</button>
+                <button onClick={() => { const mk = window.prompt('Mật khẩu mới:'); if (mk) capNhat(nv.id, { password: mk }) }} className="tb-btn-ghost px-3 py-1">Đổi mật khẩu</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      </div>
     </AppShell>
   )
 }

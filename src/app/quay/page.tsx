@@ -11,6 +11,13 @@ import { TEN_TRANG_THAI, type TrangThai } from '@/lib/status'
 
 const COT: TrangThai[] = ['moi', 'dang_lam', 'banh_xong', 'da_nhan']
 
+const MAU_COT: Partial<Record<TrangThai, string>> = {
+  moi: 'var(--color-dau)',
+  dang_lam: 'var(--color-caramel)',
+  banh_xong: 'var(--color-tra)',
+  da_nhan: 'var(--color-xam)',
+}
+
 export default function QuayPage() {
   const router = useRouter()
   const [user, setUser] = useState<SessionUser | null>(null)
@@ -40,12 +47,12 @@ export default function QuayPage() {
   return (
     <AppShell user={user} tieuDe="Quầy" ketNoi={ketNoi}>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <Link href="/quay/don-moi" className="bg-pink-600 text-white rounded-xl px-6 py-3 text-xl font-bold shadow">＋ Đơn mới</Link>
-        <div className="flex rounded-lg overflow-hidden border">
-          <button onClick={() => setTab('homnay')} className={`px-4 py-2 font-medium ${tab === 'homnay' ? 'bg-pink-600 text-white' : 'bg-white'}`}>Hôm nay</button>
-          <button onClick={() => setTab('saptoi')} className={`px-4 py-2 font-medium ${tab === 'saptoi' ? 'bg-pink-600 text-white' : 'bg-white'}`}>Sắp tới</button>
+        <Link href="/quay/don-moi" className="btn-primary text-xl">＋ Đơn mới</Link>
+        <div className="flex rounded-lg overflow-hidden border border-[var(--color-line)]">
+          <button onClick={() => setTab('homnay')} className={`px-4 py-2 font-medium ${tab === 'homnay' ? 'bg-[var(--color-dau)] text-white' : 'bg-[var(--color-surface)] text-[var(--color-caphe)]'}`}>Hôm nay</button>
+          <button onClick={() => setTab('saptoi')} className={`px-4 py-2 font-medium ${tab === 'saptoi' ? 'bg-[var(--color-dau)] text-white' : 'bg-[var(--color-surface)] text-[var(--color-caphe)]'}`}>Sắp tới</button>
         </div>
-        <input className="border rounded-lg p-2 flex-1 min-w-48" placeholder="🔍 Tìm mã đơn / tên / SĐT"
+        <input className="tb-input flex-1 min-w-48" placeholder="🔍 Tìm mã đơn / tên / SĐT"
           value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
@@ -54,8 +61,8 @@ export default function QuayPage() {
           {COT.map((tt) => {
             const ds = dons.filter((d) => d.trangThai === tt)
             return (
-              <div key={tt} className="bg-gray-200/60 rounded-xl p-2 space-y-2">
-                <h2 className="font-bold px-1 flex justify-between">{TEN_TRANG_THAI[tt]}<span className="bg-white rounded-full px-2">{ds.length}</span></h2>
+              <div key={tt} className="tb-col space-y-2">
+                <h2 className="tb-col-head font-display" style={{ ['--line' as string]: MAU_COT[tt] }}>{TEN_TRANG_THAI[tt]}<span className="tb-count">{ds.length}</span></h2>
                 {ds.map((d) => <OrderCard key={d.id} don={d} now={now} onClick={() => router.push(`/quay/don/${d.id}`)} />)}
               </div>
             )
@@ -65,7 +72,7 @@ export default function QuayPage() {
         <div className="space-y-4">
           {[...new Set(dons.map((d) => dinhDangNgay(d.ngayGioNhan)))].map((ngay) => (
             <div key={ngay}>
-              <h2 className="font-bold mb-2">{ngay}</h2>
+              <h2 className="font-display font-bold mb-2 text-[var(--color-caphe)]">{ngay}</h2>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {dons.filter((d) => dinhDangNgay(d.ngayGioNhan) === ngay).map((d) => (
                   <OrderCard key={d.id} don={d} now={now} onClick={() => router.push(`/quay/don/${d.id}`)} />

@@ -50,39 +50,46 @@ export default function TatCaDonPage() {
   if (!user) return null
   return (
     <AppShell user={user} tieuDe="Tất cả đơn">
-      <div className="flex gap-2 mb-4 flex-wrap items-center bg-white rounded-xl p-3">
-        <input type="date" className="border rounded-lg p-2" value={tu} onChange={(e) => setTu(e.target.value)} />
-        <span>→</span>
-        <input type="date" className="border rounded-lg p-2" value={den} onChange={(e) => setDen(e.target.value)} />
-        <select className="border rounded-lg p-2" value={trangThai} onChange={(e) => setTrangThai(e.target.value)}>
+      <div className="flex gap-2 mb-4 flex-wrap items-center tb-card p-3">
+        {([['Hôm nay', 0], ['7 ngày', 6], ['30 ngày', 29]] as const).map(([ten, n]) => (
+          <button key={ten} className="tb-btn-ghost text-sm px-3 py-1.5"
+            onClick={() => { setTu(toDateInput(Date.now() - n * 86400000)); setDen(toDateInput(Date.now())) }}>{ten}</button>
+        ))}
+        <span className="w-px h-6 bg-[var(--color-line)] mx-1" />
+        <input type="date" className="tb-input num w-auto" value={tu} onChange={(e) => setTu(e.target.value)} />
+        <span className="text-[var(--color-xam)]">→</span>
+        <input type="date" className="tb-input num w-auto" value={den} onChange={(e) => setDen(e.target.value)} />
+        <select className="tb-input w-auto" value={trangThai} onChange={(e) => setTrangThai(e.target.value)}>
           <option value="">Mọi trạng thái</option>
           {Object.entries(TEN_TRANG_THAI).map(([gt, ten]) => <option key={gt} value={gt}>{ten}</option>)}
         </select>
-        <input className="border rounded-lg p-2 flex-1 min-w-40" placeholder="🔍 Mã / tên / SĐT" value={q} onChange={(e) => setQ(e.target.value)} />
-        <button onClick={taiCsv} className="bg-green-600 text-white rounded-lg px-4 py-2 font-medium">⬇ Tải CSV</button>
+        <input className="tb-input flex-1 min-w-40" placeholder="🔍 Mã / tên / SĐT" value={q} onChange={(e) => setQ(e.target.value)} />
+        <button onClick={taiCsv} className="btn-primary">⬇ Tải CSV</button>
       </div>
 
-      <table className="w-full bg-white rounded-xl overflow-hidden text-sm">
-        <thead className="bg-gray-100 text-left">
-          <tr>{['Mã', 'Giờ nhận', 'Khách', 'Món', 'Nguồn', 'Trạng thái', 'Tổng'].map((h) => <th key={h} className="p-2">{h}</th>)}</tr>
+      <div className="tb-card overflow-hidden">
+      <table className="w-full text-sm">
+        <thead className="bg-[var(--color-surface-2)] text-left">
+          <tr>{['Mã', 'Giờ nhận', 'Khách', 'Món', 'Nguồn', 'Trạng thái', 'Tổng'].map((h) => <th key={h} className="p-2 text-[var(--color-caphe)] font-semibold">{h}</th>)}</tr>
         </thead>
         <tbody>
           {dons.map((d) => (
-            <tr key={d.id} className="border-t hover:bg-pink-50 cursor-pointer" onClick={() => setXem(d.id)}>
-              <td className="p-2 font-bold">{d.maDon}</td>
-              <td className="p-2">{new Date(d.ngayGioNhan).toLocaleString('vi-VN')}</td>
-              <td className="p-2">{d.khach?.ten}</td>
-              <td className="p-2">{d.items.map((i) => `${i.soLuong}× ${i.tenMon}`).join(', ')}</td>
-              <td className="p-2">{d.nguon}</td>
-              <td className="p-2">{TEN_TRANG_THAI[d.trangThai as TrangThai]}</td>
-              <td className="p-2 font-medium">{dinhDangTien(d.tongTien)}</td>
+            <tr key={d.id} className="border-t border-[var(--color-line)] hover:bg-[var(--color-surface-2)] cursor-pointer" onClick={() => setXem(d.id)}>
+              <td className="p-2 num text-[var(--color-caphe)]">{d.maDon}</td>
+              <td className="p-2 num text-[var(--color-caphe)]">{new Date(d.ngayGioNhan).toLocaleString('vi-VN')}</td>
+              <td className="p-2 text-[var(--color-caphe)]">{d.khach?.ten}</td>
+              <td className="p-2 text-[var(--color-caphe)]">{d.items.map((i) => `${i.soLuong}× ${i.tenMon}`).join(', ')}</td>
+              <td className="p-2 text-[var(--color-xam)]">{d.nguon}</td>
+              <td className="p-2"><span className={`tb-chip ${d.trangThai === 'hoan_tat' ? 'tb-chip-tra' : d.trangThai === 'huy' ? 'tb-chip-dau' : 'tb-chip-caramel'}`}>{TEN_TRANG_THAI[d.trangThai as TrangThai]}</span></td>
+              <td className="p-2 num text-[var(--color-caphe)]">{dinhDangTien(d.tongTien)}</td>
             </tr>
           ))}
         </tbody>
       </table>
+      </div>
 
       {xem != null && (
-        <div className="fixed inset-0 bg-black/50 z-20 overflow-auto p-4" onClick={() => setXem(null)}>
+        <div className="fixed inset-0 bg-[rgba(43,33,25,.45)] z-50 overflow-auto p-4" onClick={() => setXem(null)}>
           <div onClick={(e) => e.stopPropagation()}>
             <OrderDetail id={xem} vaiTro="quanly" onDong={() => { setXem(null); tai() }} />
           </div>

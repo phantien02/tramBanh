@@ -6,11 +6,11 @@ import { tinhConLai } from '@/lib/money'
 
 type ChiTiet = {
   id: number; maDon: string; trangThai: TrangThai; nguon: string; ngayGioNhan: number
-  hinhThucNhan: string; diaChiShip?: string | null; sdtNguoiNhan?: string | null
+  hinhThucNhan: string; diaChiShip?: string | null; sdtNguoiNhan?: string | null; tenNguoiNhan?: string | null
   phiShip: number; tongTien: number; tienCoc: number; hinhThucTt: string; ghiChu?: string | null
   daSua: number; lyDoHuy?: string | null
   khach?: { ten: string; sdt: string } | null
-  items: { id: number; tenMon: string; coBanh?: string | null; soLuong: number; chuViet?: string | null; ghiChu?: string | null; gia: number; anhMau: string[] }[]
+  items: { id: number; tenMon: string; coBanh?: string | null; cot?: string | null; mut?: string | null; topping?: string[]; soLuong: number; chuViet?: string | null; ghiChu?: string | null; gia: number; anhMau: string[] }[]
   events: { id: number; hanhDong: string; chiTiet?: string | null; thoiDiem: number; userId?: number | null; tenNguoiThucHien: string }[]
 }
 
@@ -33,6 +33,7 @@ export default function OrderDetail({ id, vaiTro, onDong }: { id: number; vaiTro
   const [don, setDon] = useState<ChiTiet | null>(null)
   const [loi, setLoi] = useState('')
   const [hoiKetThuc, setHoiKetThuc] = useState<TrangThai | null>(null) // đang chờ chọn kiểu kết thúc
+  const [anhPhongTo, setAnhPhongTo] = useState<string | null>(null) // ảnh mẫu đang mở lightbox
 
   const tai = useCallback(() => { fetch(`/api/orders/${id}`).then((r) => r.json()).then(setDon) }, [id])
   useEffect(() => { tai() }, [tai])
@@ -63,102 +64,129 @@ export default function OrderDetail({ id, vaiTro, onDong }: { id: number; vaiTro
     tai()
   }
 
-  if (!don) return <p className="p-6 text-center text-gray-400">Đang tải thông tin đơn…</p>
+  if (!don) return <p className="p-6 text-center text-[var(--color-xam)]">Đang tải thông tin đơn…</p>
 
   return (
-    <div className="max-w-3xl mx-auto glass-panel p-6 space-y-6 relative">
-      <div className="flex items-center gap-3 border-b border-[var(--color-dark-border)] pb-4">
-        <h1 className="text-3xl font-bold text-[var(--color-gold-400)]">{don.maDon}</h1>
-        <span className="bg-white/10 text-white rounded-lg px-3 py-1.5 text-sm font-semibold tracking-wide uppercase">{TEN_TRANG_THAI[don.trangThai]}</span>
-        {don.daSua === 1 && <span className="bg-orange-500/20 text-orange-400 border border-orange-500/50 rounded-lg px-3 py-1.5 text-sm font-bold shadow-[0_0_10px_rgba(249,115,22,0.3)]">ĐÃ SỬA</span>}
-        {onDong && <button onClick={onDong} className="ml-auto text-2xl px-2 text-gray-400 hover:text-white transition-colors">✕</button>}
+    <div className="max-w-3xl mx-auto tb-card p-6 space-y-6 relative">
+      <div className="flex items-center gap-3 border-b border-[var(--color-line)] pb-4">
+        <h1 className="num text-3xl text-[var(--color-caphe)]">{don.maDon}</h1>
+        <span className="tb-chip text-sm font-semibold tracking-wide uppercase">{TEN_TRANG_THAI[don.trangThai]}</span>
+        {don.daSua === 1 && <span className="tb-chip tb-chip-caramel text-sm font-bold">ĐÃ SỬA</span>}
+        {onDong && <button onClick={onDong} className="ml-auto text-2xl px-2 text-[var(--color-xam)] hover:text-[var(--color-caphe)] transition-colors">✕</button>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-[var(--color-dark-border)]">
-           <h3 className="text-[var(--color-gold-500)] text-sm font-semibold uppercase tracking-wider mb-2">Giao nhận</h3>
+        <div className="space-y-3 bg-[var(--color-surface-2)] p-4 rounded-xl border border-[var(--color-line)]">
+           <h3 className="text-[var(--color-caramel-600)] text-sm font-semibold uppercase tracking-wider mb-2">Giao nhận</h3>
            <div className="text-lg">
              <span className="inline-block mr-2">🕐</span>
-             <b className="text-white text-xl">{dinhDangGio(don.ngayGioNhan)}</b> 
-             <span className="text-gray-400 ml-2">{dinhDangNgay(don.ngayGioNhan)}</span>
+             <b className="num text-[var(--color-caphe)] text-xl">{dinhDangGio(don.ngayGioNhan)}</b>
+             <span className="num text-[var(--color-xam)] ml-2">{dinhDangNgay(don.ngayGioNhan)}</span>
            </div>
            {don.hinhThucNhan === 'ship' && (
-             <div className="text-gray-300 flex items-start gap-2">
+             <div className="text-[var(--color-caphe)] flex items-start gap-2">
                <span>🛵</span>
                <span>
                  <b>Ship:</b> {don.diaChiShip}
-                 {don.sdtNguoiNhan && <span className="block text-sm text-gray-400">SĐT: {don.sdtNguoiNhan}</span>}
+                 {don.tenNguoiNhan && <span className="block text-sm text-[var(--color-caphe)]">👤 Người nhận: {don.tenNguoiNhan}</span>}
+                 {don.sdtNguoiNhan && <span className="block text-sm text-[var(--color-xam)]">📞 SĐT: {don.sdtNguoiNhan}</span>}
                </span>
              </div>
            )}
         </div>
 
-        <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-[var(--color-dark-border)]">
-           <h3 className="text-[var(--color-gold-500)] text-sm font-semibold uppercase tracking-wider mb-2">Khách hàng</h3>
-           <div className="text-white font-medium text-lg">
+        <div className="space-y-3 bg-[var(--color-surface-2)] p-4 rounded-xl border border-[var(--color-line)]">
+           <h3 className="text-[var(--color-caramel-600)] text-sm font-semibold uppercase tracking-wider mb-2">Khách hàng</h3>
+           <div className="text-[var(--color-caphe)] font-medium text-lg">
              👤 {don.khach?.ten ?? 'Khách lẻ'}
            </div>
-           {don.khach?.sdt && <div className="text-gray-300">📞 {don.khach?.sdt}</div>}
+           {don.khach?.sdt && <div className="text-[var(--color-caphe)]">📞 {don.khach?.sdt}</div>}
         </div>
       </div>
 
-      {don.ghiChu && <div className="bg-[var(--color-gold-500)]/10 border border-[var(--color-gold-500)]/30 rounded-xl p-3 text-white">📝 <b>Ghi chú đơn:</b> {don.ghiChu}</div>}
-      {don.lyDoHuy && <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-red-200">❌ <b>Lý do hủy:</b> {don.lyDoHuy}</div>}
+      {don.ghiChu && <div className="bg-[var(--color-surface-2)] border border-[var(--color-line)] rounded-xl p-3 text-[var(--color-caphe)]">📝 <b>Ghi chú đơn:</b> {don.ghiChu}</div>}
+      {don.lyDoHuy && <div className="rounded-xl p-3 text-[var(--color-dau-600)]" style={{ background: 'rgba(226,75,106,.1)', border: '1px solid rgba(226,75,106,.3)' }}>❌ <b>Lý do hủy:</b> {don.lyDoHuy}</div>}
 
       <div className="space-y-3">
-        <h3 className="text-[var(--color-gold-500)] text-sm font-semibold uppercase tracking-wider">Chi tiết sản phẩm</h3>
+        <h3 className="text-[var(--color-caramel-600)] text-sm font-semibold uppercase tracking-wider">Chi tiết sản phẩm</h3>
         {don.items.map((it) => (
-          <div key={it.id} className="bg-black/30 border border-[var(--color-dark-border)] rounded-xl p-4 space-y-2 relative">
+          <div key={it.id} className="bg-[var(--color-surface-2)] border border-[var(--color-line)] rounded-xl p-4 space-y-2 relative">
             <div className="flex justify-between items-start">
-              <div className="font-bold text-lg text-white">
-                <span className="text-[var(--color-gold-400)] mr-2">{it.soLuong}×</span>
-                {it.tenMon} {it.coBanh && <span className="text-gray-400 text-base font-normal">({it.coBanh})</span>}
+              <div className="font-bold text-lg text-[var(--color-caphe)]">
+                <span className="num text-[var(--color-caramel-600)] mr-2">{it.soLuong}×</span>
+                {it.tenMon}
               </div>
-              <div className="font-bold text-gray-300">{dinhDangTien(it.gia)}</div>
+              <div className="num text-[var(--color-caphe)]">{dinhDangTien(it.gia)}</div>
             </div>
-            {it.chuViet && <div className="text-pink-400 text-lg font-medium bg-pink-500/10 px-3 py-1.5 rounded-lg inline-block">✍️ “{it.chuViet}”</div>}
-            {it.ghiChu && <div className="text-gray-400 text-sm mt-1">📝 {it.ghiChu}</div>}
+            {(it.coBanh || it.cot || it.mut || (it.topping && it.topping.length > 0)) && (
+              <div className="flex flex-wrap gap-1.5">
+                {it.coBanh && <span className="tb-chip tb-chip-caramel text-sm font-semibold">📏 Size: {it.coBanh}</span>}
+                {it.cot && <span className="tb-chip text-sm font-semibold">🎂 Cốt: {it.cot}</span>}
+                {it.mut && <span className="tb-chip tb-chip-dau text-sm font-semibold">🍓 Mứt: {it.mut}</span>}
+                {it.topping && it.topping.length > 0 && <span className="tb-chip tb-chip-tra text-sm font-semibold">✨ Topping: {it.topping.join(', ')}</span>}
+              </div>
+            )}
+            {it.chuViet && <div className="text-[var(--color-dau)] text-lg font-medium px-3 py-1.5 rounded-lg inline-block" style={{ background: 'rgba(226,75,106,.1)' }}>✍️ “{it.chuViet}”</div>}
+            {it.ghiChu && <div className="text-[var(--color-xam)] text-sm mt-1">📝 {it.ghiChu}</div>}
             {it.anhMau && it.anhMau.length > 0 && (
-              <div className="flex gap-2 flex-wrap mt-3 pt-3 border-t border-[var(--color-dark-border)]">
-                {it.anhMau.map((f) => <img key={f} src={`/api/uploads/${f}`} alt="mẫu" className="h-24 w-24 rounded-lg object-cover border border-white/10" />)}
+              <div className="mt-3 pt-3 border-t border-[var(--color-line)]">
+                <div className="flex gap-3 flex-wrap items-start">
+                  {it.anhMau.map((f, idx) => (
+                    <div key={f} className="space-y-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setAnhPhongTo(f)}
+                        className={`block rounded-xl overflow-hidden border border-[var(--color-line)] hover:shadow-[var(--shadow-lift)] transition-shadow cursor-zoom-in ${idx === 0 ? 'ring-2 ring-[var(--color-caramel)]' : ''}`}
+                        title="Bấm để phóng to"
+                      >
+                        <img src={`/api/uploads/${f}`} alt={idx === 0 ? 'ảnh đại diện' : 'mẫu'} className={idx === 0 ? 'h-44 w-44 object-cover' : 'h-32 w-32 object-cover'} />
+                      </button>
+                      <div className="flex gap-2 justify-center text-xs">
+                        <button type="button" onClick={() => setAnhPhongTo(f)} className="tb-btn-ghost !px-2 !py-1 text-xs">🔍 Phóng to</button>
+                        <a href={`/api/uploads/${f}`} download className="tb-btn-ghost !px-2 !py-1 text-xs">⬇ Tải về</a>
+                      </div>
+                      {idx === 0 && <div className="text-center"><span className="tb-chip tb-chip-caramel text-[11px] font-bold">Ảnh đại diện</span></div>}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
         ))}
       </div>
 
-      <div className="bg-black/40 rounded-xl p-5 border border-[var(--color-dark-border)]">
+      <div className="bg-[var(--color-surface-2)] rounded-xl p-5 border border-[var(--color-line)]">
         <div className="flex justify-between items-center text-lg mb-2">
-           <span className="text-gray-400">Tổng tiền</span>
-           <span className="font-bold text-white text-xl">{dinhDangTien(don.tongTien)}</span>
+           <span className="text-[var(--color-xam)]">Tổng tiền</span>
+           <span className="num text-[var(--color-caramel-600)] text-xl">{dinhDangTien(don.tongTien)}</span>
         </div>
-        <div className="flex justify-between items-center text-lg border-b border-white/10 pb-3 mb-3">
-           <span className="text-gray-400">Đã cọc</span>
-           <span className="font-bold text-gray-300">{dinhDangTien(don.tienCoc)}</span>
+        <div className="flex justify-between items-center text-lg border-b border-[var(--color-line)] pb-3 mb-3">
+           <span className="text-[var(--color-xam)]">Đã cọc</span>
+           <span className="num text-[var(--color-caphe)]">{dinhDangTien(don.tienCoc)}</span>
         </div>
         <div className="flex justify-between items-center text-xl">
-           <span className="font-semibold text-[var(--color-gold-400)]">Còn lại phải thu</span>
-           <span className="font-bold text-[var(--color-gold-400)]">{dinhDangTien(tinhConLai(don.tongTien, don.tienCoc))}</span>
+           <span className="font-semibold text-[var(--color-caramel-600)]">Còn lại phải thu</span>
+           <span className="num text-[var(--color-caramel-600)]">{dinhDangTien(tinhConLai(don.tongTien, don.tienCoc))}</span>
         </div>
       </div>
 
-      {loi && <p className="text-red-400 bg-red-500/10 p-3 rounded-lg font-medium">{loi}</p>}
-      
+      {loi && <p className="text-[var(--color-dau-600)] p-3 rounded-lg font-medium" style={{ background: 'rgba(226,75,106,.1)' }}>{loi}</p>}
+
       {hoiKetThuc ? (
-        <div className="bg-[var(--color-gold-500)]/10 border border-[var(--color-gold-500)]/30 rounded-xl p-5 space-y-4">
-          <p className="font-bold text-[var(--color-gold-400)] text-lg">Bánh được xử lý thế nào?</p>
+        <div className="bg-[var(--color-surface-2)] border border-[var(--color-line)] rounded-xl p-5 space-y-4">
+          <p className="font-bold text-[var(--color-caramel-600)] text-lg">Bánh được xử lý thế nào?</p>
           <div className="flex gap-3 flex-wrap">
             {TEN_KET_THUC.map(([gt, ten]) => (
               <button key={gt} onClick={() => goiChuyen(hoiKetThuc, { ketThucKieu: gt })}
                 className="btn-primary py-2.5 px-5">{ten}</button>
             ))}
-            <button onClick={() => setHoiKetThuc(null)} className="rounded-xl px-5 py-2.5 border border-[var(--color-dark-border)] text-white hover:bg-white/10 transition-colors">Hủy thao tác</button>
+            <button onClick={() => setHoiKetThuc(null)} className="tb-btn-ghost px-5 py-2.5">Hủy thao tác</button>
           </div>
         </div>
       ) : (
         <div className="flex gap-3 flex-wrap pt-2">
           {don.daSua === 1 && (vaiTro === 'bep' || vaiTro === 'quanly') && (
-            <button onClick={xacNhanSua} className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-5 py-3 font-bold transition-colors shadow-lg shadow-orange-500/20">
+            <button onClick={xacNhanSua} className="bg-[var(--color-caramel)] hover:bg-[var(--color-caramel-600)] text-white rounded-xl px-5 py-3 font-bold transition-colors">
               Đã thấy thay đổi
             </button>
           )}
@@ -166,9 +194,9 @@ export default function OrderDetail({ id, vaiTro, onDong }: { id: number; vaiTro
             const isRed = n.to === 'huy';
             return (
               <button key={n.to} onClick={() => chuyen(n.to, n.can)}
-                className={`rounded-xl px-5 py-3 font-bold text-white transition-all duration-300 shadow-lg ${
-                  isRed 
-                    ? 'bg-red-600/80 hover:bg-red-500 shadow-red-900/50' 
+                className={`rounded-xl px-5 py-3 font-bold text-white transition-all duration-300 ${
+                  isRed
+                    ? 'bg-[var(--color-dau)] hover:bg-[var(--color-dau-600)]'
                     : 'btn-primary'
                 }`}>
                 {n.ten}
@@ -178,18 +206,37 @@ export default function OrderDetail({ id, vaiTro, onDong }: { id: number; vaiTro
         </div>
       )}
 
-      <details className="text-sm text-gray-500 mt-6 pt-4 border-t border-[var(--color-dark-border)]">
-        <summary className="cursor-pointer hover:text-gray-300 transition-colors font-medium">Nhật ký hoạt động</summary>
-        <ul className="mt-3 space-y-2 bg-black/20 p-4 rounded-xl">
+      <details className="text-sm text-[var(--color-xam)] mt-6 pt-4 border-t border-[var(--color-line)]">
+        <summary className="cursor-pointer hover:text-[var(--color-caphe)] transition-colors font-medium">Nhật ký hoạt động</summary>
+        <ul className="mt-3 space-y-2 bg-[var(--color-surface-2)] p-4 rounded-xl">
           {don.events.map((e) => (
             <li key={e.id} className="flex flex-col sm:flex-row sm:gap-2">
-              <span className="text-gray-400 w-36 shrink-0">{new Date(e.thoiDiem).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</span>
-              <span className="text-[var(--color-gold-500)] font-medium w-24 shrink-0">{e.tenNguoiThucHien}</span>
-              <span className="text-gray-300">{e.hanhDong}{e.chiTiet ? ` (${e.chiTiet})` : ''}</span>
+              <span className="num text-[var(--color-xam)] w-36 shrink-0">{new Date(e.thoiDiem).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</span>
+              <span className="text-[var(--color-caramel-600)] font-medium w-24 shrink-0">{e.tenNguoiThucHien}</span>
+              <span className="text-[var(--color-caphe)]">{e.hanhDong}{e.chiTiet ? ` (${e.chiTiet})` : ''}</span>
             </li>
           ))}
         </ul>
       </details>
+
+      {anhPhongTo && (
+        <div
+          className="fixed inset-0 z-[60] flex flex-col items-center justify-center p-4"
+          style={{ background: 'rgba(43,33,25,.8)' }}
+          onClick={() => setAnhPhongTo(null)}
+        >
+          <img
+            src={`/api/uploads/${anhPhongTo}`}
+            alt="mẫu phóng to"
+            className="max-w-full max-h-[85vh] rounded-xl object-contain shadow-[var(--shadow-lift)]"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="flex gap-3 mt-4" onClick={(e) => e.stopPropagation()}>
+            <a href={`/api/uploads/${anhPhongTo}`} download className="tb-btn-ghost bg-[var(--color-surface)] px-5 py-2.5">⬇ Tải về</a>
+            <button type="button" onClick={() => setAnhPhongTo(null)} className="tb-btn-ghost bg-[var(--color-surface)] px-5 py-2.5">✕ Đóng</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

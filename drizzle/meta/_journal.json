@@ -8,6 +8,13 @@
       "when": 1783316371744,
       "tag": "0000_glamorous_shadow_king",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1783411760886,
+      "tag": "0001_lazy_corsair",
+      "breakpoints": true
     }
   ]
 }

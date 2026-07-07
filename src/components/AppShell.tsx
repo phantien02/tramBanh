@@ -1,13 +1,43 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import type { SessionUser } from '@/lib/session'
+
+// Màu "tuyến" cho từng khu vực
+const MAU_TUYEN: Record<string, string> = {
+  '/quay': 'var(--color-dau)',
+  '/bep': 'var(--color-caramel)',
+  '/quanly': 'var(--color-tra)',
+}
+
+function DongHo() {
+  const [now, setNow] = useState<Date | null>(null)
+  useEffect(() => {
+    setNow(new Date())
+    const t = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(t)
+  }, [])
+  if (!now) return <span className="tb-clock text-white text-[17px]">--:--</span>
+  const hh = String(now.getHours()).padStart(2, '0')
+  const mm = String(now.getMinutes()).padStart(2, '0')
+  const ss = String(now.getSeconds()).padStart(2, '0')
+  const dem = now.getHours() >= 18 || now.getHours() < 6
+  return (
+    <span className="flex items-center gap-2">
+      <span className="tb-clock text-white text-[17px]">{hh}:{mm}<span className="text-[var(--color-caramel)]">:{ss}</span></span>
+      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,.08)', color: '#CDBFB3' }}>
+        {dem ? '🌙 Ca đêm' : '☀️ Ca ngày'}
+      </span>
+    </span>
+  )
+}
 
 export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
   user: SessionUser; tieuDe: string; ketNoi?: boolean; children: React.ReactNode
 }) {
-  const pathname = usePathname();
-  const isQuanLyMode = pathname?.startsWith('/quanly');
+  const pathname = usePathname()
+  const isQuanLyMode = pathname?.startsWith('/quanly')
 
   const mucNav = [
     ...(['quay', 'quanly'].includes(user.vaiTro) ? [{ href: '/quay', ten: 'Quầy' }] : []),
@@ -20,92 +50,103 @@ export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
     window.location.href = '/login'
   }
 
-  // Cảnh báo mất kết nối dùng chung
-  const connectionWarning = !ketNoi && (
-    <div className="bg-red-900/80 text-red-100 text-center font-bold py-2 text-sm backdrop-blur-sm fixed top-0 w-full z-50">
+  const canhBao = !ketNoi && (
+    <div className="bg-[var(--color-dau)] text-white text-center font-bold py-2 text-sm fixed top-0 w-full z-50">
       ⚠️ MẤT KẾT NỐI — dữ liệu không còn cập nhật
     </div>
-  );
+  )
 
+  const wordmark = (
+    <span className="flex items-baseline gap-2">
+      <span className="font-display font-semibold text-white text-2xl tracking-tight">Trạm Bánh</span>
+      <span className="tb-ticket-mono text-[11px] px-1.5 py-0.5 rounded-full bg-[var(--color-caramel)] text-[var(--color-caphe)] tracking-widest">24h</span>
+    </span>
+  )
+
+  /* ── Chế độ Quản lý: sidebar ── */
   if (isQuanLyMode) {
+    const link = (href: string, ten: string, exact = false) => {
+      const active = exact ? pathname === href : pathname?.startsWith(href)
+      return (
+        <Link href={href} className={`block p-3 rounded-xl transition-colors font-medium ${active ? 'bg-[var(--color-surface-2)] text-[var(--color-caramel-600)]' : 'text-[var(--color-caphe)] hover:bg-[var(--color-surface-2)]'}`}>{ten}</Link>
+      )
+    }
     return (
-      <div className="flex min-h-screen relative pt-0">
-        {connectionWarning}
-        {/* Sidebar */}
-        <aside className="w-64 glass-panel m-4 flex flex-col overflow-hidden sticky top-4 h-[calc(100vh-2rem)]">
-          <div className="p-6 border-b border-[var(--color-dark-border)]">
-            <h1 className="text-2xl font-bold text-[var(--color-gold-400)] tracking-wide">Trạm Bánh</h1>
-            <p className="text-xs text-gray-400 mt-1">Quản trị viên</p>
+      <div className="flex min-h-screen">
+        {canhBao}
+        <aside className="w-64 tb-card m-4 flex flex-col overflow-hidden sticky top-4 h-[calc(100vh-2rem)] p-0">
+          <div className="tb-board rounded-t-[1.15rem] px-5 py-4 static">
+            {wordmark}
+            <p className="text-xs mt-1" style={{ color: '#CDBFB3' }}>Quản trị viên</p>
           </div>
-          
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-            {/* Các link quản lý */}
-            <Link href="/quanly" className={`block p-3 rounded-xl transition-colors ${pathname === '/quanly' ? 'bg-white/10 text-[var(--color-gold-400)] font-medium' : 'hover:bg-white/5 text-gray-300'}`}>Thống kê</Link>
-            <Link href="/quanly/don" className={`block p-3 rounded-xl transition-colors ${pathname?.startsWith('/quanly/don') ? 'bg-white/10 text-[var(--color-gold-400)] font-medium' : 'hover:bg-white/5 text-gray-300'}`}>Đơn hàng</Link>
-            <Link href="/quanly/banh" className={`block p-3 rounded-xl transition-colors ${pathname?.startsWith('/quanly/banh') ? 'bg-white/10 text-[var(--color-gold-400)] font-medium' : 'hover:bg-white/5 text-gray-300'}`}>Sản phẩm</Link>
-            <Link href="/quanly/nhan-vien" className={`block p-3 rounded-xl transition-colors ${pathname?.startsWith('/quanly/nhan-vien') ? 'bg-white/10 text-[var(--color-gold-400)] font-medium' : 'hover:bg-white/5 text-gray-300'}`}>Nhân viên</Link>
-            
-            <div className="pt-4 mt-4 border-t border-[var(--color-dark-border)]">
-              <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider px-2">Khu vực cửa hàng</p>
-              <Link href="/quay" className="block p-3 rounded-xl hover:bg-white/5 text-gray-300 transition-colors">Vào Quầy</Link>
-              <Link href="/bep" className="block p-3 rounded-xl hover:bg-white/5 text-gray-300 transition-colors">Vào Bếp</Link>
+          <nav className="flex-1 p-3 space-y-1 overflow-y-auto custom-scrollbar">
+            {link('/quanly', 'Thống kê', true)}
+            {link('/quanly/don', 'Đơn hàng')}
+            {link('/quanly/banh', 'Sản phẩm')}
+            {link('/quanly/nhan-vien', 'Nhân viên')}
+            <div className="pt-3 mt-3 border-t border-[var(--color-line)]">
+              <p className="text-xs text-[var(--color-xam)] mb-1 uppercase tracking-wider px-2">Khu vực cửa hàng</p>
+              <Link href="/quay" className="block p-3 rounded-xl hover:bg-[var(--color-surface-2)] text-[var(--color-caphe)] transition-colors">Vào Quầy</Link>
+              <Link href="/bep" className="block p-3 rounded-xl hover:bg-[var(--color-surface-2)] text-[var(--color-caphe)] transition-colors">Vào Bếp</Link>
             </div>
           </nav>
-          
-          <div className="p-4 border-t border-[var(--color-dark-border)] flex items-center justify-between bg-black/20">
-             <div className="flex flex-col">
-               <span className="text-sm font-medium text-gray-200">{user.hoTen}</span>
-               <span className="text-xs text-gray-500">{tieuDe}</span>
-             </div>
-             <button onClick={dangXuat} className="text-sm text-red-400 p-2 hover:bg-red-500/10 rounded-lg transition-colors" title="Đăng xuất">
-                Thoát
-             </button>
+          <div className="p-4 border-t border-[var(--color-line)] flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold">{user.hoTen}</span>
+              <span className="text-xs text-[var(--color-xam)]">{tieuDe}</span>
+            </div>
+            <button onClick={dangXuat} className="text-sm text-[var(--color-dau)] p-2 hover:bg-[rgba(226,75,106,.1)] rounded-lg transition-colors" title="Đăng xuất">Thoát</button>
           </div>
         </aside>
-        
-        {/* Main Content */}
+
         <main className="flex-1 p-4 pl-0">
-          <div className="glass-panel min-h-full p-6">
-            <header className="mb-6 pb-4 border-b border-[var(--color-dark-border)]">
-               <h2 className="text-xl font-semibold text-[var(--color-gold-300)]">{tieuDe}</h2>
+          <div className="tb-card min-h-full p-6">
+            <header className="mb-6 pb-4 border-b border-[var(--color-line)]">
+              <h2 className="font-display text-2xl font-semibold text-[var(--color-caphe)]">{tieuDe}</h2>
             </header>
             {children}
           </div>
         </main>
       </div>
-    );
+    )
   }
 
-  // Top Header cho Quầy / Bếp
+  /* ── Chế độ Quầy / Bếp: Bảng Trạm trên đầu ── */
   return (
-    <div className="min-h-screen flex flex-col relative pt-0">
-      {connectionWarning}
-      <header className="glass-panel mx-4 mt-4 mb-6 rounded-2xl flex items-center justify-between p-4 px-6 sticky top-4 z-40">
-        <div className="flex items-center gap-8">
-          <span className="font-bold text-[var(--color-gold-400)] text-xl tracking-wide">Trạm Bánh</span>
-          <nav className="flex items-center gap-2">
+    <div className="min-h-screen flex flex-col">
+      {canhBao}
+      <header className="tb-board flex items-center justify-between gap-4 flex-wrap px-6 py-3">
+        <div className="flex items-center gap-6 flex-wrap">
+          {wordmark}
+          <nav className="flex items-center gap-1.5">
             {mucNav.map((m) => {
-              const isActive = pathname?.startsWith(m.href);
+              const active = pathname?.startsWith(m.href)
+              const mau = MAU_TUYEN[m.href]
               return (
-                <Link key={m.href} href={m.href} 
-                  className={`px-4 py-2 rounded-xl transition-all font-medium ${isActive ? 'bg-[var(--color-gold-500)] text-black shadow-lg shadow-gold-500/20' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}>
+                <Link key={m.href} href={m.href}
+                  className="px-3.5 py-1.5 rounded-lg transition-all font-medium text-sm"
+                  style={active
+                    ? { background: mau, color: '#fff' }
+                    : { color: '#CDBFB3' }}>
+                  <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle" style={{ background: mau }} />
                   {m.ten}
                 </Link>
-              );
+              )
             })}
           </nav>
         </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col items-end">
-            <h1 className="font-semibold text-[var(--color-gold-300)]">{tieuDe}</h1>
-            <span className="text-xs text-gray-400">{user.hoTen}</span>
+
+        <div className="flex items-center gap-4 flex-wrap">
+          <DongHo />
+          <span className="hidden sm:block h-6 w-px" style={{ background: 'rgba(255,255,255,.15)' }} />
+          <div className="flex flex-col items-end leading-tight">
+            <span className="font-semibold text-white text-sm">{tieuDe}</span>
+            <span className="text-xs" style={{ color: '#CDBFB3' }}>{user.hoTen}</span>
           </div>
-          <div className="h-8 w-px bg-[var(--color-dark-border)]"></div>
-          <button onClick={dangXuat} className="text-sm text-red-400 p-2 px-3 hover:bg-red-500/10 rounded-lg transition-colors font-medium">Đăng xuất</button>
+          <button onClick={dangXuat} className="text-sm text-[#F1B8C4] hover:text-white px-3 py-1.5 rounded-lg transition-colors font-medium" style={{ background: 'rgba(255,255,255,.06)' }}>Đăng xuất</button>
         </div>
       </header>
-      <main className="flex-1 px-4 pb-8 max-w-[1600px] mx-auto w-full">
+      <main className="flex-1 px-4 py-6 max-w-[1600px] mx-auto w-full">
         {children}
       </main>
     </div>
