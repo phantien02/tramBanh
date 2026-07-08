@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { docSession } from '@/lib/session'
 
-const CONG_KHAI = ['/login', '/api/login']
+const CONG_KHAI = ['/login', '/api/login', '/huong-dan']
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl

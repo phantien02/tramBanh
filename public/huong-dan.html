@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trạm Bánh — Hướng dẫn sử dụng</title>
+<style>
+  :root{
+    --bg:#FBF6EF; --surface:#FFFFFF; --surface-2:#F5ECE0; --line:#E8DAC9;
+    --ink:#2B2119; --muted:#8B7B6C;
+    --gold:#C77A1C; --gold-soft:rgba(217,138,43,.14);
+    --dau:#E24B6A; --dau-soft:rgba(226,75,106,.12);
+    --tra:#2F8A62; --tra-soft:rgba(79,178,134,.16);
+    --alarm:#DC2626; --alarm-soft:rgba(220,38,38,.10);
+    --quay:#E24B6A; --bep:#C77A1C; --ql:#2F8A62;
+    --shadow:0 1px 2px rgba(43,33,25,.06),0 10px 30px rgba(43,33,25,.07);
+    --radius:16px;
+    --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#171310; --surface:#211a15; --surface-2:#2a211a; --line:#3a2e24;
+      --ink:#F2E8DE; --muted:#b3a494;
+      --gold:#E7A24A; --gold-soft:rgba(231,162,74,.16);
+      --dau:#F0708C; --dau-soft:rgba(240,112,140,.16);
+      --tra:#5CC894; --tra-soft:rgba(92,200,148,.16);
+      --alarm:#F16060; --alarm-soft:rgba(241,96,96,.15);
+      --quay:#F0708C; --bep:#E7A24A; --ql:#5CC894;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#FBF6EF; --surface:#FFFFFF; --surface-2:#F5ECE0; --line:#E8DAC9;
+    --ink:#2B2119; --muted:#8B7B6C;
+    --gold:#C77A1C; --gold-soft:rgba(217,138,43,.14);
+    --dau:#E24B6A; --dau-soft:rgba(226,75,106,.12);
+    --tra:#2F8A62; --tra-soft:rgba(79,178,134,.16);
+    --alarm:#DC2626; --alarm-soft:rgba(220,38,38,.10);
+    --quay:#E24B6A; --bep:#C77A1C; --ql:#2F8A62;
+    --shadow:0 1px 2px rgba(43,33,25,.06),0 10px 30px rgba(43,33,25,.07);
+  }
+  :root[data-theme="dark"]{
+    --bg:#171310; --surface:#211a15; --surface-2:#2a211a; --line:#3a2e24;
+    --ink:#F2E8DE; --muted:#b3a494;
+    --gold:#E7A24A; --gold-soft:rgba(231,162,74,.16);
+    --dau:#F0708C; --dau-soft:rgba(240,112,140,.16);
+    --tra:#5CC894; --tra-soft:rgba(92,200,148,.16);
+    --alarm:#F16060; --alarm-soft:rgba(241,96,96,.15);
+    --quay:#F0708C; --bep:#E7A24A; --ql:#5CC894;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.4);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--ink); font-family:var(--sans);
+    font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:820px; margin:0 auto; padding:0 20px 80px}
+  h1,h2,h3{font-family:var(--serif); font-weight:700; text-wrap:balance; line-height:1.2}
+  a{color:var(--gold)}
+  .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+  header.top{
+    background:var(--ink); color:#F3E9E0; padding:34px 20px 30px;
+    border-bottom:3px solid var(--gold);
+  }
+  .top-inner{max-width:820px; margin:0 auto}
+  .wordmark{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+  .wordmark .name{font-family:var(--serif); font-size:clamp(1.9rem,6vw,2.6rem); font-weight:700; color:#fff}
+  .badge24{font-family:var(--mono); font-size:.62rem; letter-spacing:.15em; font-weight:700;
+    background:var(--gold); color:#2B2119; padding:3px 8px; border-radius:999px}
+  header.top p{margin:.5rem 0 0; color:#CDBFB3; font-size:1.02rem}
+  .meta{margin-top:14px; font-size:.8rem; color:#a9998c; font-family:var(--mono)}
+
+  nav.toc{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px; margin:26px 0; box-shadow:var(--shadow);
+  }
+  nav.toc h2{font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+    margin:0 0 12px; font-family:var(--sans); font-weight:700}
+  nav.toc ol{margin:0; padding:0; list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:6px 20px; counter-reset:t}
+  nav.toc li{counter-increment:t}
+  nav.toc a{display:flex; gap:10px; align-items:baseline; text-decoration:none; color:var(--ink); padding:5px 0; border-bottom:1px dashed transparent}
+  nav.toc a:hover{border-bottom-color:var(--line)}
+  nav.toc a::before{content:counter(t,decimal-leading-zero); font-family:var(--mono); font-size:.72rem; color:var(--gold); font-weight:700}
+
+  section{margin:40px 0; scroll-margin-top:16px}
+  section > h2{
+    font-size:clamp(1.4rem,4.5vw,1.9rem); margin:0 0 4px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .eyebrow{font-family:var(--sans); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+    font-weight:700; color:var(--muted); margin:0 0 6px}
+  .lead{color:var(--muted); margin:.2rem 0 1.4rem; font-size:1.04rem}
+
+  h3{font-size:1.12rem; margin:1.8rem 0 .5rem}
+  p{margin:.6rem 0}
+  ul.clean{margin:.5rem 0; padding-left:1.2rem}
+  ul.clean li{margin:.35rem 0}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:20px 22px; box-shadow:var(--shadow)}
+
+  .role{width:12px; height:12px; border-radius:4px; flex:none}
+  .role.quay{background:var(--quay)} .role.bep{background:var(--bep)} .role.ql{background:var(--ql)}
+
+  .roles{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:8px}
+  .role-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); border-top:4px solid var(--line)}
+  .role-card.quay{border-top-color:var(--quay)} .role-card.bep{border-top-color:var(--bep)} .role-card.ql{border-top-color:var(--ql)}
+  .role-card h3{margin:.1rem 0 .3rem; font-size:1.05rem}
+  .role-card .who{font-size:.85rem; color:var(--muted)}
+
+  .flow{display:flex; flex-wrap:wrap; align-items:stretch; gap:8px; margin:10px 0}
+  .step{flex:1 1 120px; min-width:120px; background:var(--surface); border:1px solid var(--line);
+    border-radius:12px; padding:12px 12px; box-shadow:var(--shadow); position:relative}
+  .step .st{font-family:var(--serif); font-weight:700; font-size:1rem}
+  .step .by{font-size:.74rem; color:var(--muted); margin-top:3px}
+  .step .by b{color:var(--ink)}
+  .arrow{align-self:center; color:var(--gold); font-weight:700; font-size:1.1rem}
+  @media (max-width:620px){ .arrow{transform:rotate(90deg)} .flow{flex-direction:column} .step{min-width:0} }
+
+  .legend{display:grid; gap:10px}
+  .legend .row{display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:var(--surface)}
+  .swatch{width:26px; height:26px; border-radius:8px; flex:none; margin-top:1px}
+  .legend .row .t b{display:block}
+  .legend .row .t span{font-size:.9rem; color:var(--muted)}
+  .pill{display:inline-block; font-size:.74rem; font-weight:700; padding:2px 9px; border-radius:999px}
+
+  ol.steps{counter-reset:s; list-style:none; margin:12px 0; padding:0; display:grid; gap:10px}
+  ol.steps li{counter-increment:s; display:flex; gap:14px; align-items:flex-start; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 15px; box-shadow:var(--shadow)}
+  ol.steps li::before{content:counter(s); font-family:var(--mono); font-weight:700; color:#fff; background:var(--gold);
+    width:26px; height:26px; border-radius:8px; display:grid; place-items:center; flex:none; font-size:.85rem}
+  section.quay ol.steps li::before{background:var(--quay)}
+  ol.steps li b{color:var(--ink)}
+
+  .btnrow{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 4px}
+  .kbtn{font-size:.82rem; font-weight:700; padding:5px 11px; border-radius:9px; color:#fff}
+  .kbtn.gold{background:var(--gold)} .kbtn.dau{background:var(--dau)} .kbtn.tra{background:var(--tra)}
+  .kbtn.ghost{background:var(--surface-2); color:var(--ink); border:1px solid var(--line)}
+
+  .note{border-left:3px solid var(--gold); background:var(--gold-soft); padding:12px 16px; border-radius:0 12px 12px 0; margin:14px 0}
+  .note.warn{border-left-color:var(--dau); background:var(--dau-soft)}
+  .note b{color:var(--ink)}
+
+  details.faq{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:2px 16px; margin:8px 0; box-shadow:var(--shadow)}
+  details.faq summary{cursor:pointer; font-weight:600; padding:12px 0; list-style:none}
+  details.faq summary::-webkit-details-marker{display:none}
+  details.faq summary::before{content:"＋"; color:var(--gold); font-weight:700; margin-right:10px}
+  details.faq[open] summary::before{content:"－"}
+  details.faq p{margin:0 0 12px; color:var(--ink)}
+
+  footer.end{margin-top:50px; padding-top:22px; border-top:1px solid var(--line); color:var(--muted); font-size:.9rem}
+  :focus-visible{outline:2px solid var(--gold); outline-offset:2px; border-radius:4px}
+
+  @media (max-width:640px){ .roles{grid-template-columns:1fr} nav.toc ol{grid-template-columns:1fr} }
+  @media print{
+    header.top{background:#fff; color:#000; border-bottom:2px solid #000}
+    .wordmark .name,header.top p,.meta{color:#000}
+    .card,.step,.role-card,ol.steps li,details.faq,.legend .row{box-shadow:none}
+    nav.toc{display:none}
+    details.faq[open] summary::before{content:""}
+    details.faq,section{break-inside:avoid}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <div class="wordmark"><span class="name">Trạm Bánh</span><span class="badge24">24H</span></div>
+      <p>Hướng dẫn sử dụng phần mềm quản lý đơn hàng tiệm bánh</p>
+      <div class="meta">Dành cho nhân viên Quầy · Bếp · Quản lý — cập nhật 07/2026</div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc" aria-label="Mục lục">
+      <h2>Mục lục</h2>
+      <ol>
+        <li><a href="#batdau">Bắt đầu &amp; đăng nhập</a></li>
+        <li><a href="#vongdoi">Vòng đời một đơn hàng</a></li>
+        <li><a href="#mausac">Ý nghĩa màu &amp; cảnh báo</a></li>
+        <li><a href="#quay">Vai trò Quầy</a></li>
+        <li><a href="#bep">Vai trò Bếp</a></li>
+        <li><a href="#quanly">Vai trò Quản lý</a></li>
+        <li><a href="#suco">Xử lý tình huống</a></li>
+      </ol>
+    </nav>
+
+    <section id="batdau">
+      <p class="eyebrow">Phần 1</p>
+      <h2>Bắt đầu &amp; đăng nhập</h2>
+      <p class="lead">Mở trình duyệt, vào địa chỉ của tiệm rồi đăng nhập bằng tài khoản được cấp. Mỗi người dùng có một <b>vai trò</b> quyết định màn hình và quyền thao tác.</p>
+
+      <div class="roles">
+        <div class="role-card quay"><h3>🧾 Quầy</h3><div class="who">Tiếp khách, tạo đơn, thu tiền, giao bánh cho khách.</div></div>
+        <div class="role-card bep"><h3>👨‍🍳 Bếp</h3><div class="who">Nhận đơn trong ngày, làm bánh, báo bánh xong.</div></div>
+        <div class="role-card ql"><h3>📊 Quản lý</h3><div class="who">Xem thống kê, quản lý đơn, sản phẩm, nhân viên.</div></div>
+      </div>
+
+      <div class="note">
+        <b>Đăng nhập lần đầu:</b> dùng tài khoản quản lý <span class="mono">admin / admin123</span>. Vào <b>Quản lý → Nhân viên</b> để tạo tài khoản cho từng người, rồi <b>đổi ngay mật khẩu admin</b> cho an toàn.
+      </div>
+      <p>Góc trên màn hình luôn hiển thị <b>đồng hồ</b>, ca làm việc (☀️ ngày / 🌙 đêm), tên bạn và nút <b>Đăng xuất</b>. Người có quyền sẽ thấy thanh chuyển nhanh giữa <b>Quầy · Bếp · Quản lý</b>.</p>
+    </section>
+
+    <section id="vongdoi">
+      <p class="eyebrow">Phần 2</p>
+      <h2>Vòng đời một đơn hàng</h2>
+      <p class="lead">Mỗi đơn đi qua các trạng thái sau. Quầy và Bếp phối hợp đẩy đơn tiến tới. Biết ai bấm bước nào là hiểu cả quy trình.</p>
+
+      <div class="flow" role="list">
+        <div class="step" role="listitem"><div class="st">Mới tạo</div><div class="by">Quầy vừa tạo đơn</div></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="step" role="listitem"><div class="st">Bếp đang làm</div><div class="by"><b>Bếp</b> bấm “Nhận làm”</div></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="step" role="listitem"><div class="st">Bánh xong</div><div class="by"><b>Bếp</b> bấm “Xong”</div></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="step" role="listitem"><div class="st">Quầy đã nhận</div><div class="by"><b>Quầy</b> bấm “Đã nhận bánh”</div></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="step" role="listitem"><div class="st">Hoàn tất</div><div class="by"><b>Quầy</b> giao khách xong</div></div>
+      </div>
+
+      <ul class="clean">
+        <li><b>Đơn lấy ngay:</b> nếu khách mua bánh có sẵn, Quầy bấm thẳng <b>“Lấy ngay — hoàn tất”</b> (không cần qua Bếp).</li>
+        <li><b>Hủy đơn:</b> Quầy/Quản lý hủy được ở mọi trạng thái, trừ đơn đã hoàn tất. Luôn phải nhập <b>lý do hủy</b>.</li>
+        <li><b>Bấm nhầm?</b> Bếp có thể <b>hoàn tác</b> (Bánh xong → Đang làm, hoặc Đang làm → chờ) miễn là Quầy <b>chưa</b> nhận bánh.</li>
+      </ul>
+    </section>
+
+    <section id="mausac">
+      <p class="eyebrow">Phần 3</p>
+      <h2>Ý nghĩa màu &amp; cảnh báo</h2>
+      <p class="lead">Màu trên thẻ đơn cho biết mức độ gấp <b>theo giờ hẹn lấy</b> — nhìn màu là biết đơn nào cần ưu tiên.</p>
+      <div class="legend">
+        <div class="row"><span class="swatch" style="background:var(--alarm)"></span><div class="t"><b>Đỏ báo động — Trễ giờ</b><span>Đã quá giờ hẹn mà đơn chưa xong. Thẻ nhấp nháy, có nhãn <b>⏰ Trễ 15 phút</b>. Xử lý ngay.</span></div></div>
+        <div class="row"><span class="swatch" style="background:var(--gold)"></span><div class="t"><b>Vàng — Sắp đến hạn</b><span>Còn dưới ~2 tiếng tới giờ hẹn. Có nhãn <b>⏳ Còn 45 phút</b>.</span></div></div>
+        <div class="row"><span class="swatch" style="background:var(--ink)"></span><div class="t"><b>Nâu — Bình thường</b><span>Còn nhiều thời gian, hoặc đơn đã hoàn tất/hủy.</span></div></div>
+      </div>
+      <h3>Các nhãn khác trên thẻ</h3>
+      <div class="btnrow">
+        <span class="pill" style="background:var(--dau-soft); color:var(--dau)">🛵 Ship</span>
+        <span class="pill" style="background:var(--tra-soft); color:var(--tra)">🏠 Tại quán</span>
+        <span class="pill" style="background:var(--gold-soft); color:var(--gold)">ĐÃ SỬA</span>
+      </div>
+      <ul class="clean">
+        <li><b>🛵 Ship / 🏠 Tại quán:</b> hình thức khách nhận bánh.</li>
+        <li><b>ĐÃ SỬA:</b> đơn bị chỉnh sau khi Bếp đã nhận — Bếp cần mở xem và bấm <b>“Đã thấy thay đổi”</b>.</li>
+      </ul>
+    </section>
+
+    <section id="quay" class="quay">
+      <p class="eyebrow">Phần 4</p>
+      <h2><span class="role quay"></span>Vai trò Quầy</h2>
+      <p class="lead">Nơi tạo đơn, theo dõi tiến độ và giao bánh cho khách.</p>
+
+      <h3>Tạo đơn mới</h3>
+      <p>Bấm <span class="kbtn dau">＋ Đơn mới</span> rồi điền theo thứ tự:</p>
+      <ol class="steps">
+        <li><b>Khách hàng:</b> nhập số điện thoại — nếu là khách quen, tên tự điền. Chọn <b>nguồn đơn</b> (tại quầy, Zalo, điện thoại…).</li>
+        <li><b>Chọn bánh:</b> chọn <b>Cốt</b> (bắt buộc), Mứt, Topping, <b>Size</b> (bắt buộc), số lượng, đơn giá. Thêm <b>chữ viết lên bánh</b>, ghi chú, và <b>ảnh mẫu</b> (tối đa 5 ảnh). Cần nhiều bánh thì bấm “＋ Thêm bánh”.</li>
+        <li><b>Giao nhận:</b> chọn ngày &amp; giờ khách lấy; chọn <b>Nhận tại tiệm</b> hoặc <b>Ship</b> (nhập địa chỉ, phí ship, người nhận nếu khác).</li>
+        <li><b>Thanh toán:</b> hệ thống tự tính tổng; nhập <b>tiền cọc</b>, hình thức thanh toán. Có thể tick sửa giá thủ công khi giảm giá.</li>
+        <li><b>Xem lại &amp; Đặt hàng:</b> kiểm tra màn xác nhận rồi lưu. Đơn xuất hiện ở cột <b>Mới tạo</b> và Bếp thấy ngay.</li>
+      </ol>
+      <div class="note"><b>Mẹo nhập tiền:</b> các ô tiền tính theo <b>nghìn đồng</b> — gõ <span class="mono">235</span> là hệ thống tự hiểu <span class="mono">235.000đ</span> (tự thêm đuôi <b>.000đ</b>).</div>
+
+      <h3>Bảng đơn</h3>
+      <ul class="clean">
+        <li><b>Hôm nay / Sắp tới:</b> chuyển giữa đơn trong ngày và đơn các ngày tới.</li>
+        <li><b>Lọc theo giao hàng:</b> <span class="pill" style="background:var(--surface-2)">Tất cả</span> · <span class="pill" style="background:var(--surface-2)">🛵 Cần ship</span> · <span class="pill" style="background:var(--surface-2)">🏠 Tại quán</span> · <span class="pill" style="background:var(--surface-2)">✅ Đã giao</span> — mỗi nút có số đếm.</li>
+        <li><b>Trên máy tính:</b> 4 cột theo trạng thái (Mới tạo → Bếp đang làm → Bánh xong → Quầy đã nhận).</li>
+        <li><b>Trên điện thoại:</b> có <b>thanh tab trạng thái</b> kèm số đếm — chạm để xem từng nhóm, nhìn là biết đâu đang làm / đã xong.</li>
+        <li><b>Tìm kiếm:</b> gõ mã đơn, tên hoặc số điện thoại khách.</li>
+      </ul>
+
+      <h3>Xử lý một đơn</h3>
+      <p>Chạm vào thẻ để mở <b>chi tiết</b>: xem đầy đủ món, ảnh mẫu (phóng to / tải về), tiền nong và <b>nhật ký</b> (ai làm gì, lúc nào). Các nút theo trạng thái:</p>
+      <div class="btnrow">
+        <span class="kbtn tra">🤝 Đã nhận bánh</span>
+        <span class="kbtn dau">✅ Hoàn tất</span>
+        <span class="kbtn ghost">🗑 Hủy đơn</span>
+      </div>
+      <ul class="clean">
+        <li><b>🤝 Đã nhận bánh:</b> khi Bếp báo xong, Quầy nhận bánh ra quầy. Bấm xong <b>tự quay về bảng đơn</b>.</li>
+        <li><b>✅ Hoàn tất:</b> khi giao khách xong — chọn hình thức kết thúc (giao khách / đã ship / lên tủ trưng bày).</li>
+      </ul>
+    </section>
+
+    <section id="bep">
+      <p class="eyebrow">Phần 5</p>
+      <h2><span class="role bep"></span>Vai trò Bếp</h2>
+      <p class="lead">Màn hình tập trung vào việc cần làm trong ngày, sắp xếp theo độ gấp.</p>
+
+      <ul class="clean">
+        <li><b>Chọn ngày:</b> dùng nút <b>◀ ▶</b> để xem Hôm nay, ngày mai… (không lùi được về quá khứ).</li>
+        <li><b>Hai tab:</b>
+          <span class="pill" style="background:var(--gold-soft); color:var(--gold)">🔥 Cần làm</span>
+          <span class="pill" style="background:var(--tra-soft); color:var(--tra)">✅ Đã xong</span> — mỗi tab hiện số lượng.</li>
+      </ul>
+
+      <h3>Tab “Cần làm”</h3>
+      <p>Gồm đơn <b>Mới</b> và <b>Đang làm</b>, đơn <b>trễ / sắp đến hạn</b> tự đẩy lên đầu. Trên mỗi thẻ:</p>
+      <div class="btnrow">
+        <span class="kbtn gold">👨‍🍳 Nhận làm</span>
+        <span class="kbtn tra">🎂 Xong</span>
+        <span class="kbtn ghost">↩ Trả về hàng chờ</span>
+      </div>
+      <ul class="clean">
+        <li><b>👨‍🍳 Nhận làm:</b> bắt đầu làm đơn (chuyển sang “Đang làm”).</li>
+        <li><b>🎂 Xong:</b> báo bánh đã làm xong, chuyển sang tab “Đã xong” để Quầy nhận.</li>
+        <li><b>↩ (trả về):</b> lỡ bấm nhận nhầm thì trả đơn về hàng chờ.</li>
+      </ul>
+
+      <h3>Tab “Đã xong”</h3>
+      <p>Thẻ gọn để đối chiếu. Nếu <b>lỡ bấm “Xong” nhầm</b>, bấm <span class="kbtn gold">↩ Hoàn tác</span> để đưa đơn trở lại “Đang làm” — chỉ được khi Quầy <b>chưa</b> nhận bánh.</p>
+
+      <div class="note warn"><b>Đơn có nhãn “ĐÃ SỬA”:</b> nghĩa là Quầy đã chỉnh đơn sau khi bạn nhận. Mở chi tiết, xem thay đổi rồi bấm <b>“Đã thấy thay đổi”</b> để tắt cảnh báo.</div>
+      <p>Mỗi thẻ hiển thị <b>ảnh mẫu bánh</b>, size, vị, <b>chữ viết lên bánh</b> và ghi chú — đủ thông tin để làm mà không cần hỏi lại.</p>
+    </section>
+
+    <section id="quanly">
+      <p class="eyebrow">Phần 6</p>
+      <h2><span class="role ql"></span>Vai trò Quản lý</h2>
+      <p class="lead">Khu quản trị với thanh điều hướng bên trái: Thống kê · Đơn hàng · Sản phẩm · Nhân viên.</p>
+
+      <h3>Thống kê</h3>
+      <ul class="clean">
+        <li>Chọn khoảng thời gian: <b>Hôm nay · 7 ngày · 30 ngày · Tùy chỉnh</b> (tự chọn từ ngày → đến ngày).</li>
+        <li>Các số chính: <b>Doanh thu, Số đơn, Đơn hủy, Tỉ lệ trễ hạn</b>.</li>
+        <li>Biểu đồ: doanh thu theo ngày, đơn theo nguồn, món bán chạy, giờ cao điểm, khách quen mua nhiều.</li>
+      </ul>
+
+      <h3>Đơn hàng</h3>
+      <ul class="clean">
+        <li>Lọc theo khoảng ngày, trạng thái, hoặc tìm theo mã/tên/SĐT.</li>
+        <li>Bấm một dòng để mở chi tiết đơn.</li>
+        <li><b>Xuất Excel</b> (trên máy tính): tải toàn bộ đơn đang lọc ra file <span class="mono">.xlsx</span> để lưu/đối soát.</li>
+      </ul>
+
+      <h3>Sản phẩm — Danh sách vị bánh</h3>
+      <p>Quản lý các lựa chọn cho bánh mẫu: <b>Cốt · Mứt · Topping · Size</b>. Mỗi mục có thể <b>Thêm</b>, <b>Sửa</b> tên, hoặc <b>Xóa</b>.</p>
+      <div class="note"><b>Yên tâm khi xóa:</b> xóa một vị chỉ bỏ nó khỏi danh sách chọn cho đơn mới — <b>các đơn cũ đã lưu vị đó không bị ảnh hưởng</b>.</div>
+
+      <h3>Nhân viên</h3>
+      <p>Tạo và quản lý tài khoản cho từng người, gán vai trò Quầy / Bếp / Quản lý, và khóa tài khoản khi cần.</p>
+    </section>
+
+    <section id="suco">
+      <p class="eyebrow">Phần 7</p>
+      <h2>Xử lý tình huống thường gặp</h2>
+
+      <details class="faq"><summary>Hiện banner đỏ “MẤT KẾT NỐI”?</summary>
+        <p>Mạng tới máy chủ bị gián đoạn nên dữ liệu tạm ngừng cập nhật. App <b>tự kết nối lại</b> khi có mạng — banner sẽ tự tắt. Nếu chờ lâu, chỉ cần <b>kéo/refresh</b> lại trang.</p></details>
+
+      <details class="faq"><summary>Bếp lỡ bấm “Xong” nhầm đơn?</summary>
+        <p>Vào tab <b>Đã xong</b>, bấm <b>↩ Hoàn tác</b> để đưa đơn về “Đang làm”. Chỉ làm được khi Quầy chưa bấm “Đã nhận bánh”; nếu đã nhận thì báo Quản lý xử lý.</p></details>
+
+      <details class="faq"><summary>Khách đổi yêu cầu sau khi đã đặt?</summary>
+        <p>Quầy mở đơn → <b>Sửa nội dung đơn</b>. Đơn sẽ gắn nhãn <b>ĐÃ SỬA</b> để Bếp chú ý thay đổi.</p></details>
+
+      <details class="faq"><summary>Nhập đơn giá bị nhầm số 0?</summary>
+        <p>Các ô tiền tính theo <b>nghìn đồng</b> và tự thêm đuôi <b>.000đ</b>. Gõ <span class="mono">235</span> = 235.000đ, gõ <span class="mono">1235</span> = 1.235.000đ. Không cần gõ hết các số 0.</p></details>
+
+      <details class="faq"><summary>Đơn để đỏ nhấp nháy dù bánh đã xong?</summary>
+        <p>Màu đỏ tính theo <b>giờ hẹn lấy</b> — nếu quá giờ mà khách chưa tới nhận, đơn vẫn báo đỏ để nhắc theo dõi. Khi đơn <b>Hoàn tất</b> hoặc <b>Hủy</b> thì hết báo.</p></details>
+
+      <details class="faq"><summary>Đăng nhập trên điện thoại có khác không?</summary>
+        <p>Không — cùng tài khoản, giao diện tự tối ưu cho màn nhỏ (thẻ đơn 1 cột, có thanh tab trạng thái). Rất hợp để Bếp dùng máy tính bảng, Quầy dùng điện thoại.</p></details>
+    </section>
+
+    <footer class="end">
+      <p><b>Trạm Bánh</b> — phần mềm quản lý đơn hàng nội bộ. Có thắc mắc hoặc cần thêm tài khoản, liên hệ người phụ trách (vai trò Quản lý).</p>
+      <p>Bản hướng dẫn này có thể in ra (Ctrl/Cmd + P) để dán tại quầy và bếp.</p>
+    </footer>
+  </div>
+</body>
+</html>
