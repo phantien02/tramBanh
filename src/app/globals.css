@@ -13,6 +13,8 @@
   --color-caramel-600: #B8701E;
   --color-dau: #E24B6A;         /* Đỏ dâu — hành động */
   --color-dau-600: #C93A59;
+  --color-baodong: #DC2626;     /* Đỏ báo động — đơn trễ giờ giao */
+  --color-baodong-bg: rgba(220,38,38,.08);
   --color-tra: #4FB286;         /* Xanh trà — sẵn sàng/xong */
   --color-tra-700: #2F7D5A;
   --color-caphe: #2B2119;       /* Nâu cà phê — chữ + bảng trạm */

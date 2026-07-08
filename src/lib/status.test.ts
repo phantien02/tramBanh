@@ -19,6 +19,16 @@ describe('chuyenHopLe', () => {
     expect(chuyenHopLe('moi', 'banh_xong', 'bep')).toBe(false)
     expect(chuyenHopLe('dang_lam', 'da_nhan', 'quay')).toBe(false)
   })
+  it('bếp hoàn tác được khi bấm nhầm: banh_xong→dang_lam, dang_lam→moi', () => {
+    expect(chuyenHopLe('banh_xong', 'dang_lam', 'bep')).toBe(true)
+    expect(chuyenHopLe('dang_lam', 'moi', 'bep')).toBe(true)
+    expect(chuyenHopLe('banh_xong', 'dang_lam', 'quanly')).toBe(true)
+  })
+  it('không hoàn tác được sau khi quầy đã nhận bánh (da_nhan) hoặc sai vai trò', () => {
+    expect(chuyenHopLe('da_nhan', 'banh_xong', 'bep')).toBe(false)
+    expect(chuyenHopLe('da_nhan', 'dang_lam', 'quay')).toBe(false)
+    expect(chuyenHopLe('banh_xong', 'dang_lam', 'quay')).toBe(false)
+  })
   it('hủy: được từ mọi trạng thái trừ hoan_tat/huy, chỉ quầy hoặc quản lý', () => {
     expect(chuyenHopLe('moi', 'huy', 'quay')).toBe(true)
     expect(chuyenHopLe('banh_xong', 'huy', 'quanly')).toBe(true)

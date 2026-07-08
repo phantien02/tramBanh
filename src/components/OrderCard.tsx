@@ -1,27 +1,33 @@
 'use client'
-import { dinhDangGio, dinhDangNgay, mucCanhBao } from '@/lib/time'
+import { dinhDangGio, dinhDangNgay, noteThoiGian } from '@/lib/time'
 import { TEN_TRANG_THAI, type TrangThai } from '@/lib/status'
 
 export type DonHienThi = {
   id: number; maDon: string; ngayGioNhan: number; trangThai: string; daSua: number
-  nguon: string; hinhThucNhan: string
+  nguon: string; hinhThucNhan: string; ketThucKieu?: string | null; ghiChu?: string | null
   khach?: { ten: string; sdt: string } | null
-  items: { tenMon: string; coBanh?: string | null; cot?: string | null; mut?: string | null; topping?: string[]; soLuong: number; chuViet?: string | null }[]
+  items: { tenMon: string; coBanh?: string | null; cot?: string | null; mut?: string | null; topping?: string[]; soLuong: number; chuViet?: string | null; anhMau?: string[] }[]
 }
 
 const TEN_NGUON: Record<string, string> = {
   tai_quay: 'Tại quầy', zalo: 'Zalo', messenger: 'Messenger', dien_thoai: 'Điện thoại', khac: 'Khác',
 }
 
-export default function OrderCard({ don, now, onClick }: { don: DonHienThi; now: number; onClick?: () => void }) {
-  const muc = mucCanhBao(don, now)
-  const mauStub = muc === 'tre_han' ? 'var(--color-dau)' : muc === 'sap_den_han' ? 'var(--color-caramel)' : 'var(--color-caphe)'
+export function laShip(hinhThucNhan: string): boolean {
+  return hinhThucNhan === 'ship'
+}
+
+export default function OrderCard({ don, now, onClick, actions }: { don: DonHienThi; now: number; onClick?: () => void; actions?: React.ReactNode }) {
+  const { muc, text: noteGio } = noteThoiGian(don, now)
+  const ship = laShip(don.hinhThucNhan)
+  const mauStub = muc === 'tre_han' ? 'var(--color-baodong)' : muc === 'sap_den_han' ? 'var(--color-caramel)' : 'var(--color-caphe)'
   const vien = muc === 'tre_han'
-    ? 'ring-2 ring-[var(--color-dau)]'
+    ? 'ring-2 ring-[var(--color-baodong)]'
     : muc === 'sap_den_han' ? 'ring-2 ring-[var(--color-caramel)]' : ''
+  const nenBaoDong = muc === 'tre_han' ? { background: 'var(--color-baodong-bg)' } : undefined
 
   return (
-    <article onClick={onClick} className={`tb-ticket cursor-pointer ${vien} ${muc === 'tre_han' ? 'animate-pulse' : ''}`}>
+    <article onClick={onClick} style={nenBaoDong} className={`tb-ticket cursor-pointer ${vien} ${muc === 'tre_han' ? 'animate-pulse' : ''}`}>
       {/* Cuống vé — mã đơn dọc */}
       <div className="flex-none w-11 flex items-center justify-center" style={{ background: mauStub }}>
         <span className="tb-ticket-mono text-white text-xs tracking-wider" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
@@ -35,11 +41,20 @@ export default function OrderCard({ don, now, onClick }: { don: DonHienThi; now:
       {/* Thân vé */}
       <div className="flex-1 p-3 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className={`num text-2xl leading-none ${muc === 'tre_han' ? 'text-[var(--color-dau)]' : muc === 'sap_den_han' ? 'text-[var(--color-caramel-600)]' : 'text-[var(--color-caphe)]'}`}>
+          <span className={`num text-2xl leading-none font-bold ${muc === 'tre_han' ? 'text-[var(--color-baodong)]' : muc === 'sap_den_han' ? 'text-[var(--color-caramel-600)]' : 'text-[var(--color-caphe)]'}`}>
             {dinhDangGio(don.ngayGioNhan)}
           </span>
           <span className="text-[11px] text-[var(--color-xam)] tb-chip">{dinhDangNgay(don.ngayGioNhan)}</span>
         </div>
+
+        {noteGio && (
+          <div className={`mb-2 inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-full ${
+            muc === 'tre_han'
+              ? 'text-white bg-[var(--color-baodong)]'
+              : 'text-[var(--color-caramel-600)] bg-[rgba(217,138,43,.16)]'}`}>
+            {noteGio}
+          </div>
+        )}
 
         <div className="flex items-center gap-2 mb-2">
           <span className="font-semibold text-sm truncate">{don.khach?.ten ?? 'Khách lẻ'}</span>
@@ -47,27 +62,46 @@ export default function OrderCard({ don, now, onClick }: { don: DonHienThi; now:
           {don.daSua === 1 && <span className="text-[11px] tb-chip-dau tb-chip font-bold">ĐÃ SỬA</span>}
         </div>
 
-        <ul className="text-sm space-y-0.5 text-[var(--color-caphe)]">
+        <div className="space-y-2">
           {don.items.map((it, i) => (
-            <li key={i} className="flex items-start">
-              <span className="num text-[var(--color-caramel-600)] text-xs mr-1.5 mt-0.5">{it.soLuong}×</span>
-              <span className="min-w-0">
-                <span>{it.tenMon}</span>
-                {(it.coBanh || it.cot) && (
-                  <span className="text-[11px] text-[var(--color-caramel-600)] font-medium ml-1">
-                    {[it.coBanh, it.cot].filter(Boolean).join(' · ')}
-                  </span>
+            <div key={i} className="space-y-1">
+              {it.anhMau && it.anhMau.length > 0 && (
+                <div className="relative">
+                  <img src={`/api/uploads/${it.anhMau[0]}`} alt="mẫu bánh" loading="lazy"
+                    className="w-full h-32 object-cover rounded-lg border border-[var(--color-line)]" />
+                  {it.soLuong > 1 && (
+                    <span className="num absolute top-1.5 right-1.5 bg-[var(--color-caphe)] text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">×{it.soLuong}</span>
+                  )}
+                </div>
+              )}
+              <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
+                {!(it.anhMau && it.anhMau.length > 0) && it.soLuong > 1 && (
+                  <span className="num font-bold text-sm text-[var(--color-caramel-600)]">×{it.soLuong}</span>
                 )}
-                {it.chuViet && <span className="text-[var(--color-dau)] font-medium ml-1 block text-xs">✍️ &ldquo;{it.chuViet}&rdquo;</span>}
-              </span>
-            </li>
+                {it.coBanh && <span className="tb-chip tb-chip-caramel font-bold">📏 {it.coBanh}</span>}
+                {(it.cot || it.mut) && (
+                  <span className="text-[var(--color-caramel-600)] font-medium">{[it.cot, it.mut].filter(Boolean).join(' · ')}</span>
+                )}
+              </div>
+              {it.chuViet && <div className="text-[var(--color-dau)] font-semibold text-xs">✍️ &ldquo;{it.chuViet}&rdquo;</div>}
+            </div>
           ))}
-        </ul>
-
-        <div className="mt-2.5 pt-2 border-t border-[var(--color-line)] flex items-center justify-between">
-          <span className="text-[11px] font-semibold text-[var(--color-xam)] uppercase tracking-wider">{TEN_TRANG_THAI[don.trangThai as TrangThai]}</span>
-          <span className="text-[11px] text-[var(--color-xam)]">{don.hinhThucNhan === 'giao_hang' || don.hinhThucNhan === 'ship' ? '🛵 Giao' : '🏠 Tại quán'}</span>
         </div>
+
+        {don.ghiChu && (
+          <div className="mt-2 text-xs text-[var(--color-caphe)] bg-[var(--color-surface-2)] rounded-lg p-1.5">📝 {don.ghiChu}</div>
+        )}
+
+        <div className="mt-2.5 pt-2 border-t border-[var(--color-line)] flex items-center justify-between gap-2">
+          <span className="text-[11px] font-semibold text-[var(--color-xam)] uppercase tracking-wider">{TEN_TRANG_THAI[don.trangThai as TrangThai]}</span>
+          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${ship ? 'tb-chip-dau' : 'tb-chip-tra'}`}>
+            {ship ? '🛵 Ship' : '🏠 Tại quán'}
+          </span>
+        </div>
+
+        {actions && (
+          <div className="mt-2 flex gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>{actions}</div>
+        )}
       </div>
     </article>
   )

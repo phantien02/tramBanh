@@ -20,7 +20,9 @@ function nutKhaDung(tt: TrangThai, vaiTro: VaiTro): { to: TrangThai; ten: string
   const la = (...v: VaiTro[]) => v.includes(vaiTro) || vaiTro === 'quanly'
   if (tt === 'moi' && la('bep')) nut.push({ to: 'dang_lam', ten: '👨‍🍳 Nhận làm' })
   if (tt === 'moi' && la('quay')) nut.push({ to: 'hoan_tat', ten: '✅ Lấy ngay — hoàn tất', can: 'ketThucKieu' })
+  if (tt === 'dang_lam' && la('bep')) nut.push({ to: 'moi', ten: '↩ Trả về hàng chờ' })
   if (tt === 'dang_lam' && la('bep')) nut.push({ to: 'banh_xong', ten: '🎂 Xong' })
+  if (tt === 'banh_xong' && la('bep')) nut.push({ to: 'dang_lam', ten: '↩ Hoàn tác — làm lại' })
   if (tt === 'banh_xong' && la('quay')) nut.push({ to: 'da_nhan', ten: '🤝 Đã nhận bánh' })
   if (tt === 'da_nhan' && la('quay')) nut.push({ to: 'hoan_tat', ten: '✅ Hoàn tất', can: 'ketThucKieu' })
   if (tt !== 'hoan_tat' && tt !== 'huy' && la('quay')) nut.push({ to: 'huy', ten: '🗑 Hủy đơn', can: 'lyDoHuy' })
@@ -29,7 +31,7 @@ function nutKhaDung(tt: TrangThai, vaiTro: VaiTro): { to: TrangThai; ten: string
 
 const TEN_KET_THUC = [['giao_khach', 'Giao khách tại tiệm'], ['da_ship', 'Đã ship'], ['len_tu', 'Lên tủ trưng bày']]
 
-export default function OrderDetail({ id, vaiTro, onDong }: { id: number; vaiTro: VaiTro; onDong?: () => void }) {
+export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: number; vaiTro: VaiTro; onDong?: () => void; onChuyenXong?: (to: TrangThai) => void }) {
   const [don, setDon] = useState<ChiTiet | null>(null)
   const [loi, setLoi] = useState('')
   const [hoiKetThuc, setHoiKetThuc] = useState<TrangThai | null>(null) // đang chờ chọn kiểu kết thúc
@@ -43,8 +45,10 @@ export default function OrderDetail({ id, vaiTro, onDong }: { id: number; vaiTro
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ to, ...opts }),
     })
-    if (!res.ok) setLoi((await res.json()).error)
+    const ok = res.ok
+    if (!ok) setLoi((await res.json()).error)
     setHoiKetThuc(null)
+    if (ok) onChuyenXong?.(to)
     tai()
   }
 
@@ -132,7 +136,7 @@ export default function OrderDetail({ id, vaiTro, onDong }: { id: number; vaiTro
               <div className="mt-3 pt-3 border-t border-[var(--color-line)]">
                 <div className="flex gap-3 flex-wrap items-start">
                   {it.anhMau.map((f, idx) => (
-                    <div key={f} className="space-y-1.5">
+                    <div key={`${it.id}-${idx}`} className="space-y-1.5">
                       <button
                         type="button"
                         onClick={() => setAnhPhongTo(f)}

@@ -16,6 +16,26 @@ export function mucCanhBao(
   return 'binh_thuong'
 }
 
+// "15 phút", "2h15", "3 giờ" — dùng cho note trễ giờ / còn bao lâu
+export function dinhDangKhoang(ms: number): string {
+  const phut = Math.max(0, Math.round(ms / 60000))
+  if (phut < 60) return `${phut} phút`
+  const gio = Math.floor(phut / 60)
+  const du = phut % 60
+  return du ? `${gio}h${String(du).padStart(2, '0')}` : `${gio} giờ`
+}
+
+// Note thời gian hiển thị trên thẻ đơn: trễ bao lâu / còn bao lâu tới giờ giao
+export function noteThoiGian(
+  don: { ngayGioNhan: number; trangThai: string },
+  now: number,
+): { muc: 'binh_thuong' | 'sap_den_han' | 'tre_han'; text: string } {
+  const muc = mucCanhBao(don, now)
+  if (muc === 'tre_han') return { muc, text: `⏰ Trễ ${dinhDangKhoang(now - don.ngayGioNhan)}` }
+  if (muc === 'sap_den_han') return { muc, text: `⏳ Còn ${dinhDangKhoang(don.ngayGioNhan - now)}` }
+  return { muc, text: '' }
+}
+
 export function dinhDangGio(ms: number): string {
   return new Date(ms).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
 }

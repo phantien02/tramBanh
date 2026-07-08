@@ -46,6 +46,23 @@ function gopNgayGio(ngay: string, gio: number, phut: string): number {
   return new Date(y, (m || 1) - 1, d || 1, gio, Number(phut), 0, 0).getTime()
 }
 
+// Ô nhập tiền theo "nghìn đồng": gõ 235 → hiển thị "235" kèm đuôi cố định ".000đ" (giá trị lưu = 235000)
+function NhapNghin({ giaTri, onDoi, placeholder, className }: {
+  giaTri: number; onDoi: (v: number) => void; placeholder?: string; className?: string
+}) {
+  const nghin = giaTri ? Math.round(giaTri / 1000) : null
+  const hienThi = nghin == null ? '' : nghin.toLocaleString('vi-VN')
+  return (
+    <div className={`relative ${className ?? ''}`}>
+      <input inputMode="numeric" placeholder={placeholder} className="tb-input num w-full pr-14"
+        value={hienThi} onChange={(e) => onDoi((Number(e.target.value.replace(/\D/g, '')) || 0) * 1000)} />
+      {giaTri > 0 && (
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-xam)] text-sm num pointer-events-none">.000đ</span>
+      )}
+    </div>
+  )
+}
+
 export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
   donCu?: GiaTriForm; onLuu: (v: GiaTriForm) => void; dangLuu: boolean; loi?: string
 }) {
@@ -253,10 +270,9 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                       onChange={(e) => suaMon(i, { soLuong: Math.max(1, Number(e.target.value)) })} />
                   </div>
 
-                  <div className="w-36">
-                    <p className="text-xs text-[var(--color-xam)] mb-1">Đơn giá (nghìn đ)</p>
-                    <input type="number" min={0} step={1} className="tb-input num" placeholder="vd 200" value={m.gia ? m.gia / 1000 : ''}
-                      onChange={(e) => suaMon(i, { gia: Math.round(Number(e.target.value) * 1000) })} />
+                  <div className="w-40">
+                    <p className="text-xs text-[var(--color-xam)] mb-1">Đơn giá</p>
+                    <NhapNghin giaTri={m.gia} onDoi={(g) => suaMon(i, { gia: g })} placeholder="vd 200" />
                   </div>
                 </div>
 
@@ -347,9 +363,8 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
               <input required className="tb-input md:col-span-2" placeholder="Địa chỉ ship chi tiết *"
                 value={v.diaChiShip ?? ''} onChange={(e) => setV({ ...v, diaChiShip: e.target.value })} />
               <div className="flex items-center gap-3">
-                <span className="text-[var(--color-xam)] whitespace-nowrap px-2">Phí ship (nghìn)</span>
-                <input type="number" min={0} step={1} className="tb-input num flex-1 text-right" placeholder="vd 25"
-                  value={v.phiShip ? v.phiShip / 1000 : ''} onChange={(e) => setV({ ...v, phiShip: Math.round(Number(e.target.value) * 1000) })} />
+                <span className="text-[var(--color-xam)] whitespace-nowrap px-2">Phí ship</span>
+                <NhapNghin giaTri={v.phiShip} onDoi={(g) => setV({ ...v, phiShip: g })} placeholder="vd 25" className="flex-1" />
               </div>
             </div>
           )}
@@ -365,12 +380,11 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
           <h3 className="text-[var(--color-caramel-600)] text-sm font-semibold uppercase tracking-wider border-b border-[var(--color-line)] pb-2 mb-4 font-display">Thanh toán</h3>
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--color-surface-2)] p-4 rounded-xl border border-[var(--color-line)]">
-            <div className="flex items-center gap-4 text-xl">
-              <span className="text-[var(--color-caphe)] font-medium">Tổng thanh toán{ghiDeTien ? ' (nghìn)' : ''}:</span>
+            <div className="flex items-center gap-3 flex-wrap text-xl min-w-0">
+              <span className="text-[var(--color-caphe)] font-medium">Tổng thanh toán:</span>
               {ghiDeTien
-                ? <input type="number" min={0} step={1} className="tb-input num w-48 text-[var(--color-caramel-600)] text-right"
-                    value={tongTien ? tongTien / 1000 : ''} onChange={(e) => setV({ ...v, tongTienGhiDe: Math.round(Number(e.target.value) * 1000) })} />
-                : <span className="num text-[var(--color-caramel-600)] text-2xl tracking-wide">{dinhDangTien(tongTinh)}</span>}
+                ? <NhapNghin giaTri={tongTien} onDoi={(g) => setV({ ...v, tongTienGhiDe: g })} className="w-44" />
+                : <span className="num text-[var(--color-caramel-600)] text-2xl tracking-wide break-all">{dinhDangTien(tongTinh)}</span>}
             </div>
 
             <label className="text-sm text-[var(--color-xam)] flex items-center gap-2 cursor-pointer hover:text-[var(--color-caphe)] transition-colors bg-[var(--color-surface)] px-3 py-2 rounded-lg">
@@ -382,15 +396,14 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end pt-2">
             <div className="md:col-span-4">
-              <label className="block text-[var(--color-xam)] text-sm mb-2">Đã đặt cọc (nghìn đ)</label>
-              <input type="number" min={0} step={1} className="tb-input num text-lg" placeholder="vd 100"
-                value={v.tienCoc ? v.tienCoc / 1000 : ''} onChange={(e) => setV({ ...v, tienCoc: Math.round(Number(e.target.value) * 1000) })} />
+              <label className="block text-[var(--color-xam)] text-sm mb-2">Đã đặt cọc</label>
+              <NhapNghin giaTri={v.tienCoc} onDoi={(g) => setV({ ...v, tienCoc: g })} placeholder="vd 100" />
             </div>
 
-            <div className="md:col-span-8 flex flex-col items-end w-full">
-              <div className="mb-3 text-right">
-                <span className="text-[var(--color-xam)] text-lg mr-3">Còn lại:</span>
-                <span className="num text-2xl text-[var(--color-caramel-600)]">{dinhDangTien(tinhConLai(tongTien, v.tienCoc))}</span>
+            <div className="md:col-span-8 flex flex-col items-end w-full min-w-0">
+              <div className="mb-3 text-right flex items-baseline gap-2 flex-wrap justify-end">
+                <span className="text-[var(--color-xam)] text-lg">Còn lại:</span>
+                <span className="num text-2xl text-[var(--color-caramel-600)] break-all">{dinhDangTien(tinhConLai(tongTien, v.tienCoc))}</span>
               </div>
 
               <div className="flex gap-2 w-full justify-end">

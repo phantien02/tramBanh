@@ -17,6 +17,9 @@ const BUOC: { from: TrangThai; to: TrangThai; roles: VaiTro[] }[] = [
   { from: 'dang_lam', to: 'banh_xong', roles: ['bep'] },
   { from: 'banh_xong', to: 'da_nhan', roles: ['quay'] },
   { from: 'da_nhan', to: 'hoan_tat', roles: ['quay'] },
+  // hoàn tác khi bếp bấm nhầm — chỉ được trước khi quầy nhận bánh (da_nhan)
+  { from: 'banh_xong', to: 'dang_lam', roles: ['bep'] }, // lỡ bấm "Xong"
+  { from: 'dang_lam', to: 'moi', roles: ['bep'] },       // trả về hàng chờ
 ]
 
 export function chuyenHopLe(from: TrangThai, to: TrangThai, vaiTro: VaiTro): boolean {
