@@ -30,45 +30,59 @@ export default function TatCaDonPage() {
   }, [tu, den, trangThai, q])
   useEffect(() => { tai() }, [tai])
 
-  function taiCsv() {
-    const dong = [
-      ['Mã đơn', 'Ngày giờ nhận', 'Khách', 'SĐT', 'Nguồn', 'Trạng thái', 'Món', 'Tổng tiền', 'Cọc'].join(';'),
-      ...dons.map((d) => [
-        d.maDon, new Date(d.ngayGioNhan).toLocaleString('vi-VN'), d.khach?.ten ?? '', d.khach?.sdt ?? '',
-        d.nguon, TEN_TRANG_THAI[d.trangThai as TrangThai],
-        d.items.map((i) => `${i.soLuong}x ${i.tenMon}`).join(', '), d.tongTien, d.tienCoc,
-      ].map((c) => `"${String(c).replaceAll('"', '""')}"`).join(';')),
-    ].join('\r\n')
-    const bom = String.fromCharCode(0xfeff) // BOM để Excel đọc đúng tiếng Việt
-    const blob = new Blob([bom + dong], { type: 'text/csv;charset=utf-8' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `don-hang-${tu}-den-${den}.csv`
-    a.click()
+  async function xuatExcel() {
+    const XLSX = await import('xlsx') // nạp động — không phình bundle trang
+    const rows = dons.map((d) => ({
+      'Mã đơn': d.maDon,
+      'Ngày giờ nhận': new Date(d.ngayGioNhan).toLocaleString('vi-VN'),
+      'Khách': d.khach?.ten ?? '',
+      'SĐT': d.khach?.sdt ?? '',
+      'Nguồn': d.nguon,
+      'Trạng thái': TEN_TRANG_THAI[d.trangThai as TrangThai],
+      'Món': d.items.map((i) => `${i.soLuong}x ${i.tenMon}`).join(', '),
+      'Tổng tiền': d.tongTien,
+      'Cọc': d.tienCoc,
+    }))
+    const ws = XLSX.utils.json_to_sheet(rows)
+    ws['!cols'] = [{ wch: 10 }, { wch: 18 }, { wch: 18 }, { wch: 13 }, { wch: 12 }, { wch: 14 }, { wch: 40 }, { wch: 12 }, { wch: 10 }]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Đơn hàng')
+    XLSX.writeFile(wb, `don-hang-${tu}-den-${den}.xlsx`)
   }
 
   if (!user) return null
   return (
     <AppShell user={user} tieuDe="Tất cả đơn">
-      <div className="flex gap-2 mb-4 flex-wrap items-center tb-card p-3">
-        {([['Hôm nay', 0], ['7 ngày', 6], ['30 ngày', 29]] as const).map(([ten, n]) => (
-          <button key={ten} className="tb-btn-ghost text-sm px-3 py-1.5"
-            onClick={() => { setTu(toDateInput(Date.now() - n * 86400000)); setDen(toDateInput(Date.now())) }}>{ten}</button>
-        ))}
-        <span className="w-px h-6 bg-[var(--color-line)] mx-1" />
-        <input type="date" className="tb-input num w-auto" value={tu} onChange={(e) => setTu(e.target.value)} />
-        <span className="text-[var(--color-xam)]">→</span>
-        <input type="date" className="tb-input num w-auto" value={den} onChange={(e) => setDen(e.target.value)} />
-        <select className="tb-input w-auto" value={trangThai} onChange={(e) => setTrangThai(e.target.value)}>
-          <option value="">Mọi trạng thái</option>
-          {Object.entries(TEN_TRANG_THAI).map(([gt, ten]) => <option key={gt} value={gt}>{ten}</option>)}
-        </select>
-        <input className="tb-input flex-1 min-w-40" placeholder="🔍 Mã / tên / SĐT" value={q} onChange={(e) => setQ(e.target.value)} />
-        <button onClick={taiCsv} className="btn-primary">⬇ Tải CSV</button>
+      <div className="tb-card p-3 mb-4 space-y-3">
+        {/* Hàng 1: mốc nhanh + xuất Excel (nút xuất ẩn trên điện thoại) */}
+        <div className="flex gap-2 flex-wrap items-center">
+          {([['Hôm nay', 0], ['7 ngày', 6], ['30 ngày', 29]] as const).map(([ten, n]) => (
+            <button key={ten} className="tb-btn-ghost text-sm px-3 py-1.5"
+              onClick={() => { setTu(toDateInput(Date.now() - n * 86400000)); setDen(toDateInput(Date.now())) }}>{ten}</button>
+          ))}
+          <button onClick={xuatExcel} className="btn-primary hidden sm:inline-block ml-auto">⬇ Xuất Excel</button>
+        </div>
+
+        {/* Hàng 2: khoảng ngày */}
+        <div className="flex gap-2 items-center">
+          <span className="text-sm text-[var(--color-xam)] shrink-0">Từ</span>
+          <input type="date" className="tb-input num flex-1 min-w-0" value={tu} onChange={(e) => setTu(e.target.value)} />
+          <span className="text-[var(--color-xam)] shrink-0">→</span>
+          <input type="date" className="tb-input num flex-1 min-w-0" value={den} onChange={(e) => setDen(e.target.value)} />
+        </div>
+
+        {/* Hàng 3: trạng thái + tìm kiếm */}
+        <div className="flex gap-2 flex-wrap">
+          <select className="tb-input w-full sm:w-auto" value={trangThai} onChange={(e) => setTrangThai(e.target.value)}>
+            <option value="">Mọi trạng thái</option>
+            {Object.entries(TEN_TRANG_THAI).map(([gt, ten]) => <option key={gt} value={gt}>{ten}</option>)}
+          </select>
+          <input className="tb-input flex-1 min-w-40" placeholder="🔍 Mã / tên / SĐT" value={q} onChange={(e) => setQ(e.target.value)} />
+        </div>
       </div>
 
-      <div className="tb-card overflow-hidden">
-      <table className="w-full text-sm">
+      <div className="tb-card overflow-x-auto">
+      <table className="w-full text-sm min-w-[640px]">
         <thead className="bg-[var(--color-surface-2)] text-left">
           <tr>{['Mã', 'Giờ nhận', 'Khách', 'Món', 'Nguồn', 'Trạng thái', 'Tổng'].map((h) => <th key={h} className="p-2 text-[var(--color-caphe)] font-semibold">{h}</th>)}</tr>
         </thead>

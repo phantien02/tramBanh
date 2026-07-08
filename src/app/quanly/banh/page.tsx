@@ -50,10 +50,9 @@ export default function BanhPage() {
     tai()
   }
 
-  async function doiHien(o: Opt) {
-    await fetch(`/api/banh-options/${o.id}`, {
-      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active: !o.active }),
-    })
+  async function xoaVi(o: Opt) {
+    if (!confirm(`Xóa "${o.ten}" khỏi danh sách? (Đơn cũ đã lưu vị này không bị ảnh hưởng)`)) return
+    await fetch(`/api/banh-options/${o.id}`, { method: 'DELETE' })
     tai()
   }
 
@@ -67,14 +66,14 @@ export default function BanhPage() {
         </h2>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="md:columns-2 md:gap-4">
         {KHOI.map(({ loai, ten }) => {
           const items = data?.[loai] ?? []
           return (
-            <div key={loai} className="tb-card p-4">
+            <div key={loai} className="tb-card p-4 mb-4 break-inside-avoid">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-display font-semibold text-lg text-[var(--color-caphe)]">{ten}</h3>
-                <span className="tb-chip tb-chip-caramel">{items.filter((i) => i.active).length}</span>
+                <span className="tb-chip tb-chip-caramel">{items.length}</span>
               </div>
 
               <ul className="space-y-2 mb-3">
@@ -84,14 +83,12 @@ export default function BanhPage() {
                 {items.map((o) => (
                   <li
                     key={o.id}
-                    className={`flex items-center justify-between gap-2 rounded-lg border border-[var(--color-line)] px-3 py-2 ${o.active ? '' : 'opacity-45'}`}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-[var(--color-line)] px-3 py-2"
                   >
                     <span className="text-sm font-medium text-[var(--color-caphe)] truncate">{o.ten}</span>
                     <div className="flex gap-1.5 shrink-0">
                       <button onClick={() => doiTen(o)} className="tb-btn-ghost text-xs px-3 py-1">Sửa</button>
-                      <button onClick={() => doiHien(o)} className="tb-btn-ghost text-xs px-3 py-1">
-                        {o.active ? 'Ẩn' : 'Hiện lại'}
-                      </button>
+                      <button onClick={() => xoaVi(o)} className="text-xs px-3 py-1 rounded-lg font-medium text-[var(--color-dau-600)] hover:text-white hover:bg-[var(--color-dau)] border border-[var(--color-line)] transition-colors">Xóa</button>
                     </div>
                   </li>
                 ))}

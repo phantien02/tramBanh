@@ -18,3 +18,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   db.update(banhOptions).set(set).where(eq(banhOptions.id, Number(id))).run()
   return NextResponse.json({ ok: true })
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const user = await layUser()
+  if (user?.vaiTro !== 'quanly') return loiJson(403, 'Chỉ quản lý')
+  const { id } = await params
+  // Xóa hẳn khỏi danh sách. Đơn cũ lưu vị dưới dạng chữ (không tham chiếu id) nên không bị ảnh hưởng.
+  db.delete(banhOptions).where(eq(banhOptions.id, Number(id))).run()
+  return NextResponse.json({ ok: true })
+}

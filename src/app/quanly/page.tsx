@@ -84,11 +84,6 @@ export default function QuanLyPage() {
             Đang xem: <span className="num text-[var(--color-caphe)]">{nhanNgayNgan(mocXem.tu)} → {nhanNgayNgan(mocXem.cuoi)}</span>
           </span>
         )}
-        <nav className="ml-auto flex gap-2">
-          {[['/quanly/don', '📋 Tất cả đơn'], ['/quanly/banh', '🎂 Danh mục bánh'], ['/quanly/nhan-vien', '👥 Nhân viên']].map(([href, ten]) => (
-            <a key={href} href={href} className="tb-btn-ghost">{ten}</a>
-          ))}
-        </nav>
       </div>
 
       {khoang === 'tuychinh' && (
@@ -108,9 +103,9 @@ export default function QuanLyPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         {[['Doanh thu', dinhDangTien(tk.doanhThu)], ['Số đơn', String(tk.soDon)],
           ['Đơn hủy', String(tk.soDonHuy)], ['Tỉ lệ trễ hạn', `${tk.tiLeTreHan}%`]].map(([ten, gt], i) => (
-          <div key={ten} className="bg-[var(--color-surface-2)] rounded-xl p-4">
+          <div key={ten} className="bg-[var(--color-surface-2)] rounded-xl p-4 min-w-0">
             <div className="text-[var(--color-xam)] text-xs uppercase tracking-wider">{ten}</div>
-            <div className={`num text-2xl mt-1 ${i === 0 ? 'text-[var(--color-caramel-600)]' : 'text-[var(--color-caphe)]'}`}>{gt}</div>
+            <div className={`num text-[clamp(0.95rem,4.8vw,1.5rem)] leading-tight mt-1 break-words ${i === 0 ? 'text-[var(--color-caramel-600)]' : 'text-[var(--color-caphe)]'}`}>{gt}</div>
           </div>
         ))}
       </div>
