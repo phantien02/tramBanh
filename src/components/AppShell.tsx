@@ -72,9 +72,9 @@ export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
       )
     }
     return (
-      <div className="flex min-h-screen">
+      <div className="flex flex-col md:flex-row min-h-screen">
         {canhBao}
-        <aside className="w-64 tb-card m-4 flex flex-col overflow-hidden sticky top-4 h-[calc(100vh-2rem)] p-0">
+        <aside className="w-auto md:w-64 tb-card m-4 flex flex-col overflow-hidden md:sticky md:top-4 md:h-[calc(100vh-2rem)] p-0">
           <div className="tb-board rounded-t-[1.15rem] px-5 py-4 static">
             {wordmark}
             <p className="text-xs mt-1" style={{ color: '#CDBFB3' }}>Quản trị viên</p>
@@ -99,8 +99,8 @@ export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
           </div>
         </aside>
 
-        <main className="flex-1 p-4 pl-0">
-          <div className="tb-card min-h-full p-6">
+        <main className="flex-1 p-4 md:pl-0">
+          <div className="tb-card min-h-full p-4 sm:p-6">
             <header className="mb-6 pb-4 border-b border-[var(--color-line)]">
               <h2 className="font-display text-2xl font-semibold text-[var(--color-caphe)]">{tieuDe}</h2>
             </header>
@@ -115,8 +115,8 @@ export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
   return (
     <div className="min-h-screen flex flex-col">
       {canhBao}
-      <header className="tb-board flex items-center justify-between gap-4 flex-wrap px-6 py-3">
-        <div className="flex items-center gap-6 flex-wrap">
+      <header className="tb-board flex items-center justify-between gap-2 sm:gap-4 flex-wrap px-3 py-2.5 sm:px-6 sm:py-3">
+        <div className="flex items-center gap-3 sm:gap-6 flex-wrap">
           {wordmark}
           <nav className="flex items-center gap-1.5">
             {mucNav.map((m) => {
@@ -136,10 +136,10 @@ export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
           </nav>
         </div>
 
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <DongHo />
           <span className="hidden sm:block h-6 w-px" style={{ background: 'rgba(255,255,255,.15)' }} />
-          <div className="flex flex-col items-end leading-tight">
+          <div className="hidden sm:flex flex-col items-end leading-tight">
             <span className="font-semibold text-white text-sm">{tieuDe}</span>
             <span className="text-xs" style={{ color: '#CDBFB3' }}>{user.hoTen}</span>
           </div>
