@@ -16,11 +16,11 @@ const VI_MAC_DINH: { loai: 'cot' | 'mut' | 'topping' | 'size'; ten: string }[] =
 // Tạo dữ liệu nền tối thiểu nếu DB còn trống. Idempotent — an toàn gọi mỗi lần khởi động.
 // Nhờ vậy container deploy mới (DB rỗng) tự có admin + sản phẩm mẫu + vị, không cần chạy script seed.
 export function seedNeuTrong(db: BetterSQLite3Database<typeof schema>): void {
-  // 1) Tài khoản admin
+  // 1) Tài khoản admin — onConflictDoNothing để an toàn nếu bị gọi song song
   if (db.select().from(users).all().length === 0) {
     db.insert(users).values({
       username: 'admin', passwordHash: hashPassword('admin123'), hoTen: 'Quản lý', vaiTro: 'quanly',
-    }).run()
+    }).onConflictDoNothing().run()
     console.log('Seed: tạo tài khoản admin/admin123.')
   }
 

@@ -19,7 +19,10 @@ function taoKetNoi() {
 function taoDb(conn: Database.Database) {
   const db = drizzle(conn, { schema })
   migrate(db, { migrationsFolder: path.join(process.cwd(), 'drizzle') })
-  seedNeuTrong(db) // tự tạo admin + sản phẩm mẫu + vị nếu DB trống (deploy mới không cần chạy seed thủ công)
+  // Tự tạo admin + sản phẩm mẫu + vị nếu DB trống (deploy mới khỏi seed thủ công).
+  // KHÔNG chạy khi `next build`: lúc thu thập page-data, nhiều worker import module này cùng lúc
+  // sẽ đua nhau insert vào cùng file DB → lỗi. Seed chỉ cần chạy lúc server thật khởi động.
+  if (process.env.NEXT_PHASE !== 'phase-production-build') seedNeuTrong(db)
   return db
 }
 
