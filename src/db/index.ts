@@ -4,6 +4,7 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import fs from 'fs'
 import path from 'path'
 import * as schema from './schema'
+import { seedNeuTrong } from './seed-core'
 
 const DATA_DIR = process.env.DATA_DIR ?? path.join(process.cwd(), 'data')
 
@@ -18,6 +19,7 @@ function taoKetNoi() {
 function taoDb(conn: Database.Database) {
   const db = drizzle(conn, { schema })
   migrate(db, { migrationsFolder: path.join(process.cwd(), 'drizzle') })
+  seedNeuTrong(db) // tự tạo admin + sản phẩm mẫu + vị nếu DB trống (deploy mới không cần chạy seed thủ công)
   return db
 }
 
