@@ -16,6 +16,7 @@ export type GiaTriForm = {
   khach: { sdt: string; ten: string }
   nguon: string; ngayGioNhan: number; hinhThucNhan: string
   diaChiShip?: string; sdtNguoiNhan?: string; tenNguoiNhan?: string; phiShip: number
+  kieuPhiShip?: 'freeship' | 'theo_app'
   tienCoc: number; hinhThucTt: string; ghiChu?: string; tongTienGhiDe?: number
   items: MonNhap[]
 }
@@ -70,7 +71,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
   const [v, setV] = useState<GiaTriForm>(donCu ?? {
     khach: { sdt: '', ten: '' }, nguon: 'tai_quay',
     ngayGioNhan: Date.now() + 30 * 60000, hinhThucNhan: 'tai_tiem',
-    phiShip: 0, tienCoc: 0, hinhThucTt: 'chua_tt', items: [],
+    phiShip: 0, kieuPhiShip: 'freeship', tienCoc: 0, hinhThucTt: 'chua_tt', items: [],
   })
   const [ghiDeTien, setGhiDeTien] = useState(donCu?.tongTienGhiDe != null)
   const [xacNhan, setXacNhan] = useState(false)
@@ -154,6 +155,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
     for (const m of v.items) {
       if (!m.cot) return false
       if (!m.coBanh) return false
+      if (!m.gia || m.gia <= 0) return false
     }
     if (v.hinhThucNhan === 'ship') {
       if (!v.diaChiShip?.trim()) return false
@@ -175,7 +177,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
   const clsToggle = (active: boolean) =>
     `px-4 py-2 rounded-xl border transition-colors ${active
       ? 'bg-[var(--color-caramel)] text-white font-semibold border-[var(--color-caramel)]'
-      : 'bg-[var(--color-surface-2)] border-[var(--color-line)] text-[var(--color-caphe)] hover:bg-[#EADBCB]'}`
+      : 'bg-[var(--color-surface-2)] border-[var(--color-line)] text-[var(--color-caphe)] hover:bg-[#D3EFEC]'}`
 
   return (
     <>
@@ -271,15 +273,16 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                   </div>
 
                   <div className="w-40">
-                    <p className="text-xs text-[var(--color-xam)] mb-1">Đơn giá</p>
+                    <p className="text-xs text-[var(--color-xam)] mb-1">Đơn giá *</p>
                     <NhapNghin giaTri={m.gia} onDoi={(g) => suaMon(i, { gia: g })} placeholder="vd 200" />
+                    {(!m.gia || m.gia <= 0) && <p className="text-[var(--color-dau-600)] text-sm mt-1">Vui lòng nhập giá.</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input className="w-full rounded-xl p-3 text-[var(--color-caphe)] focus:outline-none transition-colors" style={{ background: 'rgba(226,75,106,.08)', border: '1px solid rgba(226,75,106,.3)' }} placeholder="✍️ Chữ viết lên bánh"
+                  <input className="w-full rounded-xl p-3 text-[var(--color-caphe)] focus:outline-none transition-colors" style={{ background: 'rgba(240,107,163,.08)', border: '1px solid rgba(240,107,163,.35)' }} placeholder="✍️ Nội dung chữ và vị trí chữ"
                     value={m.chuViet ?? ''} onChange={(e) => suaMon(i, { chuViet: e.target.value })} />
-                  <input className="tb-input" placeholder="📝 Ghi chú món (ít ngọt, đổi hoa...)"
+                  <input className="tb-input" placeholder="📝 Ghi chú khác (ít ngọt, đổi hoa...)"
                     value={m.ghiChu ?? ''} onChange={(e) => suaMon(i, { ghiChu: e.target.value })} />
                 </div>
 
@@ -345,7 +348,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
             <div className="flex gap-2">
               {NHAN.map(([gt, ten]) => (
                 <button type="button" key={gt} onClick={() => setV({ ...v, hinhThucNhan: gt })}
-                  className={`px-4 py-3 flex-1 rounded-xl border transition-colors ${v.hinhThucNhan === gt ? 'bg-[var(--color-caramel)] text-white font-semibold border-[var(--color-caramel)]' : 'bg-[var(--color-surface-2)] border-[var(--color-line)] text-[var(--color-caphe)] hover:bg-[#EADBCB]'}`}>{ten}</button>
+                  className={`px-4 py-3 flex-1 rounded-xl border transition-colors ${v.hinhThucNhan === gt ? 'bg-[var(--color-caramel)] text-white font-semibold border-[var(--color-caramel)]' : 'bg-[var(--color-surface-2)] border-[var(--color-line)] text-[var(--color-caphe)] hover:bg-[#D3EFEC]'}`}>{ten}</button>
               ))}
             </div>
           </div>
@@ -362,9 +365,17 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
               </div>
               <input required className="tb-input md:col-span-2" placeholder="Địa chỉ ship chi tiết *"
                 value={v.diaChiShip ?? ''} onChange={(e) => setV({ ...v, diaChiShip: e.target.value })} />
-              <div className="flex items-center gap-3">
-                <span className="text-[var(--color-xam)] whitespace-nowrap px-2">Phí ship</span>
-                <NhapNghin giaTri={v.phiShip} onDoi={(g) => setV({ ...v, phiShip: g })} placeholder="vd 25" className="flex-1" />
+              <div className="md:col-span-2">
+                <p className="text-sm text-[var(--color-xam)] mb-2">Phí ship (book app ship ngoài):</p>
+                <div className="flex gap-2 flex-wrap">
+                  <button type="button" onClick={() => setV({ ...v, kieuPhiShip: 'freeship', phiShip: 0 })}
+                    className={clsToggle(v.kieuPhiShip === 'freeship')}>🆓 Freeship</button>
+                  <button type="button" onClick={() => setV({ ...v, kieuPhiShip: 'theo_app', phiShip: 0 })}
+                    className={clsToggle(v.kieuPhiShip === 'theo_app')}>🛵 Theo app ship</button>
+                </div>
+                {!v.kieuPhiShip && v.phiShip > 0 && (
+                  <p className="text-xs text-[var(--color-xam)] mt-1">Đơn cũ đang lưu phí ship {dinhDangTien(v.phiShip)} — chọn một trong hai lựa chọn trên nếu muốn đổi.</p>
+                )}
               </div>
             </div>
           )}
@@ -409,14 +420,14 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
               <div className="flex gap-2 w-full justify-end">
                 {TT.map(([gt, ten]) => (
                   <button type="button" key={gt} onClick={() => setV({ ...v, hinhThucTt: gt })}
-                    className={`px-4 py-3 rounded-xl border text-sm transition-colors ${v.hinhThucTt === gt ? 'bg-[var(--color-caramel)] text-white font-medium border-[var(--color-caramel)]' : 'bg-[var(--color-surface-2)] text-[var(--color-caphe)] border-[var(--color-line)] hover:bg-[#EADBCB]'}`}>{ten}</button>
+                    className={`px-4 py-3 rounded-xl border text-sm transition-colors ${v.hinhThucTt === gt ? 'bg-[var(--color-caramel)] text-white font-medium border-[var(--color-caramel)]' : 'bg-[var(--color-surface-2)] text-[var(--color-caphe)] border-[var(--color-line)] hover:bg-[#D3EFEC]'}`}>{ten}</button>
                 ))}
               </div>
             </div>
           </div>
         </section>
 
-        {loi && <div className="p-4 rounded-xl font-medium text-center text-[var(--color-dau-600)]" style={{ background: 'rgba(226,75,106,.1)', border: '1px solid rgba(226,75,106,.3)' }}>{loi}</div>}
+        {loi && <div className="p-4 rounded-xl font-medium text-center text-[var(--color-dau-600)]" style={{ background: 'rgba(240,107,163,.1)', border: '1px solid rgba(240,107,163,.3)' }}>{loi}</div>}
 
         <div className="sticky bottom-6 z-50 mt-8">
           <button type="submit" disabled={dangLuu || !hopLe}
@@ -450,6 +461,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                     {v.tenNguoiNhan && <p>Người nhận: {v.tenNguoiNhan}</p>}
                     {v.sdtNguoiNhan && <p className="num">{v.sdtNguoiNhan}</p>}
                     {v.diaChiShip && <p>📍 {v.diaChiShip}</p>}
+                    <p>🛵 {v.kieuPhiShip === 'theo_app' ? 'Phí ship: theo app ship' : v.kieuPhiShip === 'freeship' ? 'Freeship' : `Phí ship: ${dinhDangTien(v.phiShip)}`}</p>
                   </div>
                 )}
               </div>
@@ -506,7 +518,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
               </div>
             )}
 
-            {loi && <div className="p-3 rounded-xl text-center text-[var(--color-dau-600)]" style={{ background: 'rgba(226,75,106,.1)', border: '1px solid rgba(226,75,106,.3)' }}>{loi}</div>}
+            {loi && <div className="p-3 rounded-xl text-center text-[var(--color-dau-600)]" style={{ background: 'rgba(240,107,163,.1)', border: '1px solid rgba(240,107,163,.3)' }}>{loi}</div>}
 
             <div className="flex gap-3 pt-2">
               <button type="button" className="tb-btn-ghost flex-1 py-3" onClick={() => setXacNhan(false)} disabled={dangLuu}>← Quay lại sửa</button>

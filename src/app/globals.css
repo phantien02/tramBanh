@@ -1,25 +1,28 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────
-   TRẠM BÁNH — "Trạm bánh sáng đèn 24h"
+   TRẠM BÁNH — xanh pastel + hồng theo logo
    Sáng · ngọt ngào · chuyên nghiệp
    ───────────────────────────────────────────── */
 @theme {
-  /* Palette */
-  --color-bg: #FCF6F1;          /* Sữa ấm — nền */
+  /* Palette — lấy từ logo: nền aqua pastel, pin hồng, viền kem */
+  --color-bg: #F0FAF9;          /* Aqua sữa — nền */
   --color-surface: #FFFFFF;     /* Thẻ */
-  --color-surface-2: #F4EAE0;   /* Cột / panel dịu */
-  --color-caramel: #D98A2B;     /* Vàng caramel — thương hiệu */
-  --color-caramel-600: #B8701E;
-  --color-dau: #E24B6A;         /* Đỏ dâu — hành động */
-  --color-dau-600: #C93A59;
+  --color-surface-2: #E4F5F3;   /* Cột / panel dịu */
+  --color-caramel: #3AB8B1;     /* Xanh ngọc — thương hiệu (giữ tên biến cũ) */
+  --color-caramel-600: #1F8B85;
+  --color-dau: #F06BA3;         /* Hồng logo — hành động */
+  --color-dau-600: #DE4E8D;
   --color-baodong: #DC2626;     /* Đỏ báo động — đơn trễ giờ giao */
   --color-baodong-bg: rgba(220,38,38,.08);
+  --color-canhbao: #E8960F;     /* Vàng hổ phách — đơn sắp đến hạn */
+  --color-canhbao-600: #B26E06;
+  --color-canhbao-bg: rgba(232,150,15,.16);
   --color-tra: #4FB286;         /* Xanh trà — sẵn sàng/xong */
   --color-tra-700: #2F7D5A;
-  --color-caphe: #2B2119;       /* Nâu cà phê — chữ + bảng trạm */
-  --color-xam: #9C8A7D;         /* Xám bánh mì — chữ phụ */
-  --color-line: #EFE3D9;        /* Đường viền */
+  --color-caphe: #14444A;       /* Xanh mực đậm — chữ + bảng trạm (giữ tên biến cũ) */
+  --color-xam: #6E9C9D;         /* Xám xanh — chữ phụ */
+  --color-line: #D8EEEB;        /* Đường viền */
 
   /* Fonts — biến do next/font gán trong layout.tsx */
   --font-display: var(--f-display), Georgia, serif;
@@ -27,18 +30,18 @@
   --font-mono: var(--f-mono), ui-monospace, monospace;
   --font-sans: var(--f-body), system-ui, sans-serif;
 
-  --shadow-card: 0 3px 14px rgba(43, 33, 25, 0.08);
-  --shadow-lift: 0 10px 28px rgba(43, 33, 25, 0.14);
+  --shadow-card: 0 3px 14px rgba(20, 68, 74, 0.08);
+  --shadow-lift: 0 10px 28px rgba(20, 68, 74, 0.14);
 
-  /* ── Tương thích ngược: remap biến cũ (dark-gold) sang light ── */
-  --color-gold-100: #F5E4C8;
-  --color-gold-300: #C77E22;
-  --color-gold-400: #D98A2B;
-  --color-gold-500: #D98A2B;
-  --color-gold-600: #B8701E;
-  --color-dark-bg: #FCF6F1;
+  /* ── Tương thích ngược: remap biến cũ (dark-gold) sang tông mới ── */
+  --color-gold-100: #CFF0EE;
+  --color-gold-300: #2FA49E;
+  --color-gold-400: #3AB8B1;
+  --color-gold-500: #3AB8B1;
+  --color-gold-600: #1F8B85;
+  --color-dark-bg: #F0FAF9;
   --color-dark-surface: #FFFFFF;
-  --color-dark-border: #EFE3D9;
+  --color-dark-border: #D8EEEB;
 }
 
 @layer base {
@@ -53,7 +56,7 @@
   h1, h2, h3, .font-display { font-family: var(--font-display); }
   .font-mono, .tabular { font-family: var(--font-mono); }
 
-  ::selection { background: rgba(226, 75, 106, 0.2); }
+  ::selection { background: rgba(240, 107, 163, 0.25); }
 
   input, textarea, select { font-family: inherit; }
 
@@ -91,12 +94,12 @@
     border-radius: 0.85rem;
     cursor: pointer;
     transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
-    box-shadow: 0 6px 16px rgba(226, 75, 106, 0.28);
+    box-shadow: 0 6px 16px rgba(240, 107, 163, 0.3);
   }
   .btn-primary:hover, .tb-btn-primary:hover {
     background: var(--color-dau-600);
     transform: translateY(-2px);
-    box-shadow: 0 10px 22px rgba(226, 75, 106, 0.4);
+    box-shadow: 0 10px 22px rgba(240, 107, 163, 0.42);
   }
   .btn-primary:active, .tb-btn-primary:active { transform: translateY(0); }
   .btn-primary:disabled, .tb-btn-primary:disabled { cursor: not-allowed; transform: none; opacity: .5; box-shadow: none; }
@@ -109,14 +112,14 @@
     padding: 0.7rem 1.3rem;
     border-radius: 0.85rem;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(43, 33, 25, 0.06);
+    box-shadow: 0 1px 3px rgba(20, 68, 74, 0.06);
     transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
   }
   .tb-btn-ghost:hover {
     background: var(--color-surface-2);
     border-color: var(--color-caramel);
     transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(43, 33, 25, 0.12);
+    box-shadow: 0 6px 14px rgba(20, 68, 74, 0.12);
   }
   .tb-btn-ghost:active { transform: translateY(0); }
   .tb-btn-ghost:disabled { cursor: not-allowed; transform: none; opacity: .5; }
@@ -138,21 +141,21 @@
   .tb-input:focus {
     outline: none;
     border-color: var(--color-caramel);
-    box-shadow: 0 0 0 3px rgba(217, 138, 43, 0.15);
+    box-shadow: 0 0 0 3px rgba(58, 184, 177, 0.18);
   }
 
   /* ── Bảng Trạm (signature) ── */
   .tb-board {
     position: sticky; top: 0; z-index: 40;
     background: var(--color-caphe);
-    color: #F3E9E0;
-    border-bottom: 3px solid var(--color-caramel);
+    color: #EAF7F5;
+    border-bottom: 3px solid var(--color-dau);
   }
   .tb-clock { font-family: var(--font-mono); font-weight: 700; letter-spacing: 1px; }
   .tb-queue {
     display: inline-flex; align-items: center; gap: 6px;
     font-family: var(--font-mono); font-size: 12px; letter-spacing: .5px;
-    background: rgba(255,255,255,.07); color: #CDBFB3;
+    background: rgba(255,255,255,.07); color: #A9D8D5;
     padding: 4px 10px; border-radius: 999px;
   }
 
@@ -181,8 +184,8 @@
     background: var(--color-surface-2); color: var(--color-caphe);
   }
   .tb-chip-tra { background: rgba(79,178,134,.16); color: var(--color-tra-700); }
-  .tb-chip-dau { background: rgba(226,75,106,.13); color: var(--color-dau); }
-  .tb-chip-caramel { background: rgba(217,138,43,.16); color: var(--color-caramel-600); }
+  .tb-chip-dau { background: rgba(240,107,163,.14); color: var(--color-dau-600); }
+  .tb-chip-caramel { background: rgba(58,184,177,.16); color: var(--color-caramel-600); }
 
   /* ── Vé đơn (răng cưa) ── */
   .tb-ticket {
@@ -199,5 +202,5 @@
 
 /* Thanh cuộn mảnh cho danh sách */
 .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #E0D0C2; border-radius: 999px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #C9E8E5; border-radius: 999px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

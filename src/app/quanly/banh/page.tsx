@@ -13,11 +13,11 @@ type BanhOptions = {
   sanPhamMau: { id: number; ten: string } | null
 }
 
-const KHOI: { loai: Loai; ten: string }[] = [
-  { loai: 'cot', ten: 'Cốt bánh' },
-  { loai: 'mut', ten: 'Mứt' },
-  { loai: 'topping', ten: 'Topping' },
-  { loai: 'size', ten: 'Size' },
+const KHOI: { loai: Loai; ten: string; goiYThem: string }[] = [
+  { loai: 'cot', ten: 'Cốt bánh', goiYThem: 'Thêm vị cốt bánh…' },
+  { loai: 'mut', ten: 'Mứt', goiYThem: 'Thêm vị mứt…' },
+  { loai: 'topping', ten: 'Topping', goiYThem: 'Thêm topping…' },
+  { loai: 'size', ten: 'Size', goiYThem: 'Thêm size…' },
 ]
 
 export default function BanhPage() {
@@ -67,7 +67,7 @@ export default function BanhPage() {
       </div>
 
       <div className="md:columns-2 md:gap-4">
-        {KHOI.map(({ loai, ten }) => {
+        {KHOI.map(({ loai, ten, goiYThem }) => {
           const items = data?.[loai] ?? []
           return (
             <div key={loai} className="tb-card p-4 mb-4 break-inside-avoid">
@@ -97,7 +97,7 @@ export default function BanhPage() {
               <div className="flex gap-2">
                 <input
                   className="tb-input flex-1"
-                  placeholder={`Thêm vị ${ten.toLowerCase()}…`}
+                  placeholder={goiYThem}
                   value={them[loai]}
                   onChange={(e) => setThem((s) => ({ ...s, [loai]: e.target.value }))}
                   onKeyDown={(e) => { if (e.key === 'Enter') themVi(loai) }}

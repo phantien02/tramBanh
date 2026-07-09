@@ -20,16 +20,15 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[var(--color-bg)]">
-      {/* Điểm nhấn caramel/dâu nhẹ nhàng */}
-      <div className="absolute top-0 right-0 w-64 h-64 rounded-full pointer-events-none" style={{ background: 'rgba(217,138,43,.10)' }}></div>
-      <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full pointer-events-none" style={{ background: 'rgba(226,75,106,.08)' }}></div>
+      {/* Điểm nhấn xanh ngọc/hồng nhẹ nhàng theo logo */}
+      <div className="absolute top-0 right-0 w-64 h-64 rounded-full pointer-events-none" style={{ background: 'rgba(58,184,177,.12)' }}></div>
+      <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full pointer-events-none" style={{ background: 'rgba(240,107,163,.10)' }}></div>
 
       <form onSubmit={dangNhap} className="tb-card p-10 w-full max-w-sm space-y-6 relative z-10">
         <div className="text-center mb-8">
-          <div className="flex items-baseline justify-center gap-2 mb-2">
-            <h1 className="font-display text-3xl font-semibold text-[var(--color-caphe)] tracking-tight">Trạm Bánh</h1>
-            <span className="tb-ticket-mono text-[11px] px-1.5 py-0.5 rounded-full bg-[var(--color-caramel)] text-[var(--color-caphe)] tracking-widest">24h</span>
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.svg" alt="Logo Trạm Bánh" className="h-20 w-20 mx-auto mb-3" />
+          <h1 className="font-display text-3xl font-semibold text-[var(--color-caphe)] tracking-tight mb-2">Trạm Bánh</h1>
           <p className="text-[var(--color-xam)] text-sm">Hệ thống quản lý nội bộ</p>
         </div>
 
@@ -56,7 +55,7 @@ export default function LoginPage() {
         </div>
 
         {loi && (
-          <div className="rounded-lg p-3" style={{ background: 'rgba(226,75,106,.1)' }}>
+          <div className="rounded-lg p-3" style={{ background: 'rgba(240,107,163,.1)' }}>
             <p className="text-sm text-center font-medium text-[var(--color-dau)]">{loi}</p>
           </div>
         )}

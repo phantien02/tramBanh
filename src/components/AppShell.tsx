@@ -26,7 +26,7 @@ function DongHo() {
   return (
     <span className="flex items-center gap-2">
       <span className="tb-clock text-white text-[17px]">{hh}:{mm}<span className="text-[var(--color-caramel)]">:{ss}</span></span>
-      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,.08)', color: '#CDBFB3' }}>
+      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,.08)', color: '#A9D8D5' }}>
         {dem ? '🌙 Ca đêm' : '☀️ Ca ngày'}
       </span>
     </span>
@@ -57,9 +57,10 @@ export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
   )
 
   const wordmark = (
-    <span className="flex items-baseline gap-2">
+    <span className="flex items-center gap-2.5">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.svg" alt="Logo Trạm Bánh" className="h-9 w-9 shrink-0" />
       <span className="font-display font-semibold text-white text-2xl tracking-tight">Trạm Bánh</span>
-      <span className="tb-ticket-mono text-[11px] px-1.5 py-0.5 rounded-full bg-[var(--color-caramel)] text-[var(--color-caphe)] tracking-widest">24h</span>
     </span>
   )
 
@@ -77,7 +78,7 @@ export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
         <aside className="w-auto md:w-64 tb-card m-4 flex flex-col overflow-hidden md:sticky md:top-4 md:h-[calc(100vh-2rem)] p-0">
           <div className="tb-board rounded-t-[1.15rem] px-5 py-4 static">
             {wordmark}
-            <p className="text-xs mt-1" style={{ color: '#CDBFB3' }}>Quản trị viên</p>
+            <p className="text-xs mt-1" style={{ color: '#A9D8D5' }}>Quản trị viên</p>
           </div>
           <nav className="flex-1 p-3 space-y-1 overflow-y-auto custom-scrollbar">
             {link('/quanly', 'Thống kê', true)}
@@ -95,7 +96,7 @@ export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
               <span className="text-sm font-semibold">{user.hoTen}</span>
               <span className="text-xs text-[var(--color-xam)]">{tieuDe}</span>
             </div>
-            <button onClick={dangXuat} className="text-sm text-[var(--color-dau)] p-2 hover:bg-[rgba(226,75,106,.1)] rounded-lg transition-colors" title="Đăng xuất">Thoát</button>
+            <button onClick={dangXuat} className="text-sm text-[var(--color-dau)] p-2 hover:bg-[rgba(240,107,163,.1)] rounded-lg transition-colors" title="Đăng xuất">Thoát</button>
           </div>
         </aside>
 
@@ -127,7 +128,7 @@ export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
                   className="px-3.5 py-1.5 rounded-lg transition-all font-medium text-sm"
                   style={active
                     ? { background: mau, color: '#fff' }
-                    : { color: '#CDBFB3' }}>
+                    : { color: '#A9D8D5' }}>
                   <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle" style={{ background: mau }} />
                   {m.ten}
                 </Link>
@@ -141,9 +142,9 @@ export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
           <span className="hidden sm:block h-6 w-px" style={{ background: 'rgba(255,255,255,.15)' }} />
           <div className="hidden sm:flex flex-col items-end leading-tight">
             <span className="font-semibold text-white text-sm">{tieuDe}</span>
-            <span className="text-xs" style={{ color: '#CDBFB3' }}>{user.hoTen}</span>
+            <span className="text-xs" style={{ color: '#A9D8D5' }}>{user.hoTen}</span>
           </div>
-          <button onClick={dangXuat} className="text-sm text-[#F1B8C4] hover:text-white px-3 py-1.5 rounded-lg transition-colors font-medium" style={{ background: 'rgba(255,255,255,.06)' }}>Đăng xuất</button>
+          <button onClick={dangXuat} className="text-sm text-[#F7B7D2] hover:text-white px-3 py-1.5 rounded-lg transition-colors font-medium" style={{ background: 'rgba(255,255,255,.06)' }}>Đăng xuất</button>
         </div>
       </header>
       <main className="flex-1 px-4 py-6 max-w-[1600px] mx-auto w-full">

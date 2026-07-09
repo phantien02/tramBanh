@@ -51,6 +51,8 @@ export const orders = sqliteTable('orders', {
   tenNguoiNhan: text('ten_nguoi_nhan'),
   sdtNguoiNhan: text('sdt_nguoi_nhan'),
   phiShip: integer('phi_ship').notNull().default(0),
+  kieuPhiShip: text('kieu_phi_ship', { enum: ['freeship', 'theo_app'] }), // null = đơn cũ nhập phí ship bằng số
+
   tongTien: integer('tong_tien').notNull(),
   tienCoc: integer('tien_coc').notNull().default(0),
   hinhThucTt: text('hinh_thuc_tt', { enum: ['tien_mat', 'chuyen_khoan', 'chua_tt'] }).notNull().default('chua_tt'),

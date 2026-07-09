@@ -1,0 +1,1 @@
+ALTER TABLE `orders` ADD `kieu_phi_ship` text;

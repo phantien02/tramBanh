@@ -6,7 +6,7 @@ const display = Fraunces({ subsets: ['latin', 'vietnamese'], weight: ['400', '50
 const body = Be_Vietnam_Pro({ subsets: ['latin', 'vietnamese'], weight: ['400', '500', '600', '700'], variable: '--f-body', display: 'swap' })
 const mono = Space_Mono({ subsets: ['latin'], weight: ['400', '700'], variable: '--f-mono', display: 'swap' })
 
-export const metadata: Metadata = { title: 'Trạm Bánh', description: 'Điều hành tiệm bánh 24h' }
+export const metadata: Metadata = { title: 'Trạm Bánh', description: 'Điều hành tiệm bánh', icons: { icon: '/logo.svg' } }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

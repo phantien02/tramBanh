@@ -7,7 +7,7 @@ import { tinhConLai } from '@/lib/money'
 type ChiTiet = {
   id: number; maDon: string; trangThai: TrangThai; nguon: string; ngayGioNhan: number
   hinhThucNhan: string; diaChiShip?: string | null; sdtNguoiNhan?: string | null; tenNguoiNhan?: string | null
-  phiShip: number; tongTien: number; tienCoc: number; hinhThucTt: string; ghiChu?: string | null
+  phiShip: number; kieuPhiShip?: 'freeship' | 'theo_app' | null; tongTien: number; tienCoc: number; hinhThucTt: string; ghiChu?: string | null
   daSua: number; lyDoHuy?: string | null
   khach?: { ten: string; sdt: string } | null
   items: { id: number; tenMon: string; coBanh?: string | null; cot?: string | null; mut?: string | null; topping?: string[]; soLuong: number; chuViet?: string | null; ghiChu?: string | null; gia: number; anhMau: string[] }[]
@@ -94,6 +94,9 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
                  <b>Ship:</b> {don.diaChiShip}
                  {don.tenNguoiNhan && <span className="block text-sm text-[var(--color-caphe)]">👤 Người nhận: {don.tenNguoiNhan}</span>}
                  {don.sdtNguoiNhan && <span className="block text-sm text-[var(--color-xam)]">📞 SĐT: {don.sdtNguoiNhan}</span>}
+                 <span className="block text-sm text-[var(--color-caphe)]">
+                   💸 {don.kieuPhiShip === 'theo_app' ? 'Phí ship: theo app ship' : don.kieuPhiShip === 'freeship' ? 'Freeship' : `Phí ship: ${dinhDangTien(don.phiShip)}`}
+                 </span>
                </span>
              </div>
            )}
@@ -109,7 +112,7 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
       </div>
 
       {don.ghiChu && <div className="bg-[var(--color-surface-2)] border border-[var(--color-line)] rounded-xl p-3 text-[var(--color-caphe)]">📝 <b>Ghi chú đơn:</b> {don.ghiChu}</div>}
-      {don.lyDoHuy && <div className="rounded-xl p-3 text-[var(--color-dau-600)]" style={{ background: 'rgba(226,75,106,.1)', border: '1px solid rgba(226,75,106,.3)' }}>❌ <b>Lý do hủy:</b> {don.lyDoHuy}</div>}
+      {don.lyDoHuy && <div className="rounded-xl p-3 text-[var(--color-dau-600)]" style={{ background: 'rgba(240,107,163,.1)', border: '1px solid rgba(240,107,163,.3)' }}>❌ <b>Lý do hủy:</b> {don.lyDoHuy}</div>}
 
       <div className="space-y-3">
         <h3 className="text-[var(--color-caramel-600)] text-sm font-semibold uppercase tracking-wider">Chi tiết sản phẩm</h3>
@@ -130,7 +133,7 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
                 {it.topping && it.topping.length > 0 && <span className="tb-chip tb-chip-tra text-sm font-semibold">✨ Topping: {it.topping.join(', ')}</span>}
               </div>
             )}
-            {it.chuViet && <div className="text-[var(--color-dau)] text-lg font-medium px-3 py-1.5 rounded-lg inline-block" style={{ background: 'rgba(226,75,106,.1)' }}>✍️ “{it.chuViet}”</div>}
+            {it.chuViet && <div className="text-[var(--color-dau)] text-lg font-medium px-3 py-1.5 rounded-lg inline-block" style={{ background: 'rgba(240,107,163,.1)' }}>✍️ “{it.chuViet}”</div>}
             {it.ghiChu && <div className="text-[var(--color-xam)] text-sm mt-1">📝 {it.ghiChu}</div>}
             {it.anhMau && it.anhMau.length > 0 && (
               <div className="mt-3 pt-3 border-t border-[var(--color-line)]">
@@ -174,7 +177,7 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
         </div>
       </div>
 
-      {loi && <p className="text-[var(--color-dau-600)] p-3 rounded-lg font-medium" style={{ background: 'rgba(226,75,106,.1)' }}>{loi}</p>}
+      {loi && <p className="text-[var(--color-dau-600)] p-3 rounded-lg font-medium" style={{ background: 'rgba(240,107,163,.1)' }}>{loi}</p>}
 
       {hoiKetThuc ? (
         <div className="bg-[var(--color-surface-2)] border border-[var(--color-line)] rounded-xl p-5 space-y-4">
@@ -226,7 +229,7 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
       {anhPhongTo && (
         <div
           className="fixed inset-0 z-[60] flex flex-col items-center justify-center p-4"
-          style={{ background: 'rgba(43,33,25,.8)' }}
+          style={{ background: 'rgba(20,68,74,.8)' }}
           onClick={() => setAnhPhongTo(null)}
         >
           <img

@@ -15,6 +15,13 @@
       "when": 1783411760886,
       "tag": "0001_lazy_corsair",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783582230074,
+      "tag": "0002_pink_morlun",
+      "breakpoints": true
     }
   ]
 }

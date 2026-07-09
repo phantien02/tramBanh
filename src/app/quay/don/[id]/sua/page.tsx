@@ -16,7 +16,8 @@ export default function SuaDonPage({ params }: { params: Promise<{ id: string }>
       nguon: d.nguon, ngayGioNhan: d.ngayGioNhan, hinhThucNhan: d.hinhThucNhan,
       diaChiShip: d.diaChiShip ?? undefined, sdtNguoiNhan: d.sdtNguoiNhan ?? undefined,
       tenNguoiNhan: d.tenNguoiNhan ?? undefined,
-      phiShip: d.phiShip, tienCoc: d.tienCoc, hinhThucTt: d.hinhThucTt, ghiChu: d.ghiChu ?? undefined,
+      phiShip: d.phiShip, kieuPhiShip: d.kieuPhiShip ?? (d.phiShip > 0 ? undefined : 'freeship'),
+      tienCoc: d.tienCoc, hinhThucTt: d.hinhThucTt, ghiChu: d.ghiChu ?? undefined,
       items: d.items.map((it: { productId?: number; tenMon: string; coBanh?: string; cot?: string; mut?: string; topping?: string[]; soLuong: number; chuViet?: string; ghiChu?: string; gia: number; anhMau: string[] }) => ({
         ...it,
         cot: it.cot ?? '',

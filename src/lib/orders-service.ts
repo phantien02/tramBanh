@@ -22,6 +22,7 @@ export type DonMoi = {
   tenNguoiNhan?: string
   sdtNguoiNhan?: string
   phiShip?: number
+  kieuPhiShip?: 'freeship' | 'theo_app'
   tienCoc?: number
   hinhThucTt?: HinhThucTt
   ghiChu?: string
@@ -59,7 +60,7 @@ function chenItems(orderId: number, items: DonMoi['items']) {
 // (dùng null thay vì undefined vì set()/values() của drizzle bỏ qua field undefined thay vì xóa)
 function chuanHoaShip(data: DonMoi): DonMoi {
   if (data.hinhThucNhan === 'ship') return data
-  return { ...data, diaChiShip: null as unknown as undefined, tenNguoiNhan: null as unknown as undefined, sdtNguoiNhan: null as unknown as undefined, phiShip: 0 }
+  return { ...data, diaChiShip: null as unknown as undefined, tenNguoiNhan: null as unknown as undefined, sdtNguoiNhan: null as unknown as undefined, phiShip: 0, kieuPhiShip: null as unknown as undefined }
 }
 
 export function taoDon(data: DonMoi, userId: number): { id: number; maDon: string } {
@@ -77,7 +78,7 @@ export function taoDon(data: DonMoi, userId: number): { id: number; maDon: strin
       maDon, customerId, nguon: data.nguon, ngayGioNhan: data.ngayGioNhan,
       hinhThucNhan: data.hinhThucNhan, diaChiShip: data.diaChiShip,
       tenNguoiNhan: data.tenNguoiNhan, sdtNguoiNhan: data.sdtNguoiNhan,
-      phiShip: data.phiShip ?? 0, tongTien, tienCoc: data.tienCoc ?? 0,
+      phiShip: data.phiShip ?? 0, kieuPhiShip: data.kieuPhiShip, tongTien, tienCoc: data.tienCoc ?? 0,
       hinhThucTt: data.hinhThucTt ?? 'chua_tt', ghiChu: data.ghiChu,
       nguoiTao: userId, createdAt: Date.now(),
     }).returning().get()
@@ -101,7 +102,7 @@ export function suaDon(id: number, data: DonMoi, userId: number): { ok: boolean;
     db.update(orders).set({
       customerId: upsertKhach(data.khach.sdt, data.khach.ten),
       nguon: data.nguon, ngayGioNhan: data.ngayGioNhan, hinhThucNhan: data.hinhThucNhan,
-      diaChiShip: data.diaChiShip, tenNguoiNhan: data.tenNguoiNhan, sdtNguoiNhan: data.sdtNguoiNhan, phiShip: data.phiShip ?? 0,
+      diaChiShip: data.diaChiShip, tenNguoiNhan: data.tenNguoiNhan, sdtNguoiNhan: data.sdtNguoiNhan, phiShip: data.phiShip ?? 0, kieuPhiShip: data.kieuPhiShip,
       tongTien, tienCoc: data.tienCoc ?? 0, hinhThucTt: data.hinhThucTt ?? 'chua_tt',
       ghiChu: data.ghiChu, daSua,
     }).where(eq(orders.id, id)).run()

@@ -20,10 +20,10 @@ export function laShip(hinhThucNhan: string): boolean {
 export default function OrderCard({ don, now, onClick, actions }: { don: DonHienThi; now: number; onClick?: () => void; actions?: React.ReactNode }) {
   const { muc, text: noteGio } = noteThoiGian(don, now)
   const ship = laShip(don.hinhThucNhan)
-  const mauStub = muc === 'tre_han' ? 'var(--color-baodong)' : muc === 'sap_den_han' ? 'var(--color-caramel)' : 'var(--color-caphe)'
+  const mauStub = muc === 'tre_han' ? 'var(--color-baodong)' : muc === 'sap_den_han' ? 'var(--color-canhbao)' : 'var(--color-caphe)'
   const vien = muc === 'tre_han'
     ? 'ring-2 ring-[var(--color-baodong)]'
-    : muc === 'sap_den_han' ? 'ring-2 ring-[var(--color-caramel)]' : ''
+    : muc === 'sap_den_han' ? 'ring-2 ring-[var(--color-canhbao)]' : ''
   const nenBaoDong = muc === 'tre_han' ? { background: 'var(--color-baodong-bg)' } : undefined
 
   return (
@@ -41,7 +41,7 @@ export default function OrderCard({ don, now, onClick, actions }: { don: DonHien
       {/* Thân vé */}
       <div className="flex-1 p-3 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className={`num text-2xl leading-none font-bold ${muc === 'tre_han' ? 'text-[var(--color-baodong)]' : muc === 'sap_den_han' ? 'text-[var(--color-caramel-600)]' : 'text-[var(--color-caphe)]'}`}>
+          <span className={`num text-2xl leading-none font-bold ${muc === 'tre_han' ? 'text-[var(--color-baodong)]' : muc === 'sap_den_han' ? 'text-[var(--color-canhbao-600)]' : 'text-[var(--color-caphe)]'}`}>
             {dinhDangGio(don.ngayGioNhan)}
           </span>
           <span className="text-[11px] text-[var(--color-xam)] tb-chip">{dinhDangNgay(don.ngayGioNhan)}</span>
@@ -51,7 +51,7 @@ export default function OrderCard({ don, now, onClick, actions }: { don: DonHien
           <div className={`mb-2 inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-full ${
             muc === 'tre_han'
               ? 'text-white bg-[var(--color-baodong)]'
-              : 'text-[var(--color-caramel-600)] bg-[rgba(217,138,43,.16)]'}`}>
+              : 'text-[var(--color-canhbao-600)] bg-[var(--color-canhbao-bg)]'}`}>
             {noteGio}
           </div>
         )}
