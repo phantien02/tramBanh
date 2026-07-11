@@ -171,11 +171,11 @@ export default function BanhPage() {
           {dsPhuKien.map((p) => (
             <li
               key={p.id}
-              className="flex items-center justify-between gap-2 rounded-lg border border-[var(--color-line)] px-3 py-2"
+              className="flex flex-col gap-2 rounded-lg border border-[var(--color-line)] px-3 py-2 sm:flex-row sm:items-center"
             >
-              <span className="text-sm font-medium text-[var(--color-caphe)] truncate flex-1">{p.ten}</span>
-              <NhapNghin className="w-32 shrink-0" giaTri={p.gia} onDoi={(g) => doiGiaPhuKien(p, g)} placeholder="Giá" />
-              <div className="flex gap-1.5 shrink-0">
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-caphe)]">{p.ten}</span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <NhapNghin className="flex-1 sm:w-28 sm:flex-none" giaTri={p.gia} onDoi={(g) => doiGiaPhuKien(p, g)} placeholder="Giá" />
                 <button onClick={() => doiTenPhuKien(p)} className="tb-btn-ghost text-xs px-3 py-1">Sửa</button>
                 <button onClick={() => xoaPhuKien(p)} className="text-xs px-3 py-1 rounded-lg font-medium text-[var(--color-dau-600)] hover:text-white hover:bg-[var(--color-dau)] border border-[var(--color-line)] transition-colors">Xóa</button>
               </div>
@@ -183,7 +183,7 @@ export default function BanhPage() {
           ))}
         </ul>
 
-        <div className="flex gap-2 items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <input
             className="tb-input flex-1"
             placeholder="Thêm phụ kiện… (vd Nến số)"
@@ -191,8 +191,10 @@ export default function BanhPage() {
             onChange={(e) => setPkMoi((s) => ({ ...s, ten: e.target.value }))}
             onKeyDown={(e) => { if (e.key === 'Enter') themPhuKien() }}
           />
-          <NhapNghin className="w-32 shrink-0" giaTri={pkMoi.gia} onDoi={(g) => setPkMoi((s) => ({ ...s, gia: g }))} placeholder="Giá (vd 5)" />
-          <button onClick={themPhuKien} className="btn-primary shrink-0">＋ Thêm</button>
+          <div className="flex items-center gap-2 shrink-0">
+            <NhapNghin className="flex-1 sm:w-28 sm:flex-none" giaTri={pkMoi.gia} onDoi={(g) => setPkMoi((s) => ({ ...s, gia: g }))} placeholder="Giá (vd 5)" />
+            <button onClick={themPhuKien} className="btn-primary shrink-0">＋ Thêm</button>
+          </div>
         </div>
         <p className="text-xs text-[var(--color-xam)] mt-2">
           Giá nhập theo nghìn đồng (gõ 5 = {dinhDangTien(5000)}). Giá sửa trực tiếp trong ô, tự lưu.
