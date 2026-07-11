@@ -1,0 +1,30 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
+import { db } from '@/db'
+import { phuKien } from '@/db/schema'
+import { layUser, loiJson } from '@/lib/api-helpers'
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const user = await layUser()
+  if (user?.vaiTro !== 'quanly') return loiJson(403, 'Chỉ quản lý')
+  const { id } = await params
+  const body = await req.json()
+  const set: Record<string, unknown> = {}
+  if (typeof body.ten === 'string' && body.ten.trim()) set.ten = body.ten.trim()
+  if (typeof body.gia === 'number' && body.gia >= 0) set.gia = body.gia
+  if (typeof body.active === 'boolean') set.active = body.active ? 1 : 0
+  if (typeof body.active === 'number') set.active = body.active
+  if (typeof body.thuTu === 'number') set.thuTu = body.thuTu
+  if (Object.keys(set).length === 0) return loiJson(400, 'Không có gì để cập nhật')
+  db.update(phuKien).set(set).where(eq(phuKien.id, Number(id))).run()
+  return NextResponse.json({ ok: true })
+}
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const user = await layUser()
+  if (user?.vaiTro !== 'quanly') return loiJson(403, 'Chỉ quản lý')
+  const { id } = await params
+  // Xóa hẳn khỏi danh mục. Đơn cũ lưu snapshot tên + giá nên không bị ảnh hưởng.
+  db.delete(phuKien).where(eq(phuKien.id, Number(id))).run()
+  return NextResponse.json({ ok: true })
+}

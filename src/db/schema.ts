@@ -40,6 +40,15 @@ export const banhOptions = sqliteTable('banh_options', {
   active: integer('active').notNull().default(1),
 })
 
+// Danh mục phụ kiện mua thêm (nến, mũ, pháo…) — sửa được ở màn Quản lý > Sản phẩm
+export const phuKien = sqliteTable('phu_kien', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  ten: text('ten').notNull(),
+  gia: integer('gia').notNull().default(0),
+  thuTu: integer('thu_tu').notNull().default(0),
+  active: integer('active').notNull().default(1),
+})
+
 export const orders = sqliteTable('orders', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   maDon: text('ma_don').notNull().unique(),
@@ -52,6 +61,7 @@ export const orders = sqliteTable('orders', {
   sdtNguoiNhan: text('sdt_nguoi_nhan'),
   phiShip: integer('phi_ship').notNull().default(0),
   kieuPhiShip: text('kieu_phi_ship', { enum: ['freeship', 'theo_app'] }), // null = đơn cũ nhập phí ship bằng số
+  donQuaTang: integer('don_qua_tang').notNull().default(0), // 1 = đơn ship là quà khách đặt tặng người nhận
 
   tongTien: integer('tong_tien').notNull(),
   tienCoc: integer('tien_coc').notNull().default(0),
@@ -83,9 +93,25 @@ export const orderItems = sqliteTable('order_items', {
   gia: integer('gia').notNull(),
 })
 
+// Phụ kiện mua kèm trong đơn — lưu snapshot tên + giá (không tham chiếu id, giống cách lưu vị)
+export const orderPhuKien = sqliteTable('order_phu_kien', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  orderId: integer('order_id').notNull().references(() => orders.id),
+  ten: text('ten').notNull(),
+  gia: integer('gia').notNull(),
+  soLuong: integer('so_luong').notNull().default(1),
+})
+
 export const orderItemImages = sqliteTable('order_item_images', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   orderItemId: integer('order_item_id').notNull().references(() => orderItems.id),
+  filePath: text('file_path').notNull(),
+})
+
+// Ảnh thành phẩm bếp chụp/tải lên khi bấm "Xong"
+export const orderAnhThanhPham = sqliteTable('order_anh_thanh_pham', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  orderId: integer('order_id').notNull().references(() => orders.id),
   filePath: text('file_path').notNull(),
 })
 

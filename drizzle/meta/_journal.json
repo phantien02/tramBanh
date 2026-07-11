@@ -22,6 +22,20 @@
       "when": 1783582230074,
       "tag": "0002_pink_morlun",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1783757212174,
+      "tag": "0003_tearful_stardust",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1783760096253,
+      "tag": "0004_familiar_exodus",
+      "breakpoints": true
     }
   ]
 }

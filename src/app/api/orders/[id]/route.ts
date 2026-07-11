@@ -15,6 +15,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!user) return loiJson(401, 'Chưa đăng nhập')
   if (!['quay', 'quanly'].includes(user.vaiTro)) return loiJson(403, 'Không có quyền sửa đơn')
   const data = await req.json()
+  if (!(Number(data?.tienCoc) > 0)) return loiJson(400, 'Vui lòng nhập tiền khách đã cọc (lớn hơn 0)')
   if (data?.khach?.sdt && !laSdtVN(data.khach.sdt)) return loiJson(400, 'Số điện thoại khách không hợp lệ (số di động VN 10 chữ số)')
   if (data?.hinhThucNhan === 'ship' && data?.sdtNguoiNhan && !laSdtVN(data.sdtNguoiNhan)) return loiJson(400, 'Số điện thoại người nhận không hợp lệ')
   const kq = suaDon(Number((await params).id), data, user.id)

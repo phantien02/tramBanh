@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import AppShell from '@/components/AppShell'
 import OrderCard, { type DonHienThi } from '@/components/OrderCard'
 import OrderDetail from '@/components/OrderDetail'
+import ChupAnhThanhPham from '@/components/ChupAnhThanhPham'
 import { useRealtime } from '@/components/useRealtime'
 import { dauCuoiNgay, mucCanhBao } from '@/lib/time'
 import type { SessionUser } from '@/lib/session'
@@ -18,6 +19,8 @@ export default function BepPage() {
   const [daXong, setDaXong] = useState<DonHienThi[]>([])
   const [now, setNow] = useState(Date.now())
   const [xemChiTiet, setXemChiTiet] = useState<number | null>(null)
+  const [chupAnhCho, setChupAnhCho] = useState<{ id: number; maDon: string } | null>(null) // đơn đang chờ chụp ảnh thành phẩm
+  const [dangGuiAnh, setDangGuiAnh] = useState(false)
 
   useEffect(() => { fetch('/api/me').then((r) => r.json()).then(setUser) }, [])
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t) }, [])
@@ -41,12 +44,23 @@ export default function BepPage() {
     (e) => e.type === 'nhac_nho' || e.type === 'don_moi' || e.type === 'don_cap_nhat',
   )
 
-  async function chuyen(id: number, to: TrangThai) {
+  async function chuyen(id: number, to: TrangThai, anhThanhPham?: string[]) {
     const res = await fetch(`/api/orders/${id}/chuyen`, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ to }),
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ to, anhThanhPham }),
     })
     if (!res.ok) alert((await res.json()).error)
     taiDon()
+  }
+
+  async function xongVoiAnh(anh: string[]) {
+    if (!chupAnhCho) return
+    setDangGuiAnh(true)
+    try {
+      await chuyen(chupAnhCho.id, 'banh_xong', anh)
+      setChupAnhCho(null)
+    } finally {
+      setDangGuiAnh(false)
+    }
   }
 
   async function hoanTac(id: number, to: TrangThai, hoi: string) {
@@ -99,7 +113,7 @@ export default function BepPage() {
                       <>
                         <button onClick={() => hoanTac(d.id, 'moi', `Trả đơn ${d.maDon} về hàng chờ (chưa nhận làm)?`)}
                           className="tb-btn-ghost px-3 py-2.5" title="Trả về hàng chờ">↩</button>
-                        <button onClick={() => chuyen(d.id, 'banh_xong')} className="flex-1 bg-[var(--color-tra)] text-white rounded-xl py-2.5 text-lg font-bold">🎂 Xong</button>
+                        <button onClick={() => setChupAnhCho({ id: d.id, maDon: d.maDon })} className="flex-1 bg-[var(--color-tra)] text-white rounded-xl py-2.5 text-lg font-bold">🎂 Xong</button>
                       </>
                     )
                 } />
@@ -119,6 +133,11 @@ export default function BepPage() {
             ))}
           </div>
         </>
+      )}
+
+      {chupAnhCho && (
+        <ChupAnhThanhPham maDon={chupAnhCho.maDon} dangGui={dangGuiAnh}
+          onXacNhan={xongVoiAnh} onDong={() => setChupAnhCho(null)} />
       )}
 
       {xemChiTiet != null && (

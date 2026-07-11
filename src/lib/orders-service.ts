@@ -1,6 +1,6 @@
 import { and, eq, gte, lte, inArray, sql } from 'drizzle-orm'
 import { db, sqlite } from '@/db'
-import { customers, orders, orderItems, orderItemImages, orderEvents, users } from '@/db/schema'
+import { customers, orders, orderItems, orderItemImages, orderPhuKien, orderAnhThanhPham, orderEvents, users } from '@/db/schema'
 import { chuyenHopLe, type TrangThai } from './status'
 import { taoMaDon } from './order-code'
 import { tinhTongTien } from './money'
@@ -23,11 +23,13 @@ export type DonMoi = {
   sdtNguoiNhan?: string
   phiShip?: number
   kieuPhiShip?: 'freeship' | 'theo_app'
+  donQuaTang?: boolean
   tienCoc?: number
   hinhThucTt?: HinhThucTt
   ghiChu?: string
   tongTienGhiDe?: number
   items: { productId?: number; tenMon: string; coBanh?: string; cot?: string; mut?: string; topping?: string[]; soLuong: number; chuViet?: string; ghiChu?: string; gia: number; anhMau?: string[] }[]
+  phuKien?: { ten: string; gia: number; soLuong: number }[]
 }
 
 function ghiEvent(orderId: number, userId: number | null, hanhDong: string, chiTiet?: string) {
@@ -60,7 +62,14 @@ function chenItems(orderId: number, items: DonMoi['items']) {
 // (dùng null thay vì undefined vì set()/values() của drizzle bỏ qua field undefined thay vì xóa)
 function chuanHoaShip(data: DonMoi): DonMoi {
   if (data.hinhThucNhan === 'ship') return data
-  return { ...data, diaChiShip: null as unknown as undefined, tenNguoiNhan: null as unknown as undefined, sdtNguoiNhan: null as unknown as undefined, phiShip: 0, kieuPhiShip: null as unknown as undefined }
+  return { ...data, diaChiShip: null as unknown as undefined, tenNguoiNhan: null as unknown as undefined, sdtNguoiNhan: null as unknown as undefined, phiShip: 0, kieuPhiShip: null as unknown as undefined, donQuaTang: false }
+}
+
+function chenPhuKien(orderId: number, phuKien: DonMoi['phuKien']) {
+  for (const p of phuKien ?? []) {
+    if (!p.ten?.trim() || !(p.soLuong >= 1)) continue
+    db.insert(orderPhuKien).values({ orderId, ten: p.ten.trim(), gia: p.gia ?? 0, soLuong: p.soLuong }).run()
+  }
 }
 
 export function taoDon(data: DonMoi, userId: number): { id: number; maDon: string } {
@@ -71,18 +80,20 @@ export function taoDon(data: DonMoi, userId: number): { id: number; maDon: strin
     const soTrongNgay = db.select({ n: sql<number>`count(*)` }).from(orders)
       .where(and(gte(orders.createdAt, dau), lte(orders.createdAt, cuoi))).get()!.n
     const maDon = taoMaDon(now, soTrongNgay + 1)
-    const tongTien = data.tongTienGhiDe ?? tinhTongTien(data.items, data.phiShip ?? 0)
+    const tongTien = data.tongTienGhiDe ?? tinhTongTien(data.items, data.phiShip ?? 0, data.phuKien ?? [])
     const customerId = upsertKhach(data.khach.sdt, data.khach.ten)
 
     const don = db.insert(orders).values({
       maDon, customerId, nguon: data.nguon, ngayGioNhan: data.ngayGioNhan,
       hinhThucNhan: data.hinhThucNhan, diaChiShip: data.diaChiShip,
       tenNguoiNhan: data.tenNguoiNhan, sdtNguoiNhan: data.sdtNguoiNhan,
-      phiShip: data.phiShip ?? 0, kieuPhiShip: data.kieuPhiShip, tongTien, tienCoc: data.tienCoc ?? 0,
+      phiShip: data.phiShip ?? 0, kieuPhiShip: data.kieuPhiShip, donQuaTang: data.donQuaTang ? 1 : 0,
+      tongTien, tienCoc: data.tienCoc ?? 0,
       hinhThucTt: data.hinhThucTt ?? 'chua_tt', ghiChu: data.ghiChu,
       nguoiTao: userId, createdAt: Date.now(),
     }).returning().get()
     chenItems(don.id, data.items)
+    chenPhuKien(don.id, data.phuKien)
     ghiEvent(don.id, userId, 'tao_don')
     return { id: don.id, maDon }
   })()
@@ -97,12 +108,13 @@ export function suaDon(id: number, data: DonMoi, userId: number): { ok: boolean;
     if (!don) return { ok: false as const, loi: 'Không tìm thấy đơn' }
     if (don.trangThai === 'hoan_tat' || don.trangThai === 'huy') return { ok: false as const, loi: 'Đơn đã kết thúc, không sửa được' }
 
-    const tongTien = data.tongTienGhiDe ?? tinhTongTien(data.items, data.phiShip ?? 0)
+    const tongTien = data.tongTienGhiDe ?? tinhTongTien(data.items, data.phiShip ?? 0, data.phuKien ?? [])
     const daSua = don.trangThai === 'dang_lam' || don.trangThai === 'banh_xong' ? 1 : don.daSua
     db.update(orders).set({
       customerId: upsertKhach(data.khach.sdt, data.khach.ten),
       nguon: data.nguon, ngayGioNhan: data.ngayGioNhan, hinhThucNhan: data.hinhThucNhan,
       diaChiShip: data.diaChiShip, tenNguoiNhan: data.tenNguoiNhan, sdtNguoiNhan: data.sdtNguoiNhan, phiShip: data.phiShip ?? 0, kieuPhiShip: data.kieuPhiShip,
+      donQuaTang: data.donQuaTang ? 1 : 0,
       tongTien, tienCoc: data.tienCoc ?? 0, hinhThucTt: data.hinhThucTt ?? 'chua_tt',
       ghiChu: data.ghiChu, daSua,
     }).where(eq(orders.id, id)).run()
@@ -112,6 +124,8 @@ export function suaDon(id: number, data: DonMoi, userId: number): { ok: boolean;
     if (itemIds.length) db.delete(orderItemImages).where(inArray(orderItemImages.orderItemId, itemIds)).run()
     db.delete(orderItems).where(eq(orderItems.orderId, id)).run()
     chenItems(id, data.items)
+    db.delete(orderPhuKien).where(eq(orderPhuKien.orderId, id)).run()
+    chenPhuKien(id, data.phuKien)
 
     ghiEvent(id, userId, 'sua_don')
     return { ok: true as const, maDon: don.maDon, trangThai: don.trangThai }
@@ -123,7 +137,7 @@ export function suaDon(id: number, data: DonMoi, userId: number): { ok: boolean;
 
 export function chuyenTrangThai(
   id: number, to: TrangThai, user: SessionUser,
-  opts?: { ketThucKieu?: KetThucKieu; lyDoHuy?: string },
+  opts?: { ketThucKieu?: KetThucKieu; lyDoHuy?: string; anhThanhPham?: string[] },
 ): { ok: true } | { ok: false; loi: string } {
   const don = db.select().from(orders).where(eq(orders.id, id)).get()
   if (!don) return { ok: false, loi: 'Không tìm thấy đơn' }
@@ -142,7 +156,11 @@ export function chuyenTrangThai(
   const kq = db.update(orders).set(set).where(and(eq(orders.id, id), eq(orders.trangThai, from))).run()
   if (kq.changes === 0) return { ok: false, loi: 'Đơn vừa được người khác xử lý, hãy tải lại' }
 
-  ghiEvent(id, user.id, `chuyen:${from}->${to}`, opts?.lyDoHuy ?? opts?.ketThucKieu)
+  // Ảnh thành phẩm bếp chụp khi bấm Xong — lưu kèm đơn (không bắt buộc)
+  const anhXong = to === 'banh_xong' ? (opts?.anhThanhPham ?? []).filter((f) => f?.trim()) : []
+  for (const f of anhXong) db.insert(orderAnhThanhPham).values({ orderId: id, filePath: f }).run()
+
+  ghiEvent(id, user.id, `chuyen:${from}->${to}`, opts?.lyDoHuy ?? opts?.ketThucKieu ?? (anhXong.length ? `${anhXong.length} ảnh thành phẩm` : undefined))
   phatSuKien({ type: 'chuyen_trang_thai', orderId: id, maDon: don.maDon, trangThai: to })
   return { ok: true }
 }
@@ -179,7 +197,8 @@ export function layDanhSachDon(loc: { tuNgay?: number; denNgay?: number; trangTh
         topping: it.topping ? (JSON.parse(it.topping) as string[]) : [],
         anhMau: db.select().from(orderItemImages).where(eq(orderItemImages.orderItemId, it.id)).all().map((a) => a.filePath),
       }))
-    return { ...r.orders, khach: r.customers, items }
+    const phuKien = db.select().from(orderPhuKien).where(eq(orderPhuKien.orderId, r.orders.id)).all()
+    return { ...r.orders, khach: r.customers, items, phuKien }
   })
 }
 
@@ -203,5 +222,7 @@ function layDanhSachDonTheoId(id: number) {
       topping: it.topping ? (JSON.parse(it.topping) as string[]) : [],
       anhMau: db.select().from(orderItemImages).where(eq(orderItemImages.orderItemId, it.id)).all().map((a) => a.filePath),
     }))
-  return [{ ...r.orders, khach: r.customers, items }]
+  const phuKien = db.select().from(orderPhuKien).where(eq(orderPhuKien.orderId, id)).all()
+  const anhThanhPham = db.select().from(orderAnhThanhPham).where(eq(orderAnhThanhPham.orderId, id)).all().map((a) => a.filePath)
+  return [{ ...r.orders, khach: r.customers, items, phuKien, anhThanhPham }]
 }

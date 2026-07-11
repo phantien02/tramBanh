@@ -1,5 +1,6 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
+import ChupAnhThanhPham from '@/components/ChupAnhThanhPham'
 import { dinhDangGio, dinhDangNgay, dinhDangTien } from '@/lib/time'
 import { TEN_TRANG_THAI, type TrangThai, type VaiTro } from '@/lib/status'
 import { tinhConLai } from '@/lib/money'
@@ -7,10 +8,12 @@ import { tinhConLai } from '@/lib/money'
 type ChiTiet = {
   id: number; maDon: string; trangThai: TrangThai; nguon: string; ngayGioNhan: number
   hinhThucNhan: string; diaChiShip?: string | null; sdtNguoiNhan?: string | null; tenNguoiNhan?: string | null
-  phiShip: number; kieuPhiShip?: 'freeship' | 'theo_app' | null; tongTien: number; tienCoc: number; hinhThucTt: string; ghiChu?: string | null
+  phiShip: number; kieuPhiShip?: 'freeship' | 'theo_app' | null; donQuaTang?: number; tongTien: number; tienCoc: number; hinhThucTt: string; ghiChu?: string | null
   daSua: number; lyDoHuy?: string | null
   khach?: { ten: string; sdt: string } | null
   items: { id: number; tenMon: string; coBanh?: string | null; cot?: string | null; mut?: string | null; topping?: string[]; soLuong: number; chuViet?: string | null; ghiChu?: string | null; gia: number; anhMau: string[] }[]
+  phuKien?: { id: number; ten: string; gia: number; soLuong: number }[]
+  anhThanhPham?: string[]
   events: { id: number; hanhDong: string; chiTiet?: string | null; thoiDiem: number; userId?: number | null; tenNguoiThucHien: string }[]
 }
 
@@ -35,12 +38,14 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
   const [don, setDon] = useState<ChiTiet | null>(null)
   const [loi, setLoi] = useState('')
   const [hoiKetThuc, setHoiKetThuc] = useState<TrangThai | null>(null) // đang chờ chọn kiểu kết thúc
+  const [hoiAnhXong, setHoiAnhXong] = useState(false) // đang chờ chụp ảnh thành phẩm trước khi Xong
+  const [dangGuiAnh, setDangGuiAnh] = useState(false)
   const [anhPhongTo, setAnhPhongTo] = useState<string | null>(null) // ảnh mẫu đang mở lightbox
 
   const tai = useCallback(() => { fetch(`/api/orders/${id}`).then((r) => r.json()).then(setDon) }, [id])
   useEffect(() => { tai() }, [tai])
 
-  async function goiChuyen(to: TrangThai, opts?: { ketThucKieu?: string; lyDoHuy?: string }) {
+  async function goiChuyen(to: TrangThai, opts?: { ketThucKieu?: string; lyDoHuy?: string; anhThanhPham?: string[] }) {
     const res = await fetch(`/api/orders/${id}/chuyen`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ to, ...opts }),
@@ -52,7 +57,18 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
     tai()
   }
 
+  async function xongVoiAnh(anh: string[]) {
+    setDangGuiAnh(true)
+    try {
+      await goiChuyen('banh_xong', { anhThanhPham: anh })
+      setHoiAnhXong(false)
+    } finally {
+      setDangGuiAnh(false)
+    }
+  }
+
   function chuyen(to: TrangThai, can?: string) {
+    if (to === 'banh_xong') { setHoiAnhXong(true); return }
     if (can === 'ketThucKieu') { setHoiKetThuc(to); return }
     if (can === 'lyDoHuy') {
       const lyDoHuy = prompt('Lý do hủy đơn?')
@@ -76,6 +92,7 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
         <h1 className="num text-3xl text-[var(--color-caphe)]">{don.maDon}</h1>
         <span className="tb-chip text-sm font-semibold tracking-wide uppercase">{TEN_TRANG_THAI[don.trangThai]}</span>
         {don.daSua === 1 && <span className="tb-chip tb-chip-caramel text-sm font-bold">ĐÃ SỬA</span>}
+        {don.donQuaTang === 1 && <span className="tb-chip tb-chip-dau text-sm font-bold">🎁 QUÀ TẶNG</span>}
         {onDong && <button onClick={onDong} className="ml-auto text-2xl px-2 text-[var(--color-xam)] hover:text-[var(--color-caphe)] transition-colors">✕</button>}
       </div>
 
@@ -92,6 +109,7 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
                <span>🛵</span>
                <span>
                  <b>Ship:</b> {don.diaChiShip}
+                 {don.donQuaTang === 1 && <span className="block text-sm font-semibold text-[var(--color-dau-600)]">🎁 Đơn quà tặng — khách đặt tặng người nhận</span>}
                  {don.tenNguoiNhan && <span className="block text-sm text-[var(--color-caphe)]">👤 Người nhận: {don.tenNguoiNhan}</span>}
                  {don.sdtNguoiNhan && <span className="block text-sm text-[var(--color-xam)]">📞 SĐT: {don.sdtNguoiNhan}</span>}
                  <span className="block text-sm text-[var(--color-caphe)]">
@@ -162,6 +180,36 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
         ))}
       </div>
 
+      {don.phuKien && don.phuKien.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-[var(--color-caramel-600)] text-sm font-semibold uppercase tracking-wider">Phụ kiện mua thêm</h3>
+          <div className="bg-[var(--color-surface-2)] border border-[var(--color-line)] rounded-xl p-4 space-y-2">
+            {don.phuKien.map((p) => (
+              <div key={p.id} className="flex justify-between items-center">
+                <span className="text-[var(--color-caphe)] font-medium">
+                  <span className="num text-[var(--color-caramel-600)] mr-2">{p.soLuong}×</span>🕯 {p.ten}
+                </span>
+                <span className="num text-[var(--color-caphe)]">{dinhDangTien(p.gia * p.soLuong)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {don.anhThanhPham && don.anhThanhPham.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-[var(--color-caramel-600)] text-sm font-semibold uppercase tracking-wider">📸 Ảnh thành phẩm</h3>
+          <div className="bg-[var(--color-surface-2)] border border-[var(--color-line)] rounded-xl p-4 flex gap-3 flex-wrap">
+            {don.anhThanhPham.map((f, idx) => (
+              <button key={`${f}-${idx}`} type="button" onClick={() => setAnhPhongTo(f)}
+                className="block rounded-xl overflow-hidden border border-[var(--color-line)] hover:shadow-[var(--shadow-lift)] transition-shadow cursor-zoom-in" title="Bấm để phóng to">
+                <img src={`/api/uploads/${f}`} alt="thành phẩm" className="h-32 w-32 object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="bg-[var(--color-surface-2)] rounded-xl p-5 border border-[var(--color-line)]">
         <div className="flex justify-between items-center text-lg mb-2">
            <span className="text-[var(--color-xam)]">Tổng tiền</span>
@@ -225,6 +273,11 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
           ))}
         </ul>
       </details>
+
+      {hoiAnhXong && don && (
+        <ChupAnhThanhPham maDon={don.maDon} dangGui={dangGuiAnh}
+          onXacNhan={xongVoiAnh} onDong={() => setHoiAnhXong(false)} />
+      )}
 
       {anhPhongTo && (
         <div

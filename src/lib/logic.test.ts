@@ -15,6 +15,9 @@ describe('tiền', () => {
   it('tổng = sum(giá×SL) + phí ship', () => {
     expect(tinhTongTien([{ gia: 150000, soLuong: 1 }, { gia: 45000, soLuong: 2 }], 20000)).toBe(260000)
   })
+  it('tổng có phụ kiện = sum(giá×SL) + sum(giá phụ kiện×SL) + phí ship', () => {
+    expect(tinhTongTien([{ gia: 150000, soLuong: 1 }], 20000, [{ gia: 5000, soLuong: 2 }, { gia: 15000, soLuong: 1 }])).toBe(195000)
+  })
   it('còn lại = tổng - cọc, không âm', () => {
     expect(tinhConLai(260000, 100000)).toBe(160000)
     expect(tinhConLai(100000, 150000)).toBe(0)

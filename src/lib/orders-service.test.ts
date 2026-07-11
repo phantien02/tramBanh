@@ -8,7 +8,7 @@ process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'trambanh-test-'))
 
 const { taoDon, chuyenTrangThai, suaDon, layDanhSachDon } = await import('./orders-service')
 const { db } = await import('@/db')
-const { users, orders, orderItems } = await import('@/db/schema')
+const { users, orders, orderItems, orderPhuKien, orderAnhThanhPham } = await import('@/db/schema')
 
 let quayId: number, bepId: number
 
@@ -40,6 +40,29 @@ describe('taoDon', () => {
     const b = taoDon(donMau(Date.now() + 86400000), quayId)
     expect(Number(b.maDon.slice(-2))).toBe(Number(a.maDon.slice(-2)) + 1)
   })
+  it('phụ kiện được lưu và cộng vào tổng tiền', () => {
+    const kq = taoDon({
+      ...donMau(Date.now() + 86400000),
+      phuKien: [{ ten: 'Nến', gia: 5000, soLuong: 2 }, { ten: 'Pháo', gia: 15000, soLuong: 1 }],
+    }, quayId)
+    const don = db.select().from(orders).all().find((o) => o.id === kq.id)!
+    expect(don.tongTien).toBe(220000 + 5000 * 2 + 15000)
+    const pk = db.select().from(orderPhuKien).where(eq(orderPhuKien.orderId, kq.id)).all()
+    expect(pk.length).toBe(2)
+  })
+  it('đơn ship quà tặng lưu donQuaTang=1; đổi về tại tiệm thì bị xóa cờ', () => {
+    const dataShip = {
+      ...donMau(Date.now() + 86400000),
+      hinhThucNhan: 'ship' as const, diaChiShip: '123 Lê Lợi', donQuaTang: true,
+    }
+    const kq = taoDon(dataShip, quayId)
+    let don = db.select().from(orders).all().find((o) => o.id === kq.id)!
+    expect(don.donQuaTang).toBe(1)
+
+    suaDon(kq.id, { ...donMau(Date.now() + 86400000), hinhThucNhan: 'tai_tiem', donQuaTang: true }, quayId)
+    don = db.select().from(orders).all().find((o) => o.id === kq.id)!
+    expect(don.donQuaTang).toBe(0)
+  })
 })
 
 describe('chuyenTrangThai', () => {
@@ -52,6 +75,19 @@ describe('chuyenTrangThai', () => {
     expect(chuyenTrangThai(id, 'banh_xong', bep).ok).toBe(true)
     expect(chuyenTrangThai(id, 'da_nhan', quay).ok).toBe(true)
     expect(chuyenTrangThai(id, 'hoan_tat', quay, { ketThucKieu: 'giao_khach' }).ok).toBe(true)
+  })
+  it('bấm Xong kèm ảnh thành phẩm → ảnh lưu vào đơn; không ảnh → không lưu', () => {
+    const bep = { id: bepId, username: 'b1', hoTen: 'Bếp 1', vaiTro: 'bep' as const }
+    const { id } = taoDon(donMau(Date.now() + 86400000), quayId)
+    chuyenTrangThai(id, 'dang_lam', bep)
+    expect(chuyenTrangThai(id, 'banh_xong', bep, { anhThanhPham: ['a1.jpg', 'a2.jpg'] }).ok).toBe(true)
+    const anh = db.select().from(orderAnhThanhPham).where(eq(orderAnhThanhPham.orderId, id)).all()
+    expect(anh.map((a) => a.filePath)).toEqual(['a1.jpg', 'a2.jpg'])
+
+    const { id: id2 } = taoDon(donMau(Date.now() + 86400000), quayId)
+    chuyenTrangThai(id2, 'dang_lam', bep)
+    expect(chuyenTrangThai(id2, 'banh_xong', bep).ok).toBe(true)
+    expect(db.select().from(orderAnhThanhPham).where(eq(orderAnhThanhPham.orderId, id2)).all().length).toBe(0)
   })
   it('hoàn tất thiếu ketThucKieu hoặc hủy thiếu lý do → lỗi', () => {
     const { id } = taoDon(donMau(Date.now() + 86400000), quayId)

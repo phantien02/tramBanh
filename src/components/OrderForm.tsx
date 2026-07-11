@@ -3,22 +3,27 @@ import { useEffect, useMemo, useState } from 'react'
 import { tinhTongTien, tinhConLai } from '@/lib/money'
 import { dinhDangTien } from '@/lib/time'
 import { laSdtVN } from '@/lib/phone'
+import NhapNghin from '@/components/NhapNghin'
 
 type Opt = { id: number; loai: string; ten: string; thuTu: number; active: number }
 type BanhOptions = { cot: Opt[]; mut: Opt[]; topping: Opt[]; size: Opt[]; sanPhamMau: { id: number; ten: string } | null }
+type PhuKienOpt = { id: number; ten: string; gia: number; thuTu: number; active: number }
 type MonNhap = {
   productId?: number; tenMon: string; coBanh?: string
   cot?: string; mut?: string; topping?: string[]
   soLuong: number; chuViet?: string; ghiChu?: string; gia: number; anhMau: string[]
 }
+type PhuKienNhap = { ten: string; gia: number; soLuong: number }
 
 export type GiaTriForm = {
   khach: { sdt: string; ten: string }
   nguon: string; ngayGioNhan: number; hinhThucNhan: string
   diaChiShip?: string; sdtNguoiNhan?: string; tenNguoiNhan?: string; phiShip: number
   kieuPhiShip?: 'freeship' | 'theo_app'
+  donQuaTang?: boolean
   tienCoc: number; hinhThucTt: string; ghiChu?: string; tongTienGhiDe?: number
   items: MonNhap[]
+  phuKien: PhuKienNhap[]
 }
 
 const NGUON = [['tai_quay', 'Tại quầy'], ['zalo', 'Zalo'], ['messenger', 'Messenger'], ['dien_thoai', 'Điện thoại'], ['khac', 'Khác']]
@@ -47,31 +52,15 @@ function gopNgayGio(ngay: string, gio: number, phut: string): number {
   return new Date(y, (m || 1) - 1, d || 1, gio, Number(phut), 0, 0).getTime()
 }
 
-// Ô nhập tiền theo "nghìn đồng": gõ 235 → hiển thị "235" kèm đuôi cố định ".000đ" (giá trị lưu = 235000)
-function NhapNghin({ giaTri, onDoi, placeholder, className }: {
-  giaTri: number; onDoi: (v: number) => void; placeholder?: string; className?: string
-}) {
-  const nghin = giaTri ? Math.round(giaTri / 1000) : null
-  const hienThi = nghin == null ? '' : nghin.toLocaleString('vi-VN')
-  return (
-    <div className={`relative ${className ?? ''}`}>
-      <input inputMode="numeric" placeholder={placeholder} className="tb-input num w-full pr-14"
-        value={hienThi} onChange={(e) => onDoi((Number(e.target.value.replace(/\D/g, '')) || 0) * 1000)} />
-      {giaTri > 0 && (
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-xam)] text-sm num pointer-events-none">.000đ</span>
-      )}
-    </div>
-  )
-}
-
 export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
   donCu?: GiaTriForm; onLuu: (v: GiaTriForm) => void; dangLuu: boolean; loi?: string
 }) {
   const [opts, setOpts] = useState<BanhOptions>({ cot: [], mut: [], topping: [], size: [], sanPhamMau: null })
+  const [dsPhuKien, setDsPhuKien] = useState<PhuKienOpt[]>([])
   const [v, setV] = useState<GiaTriForm>(donCu ?? {
     khach: { sdt: '', ten: '' }, nguon: 'tai_quay',
     ngayGioNhan: Date.now() + 30 * 60000, hinhThucNhan: 'tai_tiem',
-    phiShip: 0, kieuPhiShip: 'freeship', tienCoc: 0, hinhThucTt: 'chua_tt', items: [],
+    phiShip: 0, kieuPhiShip: 'freeship', donQuaTang: false, tienCoc: 0, hinhThucTt: 'chua_tt', items: [], phuKien: [],
   })
   const [ghiDeTien, setGhiDeTien] = useState(donCu?.tongTienGhiDe != null)
   const [xacNhan, setXacNhan] = useState(false)
@@ -90,6 +79,8 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
       size: (d.size ?? []).filter((o) => o.active === 1),
       sanPhamMau: d.sanPhamMau ?? null,
     }))
+    fetch('/api/phu-kien').then((r) => r.json()).then((d: { items: PhuKienOpt[] }) =>
+      setDsPhuKien((d.items ?? []).filter((p) => p.active === 1)))
   }, [])
 
   // Đồng bộ 3 control ngày/giờ/phút vào ngayGioNhan
@@ -134,6 +125,20 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
     }))
   }
 
+  // Tick/bỏ tick phụ kiện — lưu snapshot tên + giá tại thời điểm chọn
+  function togglePhuKien(p: PhuKienOpt) {
+    setV((x) => {
+      const cur = x.phuKien ?? []
+      return cur.some((k) => k.ten === p.ten)
+        ? { ...x, phuKien: cur.filter((k) => k.ten !== p.ten) }
+        : { ...x, phuKien: [...cur, { ten: p.ten, gia: p.gia, soLuong: 1 }] }
+    })
+  }
+
+  function doiSlPhuKien(ten: string, soLuong: number) {
+    setV((x) => ({ ...x, phuKien: (x.phuKien ?? []).map((k) => (k.ten === ten ? { ...k, soLuong: Math.max(1, soLuong) } : k)) }))
+  }
+
   async function themAnh(i: number, file: File) {
     if (v.items[i].anhMau.length >= 5) { alert('Mỗi bánh chỉ tải tối đa 5 ảnh mẫu.'); return }
     const fd = new FormData(); fd.append('file', file)
@@ -143,11 +148,12 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
     suaMon(i, { anhMau: [...v.items[i].anhMau, data.filePath] })
   }
 
-  const tongTinh = tinhTongTien(v.items, v.phiShip)
+  const tongTinh = tinhTongTien(v.items, v.phiShip, v.phuKien ?? [])
   const tongTien = ghiDeTien && v.tongTienGhiDe != null ? v.tongTienGhiDe : tongTinh
 
   const sdtKhachSai = v.khach.sdt.length > 0 && !laSdtVN(v.khach.sdt)
   const sdtNhanSai = !!v.sdtNguoiNhan && v.sdtNguoiNhan.length > 0 && !laSdtVN(v.sdtNguoiNhan)
+  const thieuCoc = !v.tienCoc || v.tienCoc <= 0
 
   const hopLe = useMemo(() => {
     if (v.items.length === 0) return false
@@ -161,6 +167,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
       if (!v.diaChiShip?.trim()) return false
       if (v.sdtNguoiNhan && !laSdtVN(v.sdtNguoiNhan)) return false
     }
+    if (!v.tienCoc || v.tienCoc <= 0) return false
     return true
   }, [v])
 
@@ -309,6 +316,39 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
           <button type="button" onClick={themBanh} className="tb-btn-ghost w-full py-3 border-dashed">＋ Thêm bánh</button>
         </section>
 
+        {/* Phụ kiện mua thêm */}
+        {dsPhuKien.length > 0 && (
+          <section className="tb-card p-6 space-y-4">
+            <h3 className="text-[var(--color-caramel-600)] text-sm font-semibold uppercase tracking-wider border-b border-[var(--color-line)] pb-2 mb-4 flex justify-between items-center font-display">
+              <span>🕯 Phụ kiện mua thêm</span>
+              <span className="text-[var(--color-xam)] text-xs font-normal bg-[var(--color-surface-2)] px-2 py-1 rounded">không bắt buộc</span>
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {dsPhuKien.map((p) => {
+                const chon = (v.phuKien ?? []).find((k) => k.ten === p.ten)
+                return (
+                  <div key={p.id} className={`rounded-xl border p-3 transition-colors ${chon ? 'border-[var(--color-caramel)] bg-[var(--color-surface-2)]' : 'border-[var(--color-line)]'}`}>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" className="w-5 h-5 rounded border-[var(--color-line)] accent-[var(--color-caramel)]"
+                        checked={!!chon} onChange={() => togglePhuKien(p)} />
+                      <span className="font-medium text-[var(--color-caphe)] flex-1 truncate">{p.ten}</span>
+                      <span className="num text-sm text-[var(--color-caramel-600)] whitespace-nowrap">{dinhDangTien(p.gia)}</span>
+                    </label>
+                    {chon && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="text-xs text-[var(--color-xam)]">SL</span>
+                        <input type="number" min={1} inputMode="numeric" className="tb-input num text-center w-20 !py-1.5"
+                          value={chon.soLuong} onChange={(e) => doiSlPhuKien(p.ten, Number(e.target.value))} />
+                        <span className="num text-sm text-[var(--color-caphe)] ml-auto">{dinhDangTien(chon.gia * chon.soLuong)}</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Giao nhận */}
         <section className="tb-card p-6 space-y-4">
           <h3 className="text-[var(--color-caramel-600)] text-sm font-semibold uppercase tracking-wider border-b border-[var(--color-line)] pb-2 mb-4 font-display">Giao hàng & Nhận bánh</h3>
@@ -365,6 +405,12 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
               </div>
               <input required className="tb-input md:col-span-2" placeholder="Địa chỉ ship chi tiết *"
                 value={v.diaChiShip ?? ''} onChange={(e) => setV({ ...v, diaChiShip: e.target.value })} />
+              <label className="md:col-span-2 flex items-center gap-2 cursor-pointer bg-[var(--color-surface)] px-3 py-2.5 rounded-xl border border-[var(--color-line)] hover:border-[var(--color-caramel)] transition-colors">
+                <input type="checkbox" className="w-5 h-5 rounded border-[var(--color-line)] accent-[var(--color-caramel)]"
+                  checked={!!v.donQuaTang} onChange={(e) => setV({ ...v, donQuaTang: e.target.checked })} />
+                <span className="text-[var(--color-caphe)] font-medium">🎁 Đơn quà tặng</span>
+                <span className="text-sm text-[var(--color-xam)]">— khách đặt tặng người nhận ship</span>
+              </label>
               <div className="md:col-span-2">
                 <p className="text-sm text-[var(--color-xam)] mb-2">Phí ship (book app ship ngoài):</p>
                 <div className="flex gap-2 flex-wrap">
@@ -407,8 +453,9 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end pt-2">
             <div className="md:col-span-4">
-              <label className="block text-[var(--color-xam)] text-sm mb-2">Đã đặt cọc</label>
+              <label className="block text-[var(--color-xam)] text-sm mb-2">Đã đặt cọc *</label>
               <NhapNghin giaTri={v.tienCoc} onDoi={(g) => setV({ ...v, tienCoc: g })} placeholder="vd 100" />
+              {thieuCoc && <p className="text-[var(--color-dau-600)] text-sm mt-1">Vui lòng nhập tiền khách đã cọc.</p>}
             </div>
 
             <div className="md:col-span-8 flex flex-col items-end w-full min-w-0">
@@ -458,6 +505,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                 <p className="text-sm text-[var(--color-caphe)] mt-1">{NHAN_TEN[v.hinhThucNhan] ?? v.hinhThucNhan}</p>
                 {v.hinhThucNhan === 'ship' && (
                   <div className="text-sm text-[var(--color-xam)] mt-1 space-y-0.5">
+                    {v.donQuaTang && <p className="text-[var(--color-dau-600)] font-semibold">🎁 Đơn quà tặng</p>}
                     {v.tenNguoiNhan && <p>Người nhận: {v.tenNguoiNhan}</p>}
                     {v.sdtNguoiNhan && <p className="num">{v.sdtNguoiNhan}</p>}
                     {v.diaChiShip && <p>📍 {v.diaChiShip}</p>}
@@ -502,6 +550,21 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                 </div>
               ))}
             </div>
+
+            {/* Phụ kiện */}
+            {(v.phuKien ?? []).length > 0 && (
+              <div className="bg-[var(--color-surface-2)] rounded-xl p-4 border border-[var(--color-line)]">
+                <p className="text-xs text-[var(--color-xam)] uppercase tracking-wider mb-2">Phụ kiện mua thêm</p>
+                <div className="space-y-1">
+                  {(v.phuKien ?? []).map((p) => (
+                    <div key={p.ten} className="flex justify-between text-sm">
+                      <span className="text-[var(--color-caphe)]">🕯 {p.ten}</span>
+                      <span className="num text-[var(--color-caphe)]">{p.soLuong} × {dinhDangTien(p.gia)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Tiền */}
             <div className="bg-[var(--color-surface-2)] rounded-xl p-4 border border-[var(--color-line)] space-y-1">

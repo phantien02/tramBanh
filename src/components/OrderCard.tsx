@@ -5,8 +5,10 @@ import { TEN_TRANG_THAI, type TrangThai } from '@/lib/status'
 export type DonHienThi = {
   id: number; maDon: string; ngayGioNhan: number; trangThai: string; daSua: number
   nguon: string; hinhThucNhan: string; ketThucKieu?: string | null; ghiChu?: string | null
+  donQuaTang?: number
   khach?: { ten: string; sdt: string } | null
   items: { tenMon: string; coBanh?: string | null; cot?: string | null; mut?: string | null; topping?: string[]; soLuong: number; chuViet?: string | null; anhMau?: string[] }[]
+  phuKien?: { ten: string; gia: number; soLuong: number }[]
 }
 
 const TEN_NGUON: Record<string, string> = {
@@ -88,14 +90,23 @@ export default function OrderCard({ don, now, onClick, actions }: { don: DonHien
           ))}
         </div>
 
+        {don.phuKien && don.phuKien.length > 0 && (
+          <div className="mt-2 text-xs text-[var(--color-caphe)] bg-[var(--color-surface-2)] rounded-lg p-1.5">
+            🕯 {don.phuKien.map((p) => `${p.ten} ×${p.soLuong}`).join(' · ')}
+          </div>
+        )}
+
         {don.ghiChu && (
           <div className="mt-2 text-xs text-[var(--color-caphe)] bg-[var(--color-surface-2)] rounded-lg p-1.5">📝 {don.ghiChu}</div>
         )}
 
         <div className="mt-2.5 pt-2 border-t border-[var(--color-line)] flex items-center justify-between gap-2">
           <span className="text-[11px] font-semibold text-[var(--color-xam)] uppercase tracking-wider">{TEN_TRANG_THAI[don.trangThai as TrangThai]}</span>
-          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${ship ? 'tb-chip-dau' : 'tb-chip-tra'}`}>
-            {ship ? '🛵 Ship' : '🏠 Tại quán'}
+          <span className="flex items-center gap-1.5">
+            {don.donQuaTang === 1 && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full tb-chip-dau">🎁 Quà tặng</span>}
+            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${ship ? 'tb-chip-dau' : 'tb-chip-tra'}`}>
+              {ship ? '🛵 Ship' : '🏠 Tại quán'}
+            </span>
           </span>
         </div>
 

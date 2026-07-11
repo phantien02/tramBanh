@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
 import * as schema from './schema'
-import { users, products, banhOptions } from './schema'
+import { users, products, banhOptions, phuKien } from './schema'
 import { hashPassword } from '../lib/auth'
 import { SAN_PHAM_MAU } from '../lib/seed-const'
 
@@ -11,6 +11,13 @@ const VI_MAC_DINH: { loai: 'cot' | 'mut' | 'topping' | 'size'; ten: string }[] =
   ...['Chanh leo', 'Dâu tây', 'Xoài', 'Đào', 'Việt quất', 'Sốt đường đen', 'Sốt socola'].map((ten) => ({ loai: 'mut' as const, ten })),
   ...['Trái cây hỗn hợp theo mùa', 'Trân châu đường đen', 'Marshmallow', 'Oreo vụn'].map((ten) => ({ loai: 'topping' as const, ten })),
   ...['T10', 'C12', 'T12', 'C14', 'T14', 'C16', 'T16', 'C18', 'T18'].map((ten) => ({ loai: 'size' as const, ten })),
+]
+
+// Phụ kiện mua thêm mặc định — quản lý sửa giá/thêm bớt ở màn Quản lý > Sản phẩm
+const PHU_KIEN_MAC_DINH: { ten: string; gia: number }[] = [
+  { ten: 'Nến', gia: 5000 },
+  { ten: 'Mũ', gia: 10000 },
+  { ten: 'Pháo', gia: 15000 },
 ]
 
 // Tạo dữ liệu nền tối thiểu nếu DB còn trống. Idempotent — an toàn gọi mỗi lần khởi động.
@@ -34,5 +41,11 @@ export function seedNeuTrong(db: BetterSQLite3Database<typeof schema>): void {
   if (db.select().from(banhOptions).all().length === 0) {
     VI_MAC_DINH.forEach((v, i) => db.insert(banhOptions).values({ ...v, thuTu: i }).run())
     console.log(`Seed: tạo ${VI_MAC_DINH.length} vị mặc định (cốt/mứt/topping/size).`)
+  }
+
+  // 4) Phụ kiện mặc định
+  if (db.select().from(phuKien).all().length === 0) {
+    PHU_KIEN_MAC_DINH.forEach((p, i) => db.insert(phuKien).values({ ...p, thuTu: i }).run())
+    console.log(`Seed: tạo ${PHU_KIEN_MAC_DINH.length} phụ kiện mặc định (nến/mũ/pháo).`)
   }
 }
