@@ -50,6 +50,17 @@ describe('taoDon', () => {
     const pk = db.select().from(orderPhuKien).where(eq(orderPhuKien.orderId, kq.id)).all()
     expect(pk.length).toBe(2)
   })
+  it('item có giaBase: server tính lại gia = base + phụ thu, bỏ qua gia client gửi sai', () => {
+    const kq = taoDon({
+      ...donMau(Date.now() + 86400000),
+      items: [{ tenMon: 'Bánh mẫu', coBanh: 'T14', cot: 'Chocolate', topping: ['Oreo vụn'], soLuong: 1, giaBase: 200000, gia: 0 }],
+    }, quayId)
+    const don = db.select().from(orders).all().find((o) => o.id === kq.id)!
+    const it = db.select().from(orderItems).where(eq(orderItems.orderId, kq.id)).all()[0]
+    expect(it.giaBase).toBe(200000)
+    expect(it.gia).toBe(230000) // 200k + 10% Chocolate (20k) + 5% Oreo (10k)
+    expect(don.tongTien).toBe(230000)
+  })
   it('đơn ship quà tặng lưu donQuaTang=1; đổi về tại tiệm thì bị xóa cờ', () => {
     const dataShip = {
       ...donMau(Date.now() + 86400000),

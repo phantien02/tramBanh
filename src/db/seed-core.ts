@@ -5,11 +5,24 @@ import { users, products, banhOptions, phuKien } from './schema'
 import { hashPassword } from '../lib/auth'
 import { SAN_PHAM_MAU } from '../lib/seed-const'
 
-// Danh sách vị mặc định cho sản phẩm mẫu
-const VI_MAC_DINH: { loai: 'cot' | 'mut' | 'topping' | 'size'; ten: string }[] = [
-  ...['Vanilla', 'Chocolate', 'Matcha', 'Red Velvet'].map((ten) => ({ loai: 'cot' as const, ten })),
-  ...['Chanh leo', 'Dâu tây', 'Xoài', 'Đào', 'Việt quất', 'Sốt đường đen', 'Sốt socola'].map((ten) => ({ loai: 'mut' as const, ten })),
-  ...['Trái cây hỗn hợp theo mùa', 'Trân châu đường đen', 'Marshmallow', 'Oreo vụn'].map((ten) => ({ loai: 'topping' as const, ten })),
+// Danh sách vị mặc định cho sản phẩm mẫu (kèm phụ thu theo bảng giá — quản lý sửa được sau)
+type ViSeed = { loai: 'cot' | 'mut' | 'topping' | 'size'; ten: string; phuThuKieu?: 'phan_tram' | 'tien'; phuThuGiaTri?: number }
+const VI_MAC_DINH: ViSeed[] = [
+  { loai: 'cot', ten: 'Vanilla' },
+  { loai: 'cot', ten: 'Chocolate', phuThuKieu: 'phan_tram', phuThuGiaTri: 10 },
+  { loai: 'cot', ten: 'Matcha', phuThuKieu: 'phan_tram', phuThuGiaTri: 10 },
+  { loai: 'cot', ten: 'Red Velvet', phuThuKieu: 'phan_tram', phuThuGiaTri: 10 },
+  { loai: 'mut', ten: 'Chanh leo' },
+  { loai: 'mut', ten: 'Dâu tây' },
+  { loai: 'mut', ten: 'Xoài' },
+  { loai: 'mut', ten: 'Đào', phuThuKieu: 'tien', phuThuGiaTri: 5000 },
+  { loai: 'mut', ten: 'Việt quất', phuThuKieu: 'tien', phuThuGiaTri: 5000 },
+  { loai: 'mut', ten: 'Sốt đường đen', phuThuKieu: 'tien', phuThuGiaTri: 10000 },
+  { loai: 'mut', ten: 'Sốt socola', phuThuKieu: 'tien', phuThuGiaTri: 10000 },
+  { loai: 'topping', ten: 'Trái cây hỗn hợp theo mùa', phuThuKieu: 'phan_tram', phuThuGiaTri: 10 },
+  { loai: 'topping', ten: 'Trân châu đường đen', phuThuKieu: 'phan_tram', phuThuGiaTri: 5 },
+  { loai: 'topping', ten: 'Marshmallow', phuThuKieu: 'phan_tram', phuThuGiaTri: 5 },
+  { loai: 'topping', ten: 'Oreo vụn', phuThuKieu: 'phan_tram', phuThuGiaTri: 5 },
   ...['T10', 'C12', 'T12', 'C14', 'T14', 'C16', 'T16', 'C18', 'T18'].map((ten) => ({ loai: 'size' as const, ten })),
 ]
 

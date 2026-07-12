@@ -14,6 +14,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (typeof body.active === 'boolean') set.active = body.active ? 1 : 0
   if (typeof body.active === 'number') set.active = body.active
   if (typeof body.thuTu === 'number') set.thuTu = body.thuTu
+  // Phụ thu: kieu = null (miễn phí) | 'phan_tram' | 'tien'; giaTri >= 0
+  if ('phuThuKieu' in body) {
+    set.phuThuKieu = body.phuThuKieu === 'phan_tram' || body.phuThuKieu === 'tien' ? body.phuThuKieu : null
+  }
+  if (typeof body.phuThuGiaTri === 'number') set.phuThuGiaTri = Math.max(0, Math.round(body.phuThuGiaTri))
   if (Object.keys(set).length === 0) return loiJson(400, 'Không có gì để cập nhật')
   db.update(banhOptions).set(set).where(eq(banhOptions.id, Number(id))).run()
   return NextResponse.json({ ok: true })

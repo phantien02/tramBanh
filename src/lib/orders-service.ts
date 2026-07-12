@@ -1,9 +1,9 @@
 import { and, eq, gte, lte, inArray, sql } from 'drizzle-orm'
 import { db, sqlite } from '@/db'
-import { customers, orders, orderItems, orderItemImages, orderPhuKien, orderAnhThanhPham, orderEvents, users } from '@/db/schema'
+import { customers, orders, orderItems, orderItemImages, orderPhuKien, orderAnhThanhPham, orderEvents, users, banhOptions } from '@/db/schema'
 import { chuyenHopLe, type TrangThai } from './status'
 import { taoMaDon } from './order-code'
-import { tinhTongTien } from './money'
+import { tinhTongTien, tinhGiaMon } from './money'
 import { dauCuoiNgay } from './time'
 import { phatSuKien } from './sse'
 import type { SessionUser } from './session'
@@ -28,8 +28,21 @@ export type DonMoi = {
   hinhThucTt?: HinhThucTt
   ghiChu?: string
   tongTienGhiDe?: number
-  items: { productId?: number; tenMon: string; coBanh?: string; cot?: string; mut?: string; topping?: string[]; soLuong: number; chuViet?: string; ghiChu?: string; gia: number; anhMau?: string[] }[]
+  items: { productId?: number; tenMon: string; coBanh?: string; cot?: string; mut?: string; topping?: string[]; soLuong: number; chuViet?: string; ghiChu?: string; giaBase?: number; gia: number; anhMau?: string[] }[]
   phuKien?: { ten: string; gia: number; soLuong: number }[]
+}
+
+// Giá món tính lại phía server (nguồn chân lý): item nào có giaBase thì gia = base + phụ thu
+// theo mức phụ thu vị hiện tại; item không có giaBase (đơn/sản phẩm giá cố định) giữ nguyên gia.
+function apGiaMon(items: DonMoi['items']): DonMoi['items'] {
+  if (!items.some((it) => it.giaBase != null)) return items
+  const ds = db.select({
+    loai: banhOptions.loai, ten: banhOptions.ten,
+    phuThuKieu: banhOptions.phuThuKieu, phuThuGiaTri: banhOptions.phuThuGiaTri,
+  }).from(banhOptions).all()
+  return items.map((it) => it.giaBase != null
+    ? { ...it, gia: tinhGiaMon(it.giaBase, { cot: it.cot, mut: it.mut, topping: it.topping }, ds) }
+    : it)
 }
 
 function ghiEvent(orderId: number, userId: number | null, hanhDong: string, chiTiet?: string) {
@@ -50,7 +63,7 @@ function chenItems(orderId: number, items: DonMoi['items']) {
     const row = db.insert(orderItems).values({
       orderId, productId: it.productId ?? null, tenMon: it.tenMon, coBanh: it.coBanh,
       cot: it.cot, mut: it.mut, topping: JSON.stringify(it.topping ?? []),
-      soLuong: it.soLuong, chuViet: it.chuViet, ghiChu: it.ghiChu, gia: it.gia,
+      soLuong: it.soLuong, chuViet: it.chuViet, ghiChu: it.ghiChu, giaBase: it.giaBase ?? null, gia: it.gia,
     }).returning().get()
     for (const f of it.anhMau ?? []) {
       db.insert(orderItemImages).values({ orderItemId: row.id, filePath: f }).run()
@@ -75,6 +88,7 @@ function chenPhuKien(orderId: number, phuKien: DonMoi['phuKien']) {
 export function taoDon(data: DonMoi, userId: number): { id: number; maDon: string } {
   data = chuanHoaShip(data)
   const kq = sqlite.transaction(() => {
+    data = { ...data, items: apGiaMon(data.items) }
     const now = new Date()
     const { dau, cuoi } = dauCuoiNgay(now)
     const soTrongNgay = db.select({ n: sql<number>`count(*)` }).from(orders)
@@ -108,6 +122,7 @@ export function suaDon(id: number, data: DonMoi, userId: number): { ok: boolean;
     if (!don) return { ok: false as const, loi: 'Không tìm thấy đơn' }
     if (don.trangThai === 'hoan_tat' || don.trangThai === 'huy') return { ok: false as const, loi: 'Đơn đã kết thúc, không sửa được' }
 
+    data = { ...data, items: apGiaMon(data.items) }
     const tongTien = data.tongTienGhiDe ?? tinhTongTien(data.items, data.phiShip ?? 0, data.phuKien ?? [])
     const daSua = don.trangThai === 'dang_lam' || don.trangThai === 'banh_xong' ? 1 : don.daSua
     db.update(orders).set({

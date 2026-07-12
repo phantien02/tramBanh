@@ -38,6 +38,10 @@ export const banhOptions = sqliteTable('banh_options', {
   ten: text('ten').notNull(),
   thuTu: integer('thu_tu').notNull().default(0),
   active: integer('active').notNull().default(1),
+  // Phụ thu khi khách chọn vị này (cộng vào giá base). null/0 = miễn phí.
+  // 'phan_tram': phuThuGiaTri là % tính trên base; 'tien': phuThuGiaTri là số tiền cố định.
+  phuThuKieu: text('phu_thu_kieu', { enum: ['phan_tram', 'tien'] }),
+  phuThuGiaTri: integer('phu_thu_gia_tri').notNull().default(0),
 })
 
 // Danh mục phụ kiện mua thêm (nến, mũ, pháo…) — sửa được ở màn Quản lý > Sản phẩm
@@ -90,7 +94,8 @@ export const orderItems = sqliteTable('order_items', {
   soLuong: integer('so_luong').notNull().default(1),
   chuViet: text('chu_viet'),
   ghiChu: text('ghi_chu'),
-  gia: integer('gia').notNull(),
+  giaBase: integer('gia_base'),     // giá base NV nhập (null = đơn cũ, chỉ có giá cuối)
+  gia: integer('gia').notNull(),    // giá cuối = base + phụ thu (snapshot lúc lưu)
 })
 
 // Phụ kiện mua kèm trong đơn — lưu snapshot tên + giá (không tham chiếu id, giống cách lưu vị)

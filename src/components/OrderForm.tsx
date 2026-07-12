@@ -1,17 +1,17 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
-import { tinhTongTien, tinhConLai } from '@/lib/money'
+import { tinhTongTien, tinhConLai, phanTichGiaMon, type ViPhuThu } from '@/lib/money'
 import { dinhDangTien } from '@/lib/time'
 import { laSdtVN } from '@/lib/phone'
 import NhapNghin from '@/components/NhapNghin'
 
-type Opt = { id: number; loai: string; ten: string; thuTu: number; active: number }
+type Opt = { id: number; loai: string; ten: string; thuTu: number; active: number; phuThuKieu: 'phan_tram' | 'tien' | null; phuThuGiaTri: number }
 type BanhOptions = { cot: Opt[]; mut: Opt[]; topping: Opt[]; size: Opt[]; sanPhamMau: { id: number; ten: string } | null }
 type PhuKienOpt = { id: number; ten: string; gia: number; thuTu: number; active: number }
 type MonNhap = {
   productId?: number; tenMon: string; coBanh?: string
   cot?: string; mut?: string; topping?: string[]
-  soLuong: number; chuViet?: string; ghiChu?: string; gia: number; anhMau: string[]
+  soLuong: number; chuViet?: string; ghiChu?: string; giaBase: number; gia: number; anhMau: string[]
 }
 type PhuKienNhap = { ten: string; gia: number; soLuong: number }
 
@@ -28,6 +28,8 @@ export type GiaTriForm = {
 
 const NGUON = [['tai_quay', 'Tại quầy'], ['zalo', 'Zalo'], ['messenger', 'Messenger'], ['dien_thoai', 'Điện thoại'], ['khac', 'Khác']]
 const NHAN = [['tai_tiem', 'Nhận tại tiệm'], ['ship', 'Ship']]
+// Nhãn loại vị để ghi rõ khoản phụ thu (vd "Cốt Chocolate", "Mứt Đào")
+const NHAN_LOAI: Record<string, string> = { cot: 'Cốt', mut: 'Mứt', topping: 'Topping' }
 const TT = [['chua_tt', 'Chưa thanh toán'], ['tien_mat', 'Tiền mặt'], ['chuyen_khoan', 'Chuyển khoản']]
 const NGUON_TEN: Record<string, string> = Object.fromEntries(NGUON)
 const NHAN_TEN: Record<string, string> = Object.fromEntries(NHAN)
@@ -105,7 +107,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
       items: [...x.items, {
         productId: opts.sanPhamMau?.id, tenMon: tenMau,
         coBanh: opts.size[0]?.ten, cot: '', mut: '', topping: [],
-        soLuong: 1, gia: 0, anhMau: [],
+        soLuong: 1, giaBase: 0, gia: 0, anhMau: [],
       }],
     }))
   }
@@ -148,7 +150,15 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
     suaMon(i, { anhMau: [...v.items[i].anhMau, data.filePath] })
   }
 
-  const tongTinh = tinhTongTien(v.items, v.phiShip, v.phuKien ?? [])
+  // Danh mục vị + mức phụ thu (phẳng) để tính giá món: giá = base + phụ thu theo cốt/mứt/topping
+  const dsPhuThu: ViPhuThu[] = useMemo(
+    () => [...opts.cot, ...opts.mut, ...opts.topping].map((o) => ({ loai: o.loai, ten: o.ten, phuThuKieu: o.phuThuKieu, phuThuGiaTri: o.phuThuGiaTri })),
+    [opts],
+  )
+  const phanTichMon = (m: MonNhap) => phanTichGiaMon(m.giaBase || 0, { cot: m.cot, mut: m.mut, topping: m.topping }, dsPhuThu)
+  const itemsTinh = v.items.map((m) => ({ ...m, gia: phanTichMon(m).tong }))
+
+  const tongTinh = tinhTongTien(itemsTinh, v.phiShip, v.phuKien ?? [])
   const tongTien = ghiDeTien && v.tongTienGhiDe != null ? v.tongTienGhiDe : tongTinh
 
   const sdtKhachSai = v.khach.sdt.length > 0 && !laSdtVN(v.khach.sdt)
@@ -161,7 +171,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
     for (const m of v.items) {
       if (!m.cot) return false
       if (!m.coBanh) return false
-      if (!m.gia || m.gia <= 0) return false
+      if (!m.giaBase || m.giaBase <= 0) return false
     }
     if (v.hinhThucNhan === 'ship') {
       if (!v.diaChiShip?.trim()) return false
@@ -177,7 +187,8 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
   }
 
   function xacNhanLuu() {
-    onLuu({ ...v, tongTienGhiDe: ghiDeTien ? tongTien : undefined })
+    // Gửi kèm giá cuối đã tính (server vẫn tính lại theo phụ thu để chắc chắn)
+    onLuu({ ...v, items: itemsTinh, tongTienGhiDe: ghiDeTien ? tongTien : undefined })
   }
 
   // Nút toggle chung
@@ -280,11 +291,32 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                   </div>
 
                   <div className="w-40">
-                    <p className="text-xs text-[var(--color-xam)] mb-1">Đơn giá *</p>
-                    <NhapNghin giaTri={m.gia} onDoi={(g) => suaMon(i, { gia: g })} placeholder="vd 200" />
-                    {(!m.gia || m.gia <= 0) && <p className="text-[var(--color-dau-600)] text-sm mt-1">Vui lòng nhập giá.</p>}
+                    <p className="text-xs text-[var(--color-xam)] mb-1">Giá base *</p>
+                    <NhapNghin giaTri={m.giaBase} onDoi={(g) => suaMon(i, { giaBase: g })} placeholder="vd 200" />
+                    {(!m.giaBase || m.giaBase <= 0) && <p className="text-[var(--color-dau-600)] text-sm mt-1">Nhập giá base (cốt Vanilla + mứt cơ bản).</p>}
                   </div>
                 </div>
+
+                {/* Bảng giá: base + phụ thu theo lựa chọn → giá cuối */}
+                {m.giaBase > 0 && (() => {
+                  const pt = phanTichMon(m)
+                  return (
+                    <div className="rounded-xl border border-[var(--color-line)] bg-[var(--color-surface)] p-3 text-sm">
+                      <div className="flex justify-between text-[var(--color-xam)]">
+                        <span>Giá base</span><span className="num">{dinhDangTien(pt.base)}</span>
+                      </div>
+                      {pt.phuThu.map((x) => (
+                        <div key={`${x.loai}-${x.ten}`} className="flex justify-between text-[var(--color-caphe)]">
+                          <span>+ {NHAN_LOAI[x.loai] ?? ''} {x.ten}</span><span className="num">{dinhDangTien(x.tien)}</span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between items-baseline border-t border-[var(--color-line)] mt-2 pt-2 font-semibold text-[var(--color-caphe)]">
+                        <span>Giá cuối {m.soLuong > 1 && <span className="text-[var(--color-xam)] font-normal">× {m.soLuong}</span>}</span>
+                        <span className="num text-lg text-[var(--color-caramel-600)]">{dinhDangTien(pt.tong * m.soLuong)}</span>
+                      </div>
+                    </div>
+                  )
+                })()}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <input className="w-full rounded-xl p-3 text-[var(--color-caphe)] focus:outline-none transition-colors" style={{ background: 'rgba(240,107,163,.08)', border: '1px solid rgba(240,107,163,.35)' }} placeholder="✍️ Nội dung chữ và vị trí chữ"
@@ -518,7 +550,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
             {/* Bánh */}
             <div className="space-y-3">
               <p className="text-xs text-[var(--color-xam)] uppercase tracking-wider">Chi tiết bánh</p>
-              {v.items.map((m, i) => (
+              {itemsTinh.map((m, i) => (
                 <div key={i} className="bg-[var(--color-surface-2)] rounded-xl p-4 border border-[var(--color-line)] space-y-2">
                   <div className="flex justify-between items-start gap-3">
                     <p className="font-medium text-[var(--color-caramel-600)]">🎂 {m.tenMon || tenMau}</p>
@@ -530,6 +562,20 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                     {m.mut && <span className="tb-chip tb-chip-dau">Mứt {m.mut}</span>}
                     {(m.topping ?? []).map((t) => <span key={t} className="tb-chip tb-chip-tra">{t}</span>)}
                   </div>
+                  {(() => {
+                    const pt = phanTichMon(m)
+                    return pt.phuThu.length > 0 ? (
+                      <div className="text-xs text-[var(--color-xam)] border-t border-[var(--color-line)] pt-2 space-y-0.5">
+                        <div className="flex justify-between"><span>Giá base</span><span className="num">{dinhDangTien(pt.base)}</span></div>
+                        {pt.phuThu.map((x) => (
+                          <div key={`${x.loai}-${x.ten}`} className="flex justify-between">
+                            <span>+ {NHAN_LOAI[x.loai] ?? ''} {x.ten}</span><span className="num">{dinhDangTien(x.tien)}</span>
+                          </div>
+                        ))}
+                        <div className="flex justify-between font-medium text-[var(--color-caphe)] pt-0.5"><span>Đơn giá</span><span className="num">{dinhDangTien(pt.tong)}</span></div>
+                      </div>
+                    ) : null
+                  })()}
                   {m.chuViet && <p className="text-sm text-[var(--color-caphe)]">✍️ {m.chuViet}</p>}
                   {m.ghiChu && <p className="text-sm text-[var(--color-xam)]">📝 {m.ghiChu}</p>}
 

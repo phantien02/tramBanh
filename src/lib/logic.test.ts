@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { taoMaDon } from './order-code'
-import { tinhTongTien, tinhConLai } from './money'
+import { tinhTongTien, tinhConLai, tinhGiaMon, phanTichGiaMon, phuThuVi } from './money'
 import { canNhacNho, MOC_NHAC_NHO_MS } from './reminder'
 import { dauCuoiNgay, mucCanhBao } from './time'
 
@@ -21,6 +21,49 @@ describe('tiền', () => {
   it('còn lại = tổng - cọc, không âm', () => {
     expect(tinhConLai(260000, 100000)).toBe(160000)
     expect(tinhConLai(100000, 150000)).toBe(0)
+  })
+})
+
+describe('giá món (base + phụ thu)', () => {
+  const opts = [
+    { loai: 'cot', ten: 'Vanilla', phuThuKieu: null, phuThuGiaTri: 0 },
+    { loai: 'cot', ten: 'Chocolate', phuThuKieu: 'phan_tram' as const, phuThuGiaTri: 10 },
+    { loai: 'mut', ten: 'Chanh leo', phuThuKieu: null, phuThuGiaTri: 0 },
+    { loai: 'mut', ten: 'Đào', phuThuKieu: 'tien' as const, phuThuGiaTri: 5000 },
+    { loai: 'mut', ten: 'Sốt đường đen', phuThuKieu: 'tien' as const, phuThuGiaTri: 10000 },
+    { loai: 'topping', ten: 'Trái cây hỗn hợp theo mùa', phuThuKieu: 'phan_tram' as const, phuThuGiaTri: 10 },
+    { loai: 'topping', ten: 'Oreo vụn', phuThuKieu: 'phan_tram' as const, phuThuGiaTri: 5 },
+  ]
+
+  it('cốt/mứt miễn phí → bằng đúng base', () => {
+    expect(tinhGiaMon(200000, { cot: 'Vanilla', mut: 'Chanh leo', topping: [] }, opts)).toBe(200000)
+  })
+  it('% tính trên base, cộng dồn', () => {
+    // 200k + 10% cốt + 10% trái cây + 5% oreo = 200 + 20 + 20 + 10 = 250k
+    expect(tinhGiaMon(200000, { cot: 'Chocolate', mut: 'Chanh leo', topping: ['Trái cây hỗn hợp theo mùa', 'Oreo vụn'] }, opts)).toBe(250000)
+  })
+  it('phụ thu tiền cố định cộng thẳng', () => {
+    expect(tinhGiaMon(200000, { cot: 'Vanilla', mut: 'Đào', topping: [] }, opts)).toBe(205000)
+    expect(tinhGiaMon(200000, { cot: 'Vanilla', mut: 'Sốt đường đen', topping: [] }, opts)).toBe(210000)
+  })
+  it('% ra số lẻ → làm tròn 1.000đ', () => {
+    // base 203k → 10% = 20.300 → 20.000
+    expect(phuThuVi(203000, opts[1])).toBe(20000)
+    // base 207k → 10% = 20.700 → 21.000
+    expect(phuThuVi(207000, opts[1])).toBe(21000)
+  })
+  it('phân tích trả breakdown khớp tổng', () => {
+    const r = phanTichGiaMon(200000, { cot: 'Chocolate', mut: 'Đào', topping: ['Oreo vụn'] }, opts)
+    expect(r.base).toBe(200000)
+    expect(r.tong).toBe(200000 + 20000 + 5000 + 10000)
+    expect(r.phuThu).toEqual([
+      { loai: 'cot', ten: 'Chocolate', tien: 20000 },
+      { loai: 'mut', ten: 'Đào', tien: 5000 },
+      { loai: 'topping', ten: 'Oreo vụn', tien: 10000 },
+    ])
+  })
+  it('vị không có trong danh mục → bỏ qua (đơn cũ)', () => {
+    expect(tinhGiaMon(200000, { cot: 'Vị lạ', mut: null, topping: ['Topping lạ'] }, opts)).toBe(200000)
   })
 })
 

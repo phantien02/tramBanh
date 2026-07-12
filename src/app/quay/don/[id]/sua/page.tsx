@@ -20,11 +20,13 @@ export default function SuaDonPage({ params }: { params: Promise<{ id: string }>
       donQuaTang: d.donQuaTang === 1,
       tienCoc: d.tienCoc, hinhThucTt: d.hinhThucTt, ghiChu: d.ghiChu ?? undefined,
       phuKien: (d.phuKien ?? []).map((p: { ten: string; gia: number; soLuong: number }) => ({ ten: p.ten, gia: p.gia, soLuong: p.soLuong })),
-      items: d.items.map((it: { productId?: number; tenMon: string; coBanh?: string; cot?: string; mut?: string; topping?: string[]; soLuong: number; chuViet?: string; ghiChu?: string; gia: number; anhMau: string[] }) => ({
+      items: d.items.map((it: { productId?: number; tenMon: string; coBanh?: string; cot?: string; mut?: string; topping?: string[]; soLuong: number; chuViet?: string; ghiChu?: string; giaBase?: number | null; gia: number; anhMau: string[] }) => ({
         ...it,
         cot: it.cot ?? '',
         mut: it.mut ?? '',
         topping: it.topping ?? [],
+        // Đơn cũ chưa có giá base → lấy giá cuối đã lưu làm base khởi điểm (NV chỉnh lại nếu cần)
+        giaBase: it.giaBase ?? it.gia,
         anhMau: it.anhMau ?? [],
       })),
     }))
