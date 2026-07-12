@@ -1,12 +1,12 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import AppShell from '@/components/AppShell'
 import NhapNghin from '@/components/NhapNghin'
 import { dinhDangTien } from '@/lib/time'
 import type { SessionUser } from '@/lib/session'
 
 type Loai = 'cot' | 'mut' | 'topping' | 'size'
-type Opt = { id: number; loai: Loai; ten: string; thuTu: number; active: number }
+type Opt = { id: number; loai: Loai; ten: string; thuTu: number; active: number; phuThuKieu: 'phan_tram' | 'tien' | null; phuThuGiaTri: number }
 type BanhOptions = {
   cot: Opt[]
   mut: Opt[]
@@ -23,12 +23,50 @@ const KHOI: { loai: Loai; ten: string; goiYThem: string }[] = [
   { loai: 'size', ten: 'Size', goiYThem: 'Thêm size…' },
 ]
 
+// Nút ⋮ mở menu tùy chọn cho mỗi dòng (giữ dòng gọn trên mobile). Bấm ra ngoài để đóng.
+function MenuBaCham({ moKey, menuMo, setMenuMo, children }: {
+  moKey: string; menuMo: string | null; setMenuMo: (k: string | null) => void; children: ReactNode
+}) {
+  const mo = menuMo === moKey
+  return (
+    <div className="relative shrink-0">
+      <button
+        type="button" aria-label="Tùy chọn" aria-expanded={mo}
+        onClick={() => setMenuMo(mo ? null : moKey)}
+        className={`w-9 h-9 flex items-center justify-center rounded-lg text-xl leading-none border transition-colors ${mo ? 'bg-[var(--color-surface-2)] border-[var(--color-line)] text-[var(--color-caphe)]' : 'border-transparent text-[var(--color-xam)] hover:bg-[var(--color-surface-2)]'}`}
+      >⋮</button>
+      {mo && (
+        <>
+          <div className="fixed inset-0 z-20" onClick={() => setMenuMo(null)} />
+          <div className="absolute right-0 top-full mt-1 z-30 w-60 rounded-xl border border-[var(--color-line)] bg-[var(--color-surface)] p-2 space-y-1"
+            style={{ boxShadow: '0 8px 24px rgba(0,0,0,.14)' }}>
+            {children}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// Nút hành động trong menu (Đổi tên / Xóa)
+function MucMenu({ onClick, danger, children }: { onClick: () => void; danger?: boolean; children: ReactNode }) {
+  return (
+    <button
+      type="button" onClick={onClick}
+      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${danger
+        ? 'text-[var(--color-dau-600)] hover:bg-[var(--color-dau)] hover:text-white'
+        : 'text-[var(--color-caphe)] hover:bg-[var(--color-surface-2)]'}`}
+    >{children}</button>
+  )
+}
+
 export default function BanhPage() {
   const [user, setUser] = useState<SessionUser | null>(null)
   const [data, setData] = useState<BanhOptions | null>(null)
   const [them, setThem] = useState<Record<Loai, string>>({ cot: '', mut: '', topping: '', size: '' })
   const [dsPhuKien, setDsPhuKien] = useState<PhuKien[]>([])
   const [pkMoi, setPkMoi] = useState<{ ten: string; gia: number }>({ ten: '', gia: 0 })
+  const [menuMo, setMenuMo] = useState<string | null>(null) // key dòng đang mở menu ⋮
 
   useEffect(() => { fetch('/api/me').then((r) => r.json()).then(setUser) }, [])
   const tai = useCallback(async () => {
@@ -61,6 +99,14 @@ export default function BanhPage() {
     if (!confirm(`Xóa "${o.ten}" khỏi danh sách? (Đơn cũ đã lưu vị này không bị ảnh hưởng)`)) return
     await fetch(`/api/banh-options/${o.id}`, { method: 'DELETE' })
     tai()
+  }
+
+  // Sửa phụ thu của một vị (cốt/mứt/topping). Cập nhật lạc quan để ô nhập không giật.
+  async function doiPhuThu(o: Opt, patch: { phuThuKieu?: 'phan_tram' | 'tien' | null; phuThuGiaTri?: number }) {
+    setData((d) => (d ? { ...d, [o.loai]: d[o.loai].map((x) => (x.id === o.id ? { ...x, ...patch } : x)) } : d))
+    await fetch(`/api/banh-options/${o.id}`, {
+      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(patch),
+    })
   }
 
   async function themPhuKien() {
@@ -124,13 +170,49 @@ export default function BanhPage() {
                 {items.map((o) => (
                   <li
                     key={o.id}
-                    className="flex items-center justify-between gap-2 rounded-lg border border-[var(--color-line)] px-3 py-2"
+                    className="flex items-center gap-2 rounded-lg border border-[var(--color-line)] px-3 py-2"
                   >
-                    <span className="text-sm font-medium text-[var(--color-caphe)] truncate">{o.ten}</span>
-                    <div className="flex gap-1.5 shrink-0">
-                      <button onClick={() => doiTen(o)} className="tb-btn-ghost text-xs px-3 py-1">Sửa</button>
-                      <button onClick={() => xoaVi(o)} className="text-xs px-3 py-1 rounded-lg font-medium text-[var(--color-dau-600)] hover:text-white hover:bg-[var(--color-dau)] border border-[var(--color-line)] transition-colors">Xóa</button>
-                    </div>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-caphe)]">{o.ten}</span>
+                    {loai !== 'size' && (
+                      <span className={`num text-xs shrink-0 ${o.phuThuKieu ? 'text-[var(--color-caramel-600)] font-medium' : 'text-[var(--color-xam)]'}`}>
+                        {o.phuThuKieu === 'phan_tram' ? `+${o.phuThuGiaTri}%` : o.phuThuKieu === 'tien' ? `+${dinhDangTien(o.phuThuGiaTri)}` : 'Miễn phí'}
+                      </span>
+                    )}
+                    <MenuBaCham moKey={`vi-${o.id}`} menuMo={menuMo} setMenuMo={setMenuMo}>
+                      {loai !== 'size' && (
+                        <div className="px-1 pb-1">
+                          <p className="text-xs text-[var(--color-xam)] mb-1">Phụ thu khi khách chọn</p>
+                          <div className="flex items-center gap-2">
+                            <select
+                              value={o.phuThuKieu ?? ''} aria-label="Kiểu phụ thu"
+                              onChange={(e) => {
+                                const kieu = (e.target.value || null) as 'phan_tram' | 'tien' | null
+                                doiPhuThu(o, { phuThuKieu: kieu, phuThuGiaTri: kieu ? o.phuThuGiaTri : 0 })
+                              }}
+                              className="tb-input text-sm px-2 py-1.5 flex-1"
+                            >
+                              <option value="">Miễn phí</option>
+                              <option value="phan_tram">Theo %</option>
+                              <option value="tien">Cộng tiền</option>
+                            </select>
+                            {o.phuThuKieu === 'phan_tram' && (
+                              <div className="relative w-16 shrink-0">
+                                <input inputMode="numeric" className="tb-input num w-full pr-5 text-center px-2 py-1.5"
+                                  value={o.phuThuGiaTri || ''} placeholder="10"
+                                  onChange={(e) => doiPhuThu(o, { phuThuGiaTri: Number(e.target.value.replace(/\D/g, '')) || 0 })} />
+                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--color-xam)] text-sm pointer-events-none">%</span>
+                              </div>
+                            )}
+                            {o.phuThuKieu === 'tien' && (
+                              <NhapNghin className="w-24 shrink-0" giaTri={o.phuThuGiaTri} onDoi={(g) => doiPhuThu(o, { phuThuGiaTri: g })} placeholder="vd 5" />
+                            )}
+                          </div>
+                          <div className="border-t border-[var(--color-line)] my-2" />
+                        </div>
+                      )}
+                      <MucMenu onClick={() => { setMenuMo(null); doiTen(o) }}>✏️ Đổi tên</MucMenu>
+                      <MucMenu danger onClick={() => { setMenuMo(null); xoaVi(o) }}>🗑️ Xóa</MucMenu>
+                    </MenuBaCham>
                   </li>
                 ))}
               </ul>
@@ -171,14 +253,19 @@ export default function BanhPage() {
           {dsPhuKien.map((p) => (
             <li
               key={p.id}
-              className="flex flex-col gap-2 rounded-lg border border-[var(--color-line)] px-3 py-2 sm:flex-row sm:items-center"
+              className="flex items-center gap-2 rounded-lg border border-[var(--color-line)] px-3 py-2"
             >
               <span className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-caphe)]">{p.ten}</span>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <NhapNghin className="flex-1 sm:w-28 sm:flex-none" giaTri={p.gia} onDoi={(g) => doiGiaPhuKien(p, g)} placeholder="Giá" />
-                <button onClick={() => doiTenPhuKien(p)} className="tb-btn-ghost text-xs px-3 py-1">Sửa</button>
-                <button onClick={() => xoaPhuKien(p)} className="text-xs px-3 py-1 rounded-lg font-medium text-[var(--color-dau-600)] hover:text-white hover:bg-[var(--color-dau)] border border-[var(--color-line)] transition-colors">Xóa</button>
-              </div>
+              <span className="num text-xs shrink-0 text-[var(--color-caramel-600)] font-medium">{dinhDangTien(p.gia)}</span>
+              <MenuBaCham moKey={`pk-${p.id}`} menuMo={menuMo} setMenuMo={setMenuMo}>
+                <div className="px-1 pb-1">
+                  <p className="text-xs text-[var(--color-xam)] mb-1">Giá phụ kiện</p>
+                  <NhapNghin className="w-full" giaTri={p.gia} onDoi={(g) => doiGiaPhuKien(p, g)} placeholder="Giá (vd 5)" />
+                  <div className="border-t border-[var(--color-line)] my-2" />
+                </div>
+                <MucMenu onClick={() => { setMenuMo(null); doiTenPhuKien(p) }}>✏️ Đổi tên</MucMenu>
+                <MucMenu danger onClick={() => { setMenuMo(null); xoaPhuKien(p) }}>🗑️ Xóa</MucMenu>
+              </MenuBaCham>
             </li>
           ))}
         </ul>
