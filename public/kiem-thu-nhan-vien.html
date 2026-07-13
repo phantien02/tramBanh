@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trạm Bánh — Phiếu kiểm thử (Nhân viên)</title>
+<style>
+  :root{
+    --bg:#FBF6EF; --surface:#FFFFFF; --surface-2:#F5ECE0; --line:#E8DAC9;
+    --ink:#2B2119; --muted:#8B7B6C;
+    --gold:#C77A1C; --gold-soft:rgba(217,138,43,.14);
+    --dau:#E24B6A; --dau-soft:rgba(226,75,106,.12);
+    --tra:#2F8A62; --tra-soft:rgba(79,178,134,.16);
+    --alarm:#DC2626;
+    --shadow:0 1px 2px rgba(43,33,25,.06),0 10px 30px rgba(43,33,25,.07);
+    --radius:16px;
+    --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#171310; --surface:#211a15; --surface-2:#2a211a; --line:#3a2e24; --ink:#F2E8DE; --muted:#b3a494;
+      --gold:#E7A24A; --gold-soft:rgba(231,162,74,.16); --dau:#F0708C; --dau-soft:rgba(240,112,140,.16);
+      --tra:#5CC894; --tra-soft:rgba(92,200,148,.16); --alarm:#F16060;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.4); }
+  }
+  :root[data-theme="dark"]{ --bg:#171310; --surface:#211a15; --surface-2:#2a211a; --line:#3a2e24; --ink:#F2E8DE; --muted:#b3a494;
+      --gold:#E7A24A; --gold-soft:rgba(231,162,74,.16); --dau:#F0708C; --dau-soft:rgba(240,112,140,.16);
+      --tra:#5CC894; --tra-soft:rgba(92,200,148,.16); --alarm:#F16060; }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{ background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap{max-width:840px; margin:0 auto; padding:0 20px 90px}
+  h1,h2,h3{font-family:var(--serif); font-weight:700; line-height:1.2}
+  a{color:var(--gold)}
+  .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+  header.top{ background:var(--ink); color:#F3E9E0; padding:30px 20px 26px; border-bottom:3px solid var(--tra); }
+  .top-inner{max-width:840px; margin:0 auto}
+  .wordmark{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+  .wordmark .name{font-family:var(--serif); font-size:clamp(1.7rem,5.5vw,2.3rem); font-weight:700; color:#fff}
+  .badge{font-family:var(--mono); font-size:.62rem; letter-spacing:.12em; font-weight:700; background:var(--tra); color:#fff; padding:3px 9px; border-radius:999px}
+  header.top p{margin:.5rem 0 0; color:#CDBFB3; font-size:1rem}
+
+  .howto{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 20px; margin:22px 0; box-shadow:var(--shadow)}
+  .howto b{color:var(--ink)}
+  .howto ul{margin:.4rem 0 0; padding-left:1.2rem} .howto li{margin:.3rem 0; font-size:.95rem}
+
+  .progress-wrap{position:sticky; top:0; z-index:20; background:var(--bg); padding:12px 0; margin:6px 0 18px; border-bottom:1px solid var(--line)}
+  .bar{height:12px; background:var(--surface-2); border-radius:999px; overflow:hidden; border:1px solid var(--line)}
+  .bar > span{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--tra),var(--gold)); transition:width .3s}
+  .pstat{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px; font-size:.9rem; color:var(--muted)}
+  .pstat b{color:var(--ink); font-variant-numeric:tabular-nums}
+  .btns{display:flex; gap:8px; flex-wrap:wrap}
+  button.tool{font:inherit; font-size:.82rem; font-weight:700; padding:6px 12px; border-radius:9px; border:1px solid var(--line); background:var(--surface); color:var(--ink); cursor:pointer}
+  button.tool:hover{background:var(--surface-2)}
+
+  section{margin:30px 0; scroll-margin-top:96px}
+  .grp-h{display:flex; align-items:center; gap:10px; margin:0 0 4px}
+  .grp-h h2{font-size:clamp(1.25rem,4vw,1.6rem); margin:0}
+  .chip-role{font-size:.7rem; font-weight:700; letter-spacing:.05em; padding:3px 10px; border-radius:999px; text-transform:uppercase}
+  .r-quay{background:var(--dau-soft); color:var(--dau)} .r-bep{background:var(--gold-soft); color:var(--gold)} .r-ql{background:var(--tra-soft); color:var(--tra)} .r-all{background:var(--surface-2); color:var(--muted)}
+  .grp-desc{color:var(--muted); font-size:.95rem; margin:.1rem 0 12px}
+
+  .case{display:flex; gap:14px; align-items:flex-start; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow); margin:10px 0}
+  .case.done{border-color:var(--tra); background:var(--tra-soft)}
+  .case label.cbx{flex:none; display:grid; place-items:center; cursor:pointer; padding-top:2px}
+  .case input[type=checkbox]{appearance:none; -webkit-appearance:none; width:26px; height:26px; border:2px solid var(--line); border-radius:8px; background:var(--bg); cursor:pointer; position:relative}
+  .case input[type=checkbox]:checked{background:var(--tra); border-color:var(--tra)}
+  .case input[type=checkbox]:checked::after{content:"✓"; color:#fff; font-weight:800; position:absolute; inset:0; display:grid; place-items:center; font-size:.95rem}
+  .case .body{flex:1; min-width:0}
+  .case .cid{font-family:var(--mono); font-size:.72rem; font-weight:700; color:var(--gold); background:var(--gold-soft); padding:1px 8px; border-radius:6px; margin-right:8px}
+  .case .title{font-weight:700}
+  .case .do{margin:.45rem 0 .1rem; font-size:.95rem}
+  .case .exp{font-size:.92rem; color:var(--muted); border-left:3px solid var(--tra); padding-left:10px; margin-top:.35rem}
+  .case .exp b{color:var(--ink)}
+  .k{display:inline-block; font-size:.78rem; font-weight:700; padding:1px 8px; border-radius:7px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); white-space:nowrap}
+
+  .note{border-left:3px solid var(--gold); background:var(--gold-soft); padding:12px 16px; border-radius:0 12px 12px 0; margin:14px 0; font-size:.95rem}
+  .note b{color:var(--ink)}
+  footer.end{margin-top:44px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:.9rem}
+  :focus-visible{outline:2px solid var(--tra); outline-offset:2px; border-radius:6px}
+
+  @media print{
+    header.top{background:#fff;color:#000;border-bottom:2px solid #000}.wordmark .name,header.top p{color:#000}
+    .progress-wrap,.btns{display:none} .case,.howto{box-shadow:none} .case,section{break-inside:avoid}
+    .case input[type=checkbox]{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <div class="wordmark"><span class="name">Trạm Bánh</span><span class="badge">PHIẾU KIỂM THỬ</span></div>
+      <p>Danh sách việc cần thử — dành cho nhân viên Quầy · Bếp · Quản lý</p>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="howto">
+      <b>Cách dùng phiếu này</b>
+      <ul>
+        <li>Làm lần lượt từng mục. Làm xong &amp; thấy đúng như <b>“Kết quả mong đợi”</b> thì <b>tick ô vuông</b> bên trái.</li>
+        <li>Máy sẽ <b>tự nhớ</b> các ô đã tick (kể cả khi đóng trang mở lại trên cùng máy/trình duyệt).</li>
+        <li>Nếu có mục nào <b>không đúng</b>, đừng tick — ghi lại mã mục (vd <span class="mono">B6</span>) rồi báo người phụ trách.</li>
+        <li>Nên thử bằng <b>2 tài khoản khác nhau</b> (vd một máy đăng nhập Quầy, một máy Bếp) để thấy dữ liệu tự cập nhật.</li>
+      </ul>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="bar"><span id="barfill"></span></div>
+      <div class="pstat">
+        <span>Đã xong <b id="pdone">0</b>/<b id="ptotal">0</b> mục (<b id="ppct">0</b>%)</span>
+        <span class="btns">
+          <button class="tool" onclick="resetAll()">↺ Xóa hết tick</button>
+          <button class="tool" onclick="window.print()">🖨 In phiếu</button>
+        </span>
+      </div>
+    </div>
+
+    <!-- A -->
+    <section id="A">
+      <div class="grp-h"><h2>A. Đăng nhập &amp; màn hình chung</h2><span class="chip-role r-all">Mọi vai trò</span></div>
+      <p class="grp-desc">Kiểm tra đăng nhập và các thứ luôn hiển thị trên đầu màn hình.</p>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="A1"></label><div class="body">
+        <div><span class="cid">A1</span><span class="title">Đăng nhập tài khoản Quản lý</span></div>
+        <div class="do">Mở trang, nhập <span class="k">admin</span> / <span class="k">admin123</span>, bấm Đăng nhập.</div>
+        <div class="exp">Vào được màn hình. Góc trên có <b>đồng hồ chạy</b>, tên bạn, nút Đăng xuất.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="A2"></label><div class="body">
+        <div><span class="cid">A2</span><span class="title">Nhập sai mật khẩu</span></div>
+        <div class="do">Nhập đúng tên đăng nhập nhưng sai mật khẩu.</div>
+        <div class="exp">Có <b>báo lỗi</b>, không cho vào.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="A3"></label><div class="body">
+        <div><span class="cid">A3</span><span class="title">Nhãn ca ngày / ca đêm</span></div>
+        <div class="do">Nhìn góc trên gần đồng hồ.</div>
+        <div class="exp">Thấy <b>☀️ Ca ngày</b> (6h–18h) hoặc <b>🌙 Ca đêm</b> (18h–6h) đúng theo giờ hiện tại.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="A4"></label><div class="body">
+        <div><span class="cid">A4</span><span class="title">Chuyển nhanh Quầy / Bếp / Quản lý</span></div>
+        <div class="do">Với tài khoản admin, bấm qua lại các mục Quầy, Bếp, Quản lý trên thanh điều hướng.</div>
+        <div class="exp">Vào được cả 3 khu. (Tài khoản Quầy chỉ thấy Quầy; Bếp chỉ thấy Bếp.)</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="A5"></label><div class="body">
+        <div><span class="cid">A5</span><span class="title">Đăng xuất</span></div>
+        <div class="do">Bấm Đăng xuất.</div>
+        <div class="exp">Quay về màn đăng nhập.</div>
+      </div></div>
+    </section>
+
+    <!-- B -->
+    <section id="B">
+      <div class="grp-h"><h2>B. Quầy — Tạo đơn</h2><span class="chip-role r-quay">Quầy</span></div>
+      <p class="grp-desc">Thử tạo đủ các kiểu đơn. Vào <b>Quầy → ＋ Đơn mới</b>.</p>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="B1"></label><div class="body">
+        <div><span class="cid">B1</span><span class="title">Đơn cơ bản, nhận tại tiệm</span></div>
+        <div class="do">Nhập SĐT + tên khách; thêm 1 bánh: chọn <b>Cốt</b>, <b>Size</b>, nhập <b>Giá base</b> (vd gõ 200); nhập <b>tiền cọc</b> (vd 100). Bấm <b>Xem lại &amp; Đặt Hàng</b> → <b>Xác nhận</b>.</div>
+        <div class="exp">Tạo đơn thành công, quay về bảng đơn; đơn nằm ở cột/nhóm <b>Mới tạo</b>.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="B2"></label><div class="body">
+        <div><span class="cid">B2</span><span class="title">Khách quen tự điền tên</span></div>
+        <div class="do">Tạo đơn mới, nhập lại <b>đúng SĐT</b> của khách vừa tạo ở B1.</div>
+        <div class="exp">Ô tên khách <b>tự điền</b> tên cũ.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="B3"></label><div class="body">
+        <div><span class="cid">B3</span><span class="title">Nhiều bánh trong một đơn</span></div>
+        <div class="do">Bấm <b>＋ Thêm bánh</b> để có 2–3 bánh, mỗi bánh chọn vị/size riêng.</div>
+        <div class="exp">Mỗi bánh là một khối riêng; xóa bánh bằng dấu <b>✕</b> được; tổng tiền cộng đủ.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="B4"></label><div class="body">
+        <div><span class="cid">B4</span><span class="title">Vị, chữ viết &amp; ảnh mẫu</span></div>
+        <div class="do">Chọn Mứt, vài Topping; nhập <b>chữ viết lên bánh</b>; tải <b>ảnh mẫu</b> (thử tải tới 5 ảnh).</div>
+        <div class="exp">Chọn được nhiều topping; ảnh hiện thu nhỏ, xóa được; tới ảnh thứ 6 <b>báo tối đa 5 ảnh</b>.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="B5"></label><div class="body">
+        <div><span class="cid">B5</span><span class="title">Phụ thu theo vị hiện ra</span></div>
+        <div class="do">Chọn một vị Cốt/Mứt/Topping <b>có phụ thu</b> (do Quản lý cấu hình — xem mục F4/F5).</div>
+        <div class="exp">Dưới bánh hiện bảng: <b>Giá base → + (vị) … → Giá cuối</b>, giá cuối cao hơn base.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="B6"></label><div class="body">
+        <div><span class="cid">B6</span><span class="title">Đơn Ship</span></div>
+        <div class="do">Ở khối Giao hàng chọn <b>Ship</b>; nhập <b>địa chỉ</b>; nhập tên/SĐT người nhận; chọn <b>🆓 Freeship</b> hoặc <b>🛵 Theo app ship</b>.</div>
+        <div class="exp">Khối địa chỉ/người nhận hiện ra. Màn xác nhận ghi đúng <b>phí ship</b> đã chọn. Thẻ đơn có nhãn <b>🛵 Ship</b>.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="B7"></label><div class="body">
+        <div><span class="cid">B7</span><span class="title">Đơn quà tặng</span></div>
+        <div class="do">Vẫn ở đơn Ship, tick <b>🎁 Đơn quà tặng</b>.</div>
+        <div class="exp">Thẻ đơn &amp; chi tiết có nhãn <b>🎁 Quà tặng</b>. (Ô này chỉ hiện khi chọn Ship.)</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="B8"></label><div class="body">
+        <div><span class="cid">B8</span><span class="title">Phụ kiện mua thêm</span></div>
+        <div class="do">Ở khối <b>🕯 Phụ kiện mua thêm</b>, tick nến/mũ/pháo, chỉnh số lượng.</div>
+        <div class="exp">Tổng thanh toán <b>tăng thêm</b> đúng tiền phụ kiện × số lượng.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="B9"></label><div class="body">
+        <div><span class="cid">B9</span><span class="title">Giảm giá (sửa giá thủ công)</span></div>
+        <div class="do">Ở khối Thanh toán, tick <b>“Cho phép sửa giá thủ công”</b> rồi nhập tổng thấp hơn.</div>
+        <div class="exp">Tổng tiền theo số bạn nhập; <b>Còn lại</b> tính lại theo tổng mới trừ cọc.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="B10"></label><div class="body">
+        <div><span class="cid">B10</span><span class="title">Thiếu thông tin bắt buộc</span></div>
+        <div class="do">Thử bỏ trống Cốt, hoặc Size, hoặc Giá base, hoặc tiền cọc, hoặc SĐT sai.</div>
+        <div class="exp">Có dòng nhắc đỏ tương ứng và nút <b>Đặt Hàng bị mờ</b> (không bấm được) cho tới khi điền đủ.</div>
+      </div></div>
+    </section>
+
+    <!-- C -->
+    <section id="C">
+      <div class="grp-h"><h2>C. Quầy — Bảng đơn &amp; xử lý</h2><span class="chip-role r-quay">Quầy</span></div>
+      <p class="grp-desc">Xem, tìm, lọc và xử lý đơn.</p>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="C1"></label><div class="body">
+        <div><span class="cid">C1</span><span class="title">Lọc theo giao hàng</span></div>
+        <div class="do">Ở tab <b>Hôm nay</b>, bấm lần lượt <b>Tất cả / 🛵 Cần ship / 🏠 Tại quán / ✅ Đã giao</b>.</div>
+        <div class="exp">Danh sách lọc đúng; mỗi nút có <b>số đếm</b> khớp thực tế.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="C2"></label><div class="body">
+        <div><span class="cid">C2</span><span class="title">Tìm kiếm</span></div>
+        <div class="do">Gõ mã đơn, hoặc tên khách, hoặc SĐT vào ô <b>🔍 Tìm</b>.</div>
+        <div class="exp">Chỉ hiện đơn khớp.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="C3"></label><div class="body">
+        <div><span class="cid">C3</span><span class="title">Hôm nay ↔ Sắp tới</span></div>
+        <div class="do">Tạo một đơn có ngày lấy là <b>ngày mai</b>, rồi bấm tab <b>Sắp tới</b>.</div>
+        <div class="exp">Đơn ngày mai nằm trong <b>Sắp tới</b> (gom theo ngày), không nằm ở Hôm nay.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="C4"></label><div class="body">
+        <div><span class="cid">C4</span><span class="title">Lấy ngay — hoàn tất</span></div>
+        <div class="do">Mở một đơn <b>Mới tạo</b>, bấm <b>✅ Lấy ngay — hoàn tất</b>, chọn hình thức kết thúc.</div>
+        <div class="exp">Đơn chuyển thẳng sang <b>Hoàn tất</b> (không cần qua Bếp).</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="C5"></label><div class="body">
+        <div><span class="cid">C5</span><span class="title">Sửa nội dung đơn</span></div>
+        <div class="do">Mở chi tiết một đơn, bấm <b>Sửa nội dung đơn</b>, đổi vài thứ rồi lưu.</div>
+        <div class="exp">Thông tin cập nhật đúng. (Nếu Bếp đã bắt tay làm, đơn sẽ có nhãn <b>ĐÃ SỬA</b>.)</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="C6"></label><div class="body">
+        <div><span class="cid">C6</span><span class="title">Hủy đơn</span></div>
+        <div class="do">Mở một đơn chưa hoàn tất, bấm <b>🗑 Hủy đơn</b>, nhập lý do.</div>
+        <div class="exp">Bỏ trống lý do thì <b>không hủy</b>. Nhập lý do → đơn thành <b>Đã hủy</b>, chi tiết ghi lý do.</div>
+      </div></div>
+    </section>
+
+    <!-- D -->
+    <section id="D">
+      <div class="grp-h"><h2>D. Bếp</h2><span class="chip-role r-bep">Bếp</span></div>
+      <p class="grp-desc">Vào <b>Bếp</b>. Nên đăng nhập bằng tài khoản Bếp ở một máy khác để thử realtime.</p>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="D1"></label><div class="body">
+        <div><span class="cid">D1</span><span class="title">Nhận làm</span></div>
+        <div class="do">Tab <b>🔥 Cần làm</b>, chọn một đơn Mới, bấm <b>👨‍🍳 Nhận làm</b>.</div>
+        <div class="exp">Đơn chuyển sang <b>Đang làm</b>.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="D2"></label><div class="body">
+        <div><span class="cid">D2</span><span class="title">Xong + ảnh thành phẩm</span></div>
+        <div class="do">Bấm <b>🎂 Xong</b> → khung <b>📸 Ảnh thành phẩm</b> hiện ra → <b>Chụp ảnh</b> hoặc <b>Tải ảnh lên</b> → <b>Xác nhận xong</b>.</div>
+        <div class="exp">Đơn qua tab <b>✅ Đã xong</b>; ảnh lưu vào chi tiết đơn.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="D3"></label><div class="body">
+        <div><span class="cid">D3</span><span class="title">Xong không cần ảnh</span></div>
+        <div class="do">Với đơn khác, bấm <b>🎂 Xong</b> rồi bấm <b>“Bỏ qua — xong không ảnh”</b>.</div>
+        <div class="exp">Đơn vẫn báo xong bình thường, không có ảnh.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="D4"></label><div class="body">
+        <div><span class="cid">D4</span><span class="title">Hoàn tác khi bấm nhầm</span></div>
+        <div class="do">Ở tab <b>Đã xong</b>, bấm <b>↩ Hoàn tác</b>. Với đơn đang làm, thử <b>↩ Trả về hàng chờ</b>.</div>
+        <div class="exp">Đơn quay lại Đang làm / về Mới. (Chỉ được khi Quầy chưa nhận bánh.)</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="D5"></label><div class="body">
+        <div><span class="cid">D5</span><span class="title">Đổi ngày làm</span></div>
+        <div class="do">Bấm <b>◀ ▶</b> để xem đơn ngày mai / các ngày sau.</div>
+        <div class="exp">Danh sách đổi theo ngày; không lùi được về ngày đã qua.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="D6"></label><div class="body">
+        <div><span class="cid">D6</span><span class="title">Cảnh báo “ĐÃ SỬA”</span></div>
+        <div class="do">Nhờ Quầy sửa một đơn Bếp đang làm; sang máy Bếp mở đơn đó, bấm <b>“Đã thấy thay đổi”</b>.</div>
+        <div class="exp">Đơn có nhãn <b>ĐÃ SỬA</b>; sau khi bấm thì nhãn tắt.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="D7"></label><div class="body">
+        <div><span class="cid">D7</span><span class="title">Chuông báo bánh xong (ở máy Quầy)</span></div>
+        <div class="do">Để máy Quầy mở bảng đơn; máy Bếp bấm <b>🎂 Xong</b> một đơn.</div>
+        <div class="exp">Máy Quầy <b>kêu chuông</b> và đơn tự chuyển sang Bánh xong. (Chuông cần đã bấm vào trang ít nhất 1 lần.)</div>
+      </div></div>
+    </section>
+
+    <!-- E -->
+    <section id="E">
+      <div class="grp-h"><h2>E. Quầy nhận bánh &amp; hoàn tất</h2><span class="chip-role r-quay">Quầy</span></div>
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="E1"></label><div class="body">
+        <div><span class="cid">E1</span><span class="title">Đã nhận bánh</span></div>
+        <div class="do">Mở đơn <b>Bánh xong</b>, bấm <b>🤝 Đã nhận bánh</b>.</div>
+        <div class="exp">Đơn chuyển <b>Quầy đã nhận</b>; màn hình tự quay về bảng đơn.</div>
+      </div></div>
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="E2"></label><div class="body">
+        <div><span class="cid">E2</span><span class="title">Hoàn tất, chọn hình thức kết thúc</span></div>
+        <div class="do">Mở đơn <b>Quầy đã nhận</b>, bấm <b>✅ Hoàn tất</b>, chọn <b>Giao khách tại tiệm / Đã ship / Lên tủ trưng bày</b>.</div>
+        <div class="exp">Đơn thành <b>Hoàn tất</b>, nằm ở nhóm ✅ Đã giao.</div>
+      </div></div>
+    </section>
+
+    <!-- F -->
+    <section id="F">
+      <div class="grp-h"><h2>F. Quản lý</h2><span class="chip-role r-ql">Quản lý</span></div>
+      <p class="grp-desc">Đăng nhập admin, vào khu <b>Quản lý</b>.</p>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="F1"></label><div class="body">
+        <div><span class="cid">F1</span><span class="title">Thống kê</span></div>
+        <div class="do">Bấm <b>Hôm nay / 7 ngày / 30 ngày</b>; thử <b>Tùy chỉnh</b> chọn 2 ngày rồi bấm <b>Xem</b>.</div>
+        <div class="exp">4 chỉ số (Doanh thu, Số đơn, Đơn hủy, Tỉ lệ trễ hạn) và các biểu đồ đổi theo khoảng đã chọn.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="F2"></label><div class="body">
+        <div><span class="cid">F2</span><span class="title">Xuất Excel</span></div>
+        <div class="do">Vào <b>Đơn hàng</b> (trên <b>máy tính</b>), bấm <b>⬇ Xuất Excel</b>.</div>
+        <div class="exp">Tải về file <span class="mono">.xlsx</span> gồm các đơn đang lọc. (Nút này ẩn trên điện thoại.)</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="F3"></label><div class="body">
+        <div><span class="cid">F3</span><span class="title">Thêm / đổi tên / xóa vị</span></div>
+        <div class="do">Vào <b>Sản phẩm</b>. Ở một nhóm (vd Cốt) bấm <b>＋ Thêm</b>; dùng menu <b>⋮</b> để Đổi tên, Xóa.</div>
+        <div class="exp">Vị mới xuất hiện; đổi tên/xóa hoạt động. Khi xóa có hỏi xác nhận và nhắc “đơn cũ không bị ảnh hưởng”.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="F4"></label><div class="body">
+        <div><span class="cid">F4</span><span class="title">Phụ thu theo %</span></div>
+        <div class="do">Menu <b>⋮</b> của một vị Cốt/Mứt/Topping → <b>Phụ thu khi khách chọn</b> → chọn <b>Theo %</b>, nhập vd 10.</div>
+        <div class="exp">Dòng vị hiện <b>+10%</b>. Sang tạo đơn (B5) thấy giá cộng đúng.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="F5"></label><div class="body">
+        <div><span class="cid">F5</span><span class="title">Phụ thu cộng tiền</span></div>
+        <div class="do">Với vị khác, chọn <b>Cộng tiền</b>, nhập vd 5 (= 5.000đ). Thử một vị để <b>Miễn phí</b>.</div>
+        <div class="exp">Dòng vị hiện <b>+5.000đ</b> / hoặc <b>Miễn phí</b>. Size không có mục phụ thu.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="F6"></label><div class="body">
+        <div><span class="cid">F6</span><span class="title">Phụ kiện</span></div>
+        <div class="do">Ở <b>🕯 Cấu hình phụ kiện</b>: thêm phụ kiện mới (tên + giá); sửa giá trực tiếp; Đổi tên / Xóa qua ⋮.</div>
+        <div class="exp">Thêm/sửa/xóa hoạt động; phụ kiện mới xuất hiện khi tạo đơn (B8).</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="F7"></label><div class="body">
+        <div><span class="cid">F7</span><span class="title">Tạo nhân viên</span></div>
+        <div class="do">Vào <b>Nhân viên</b>, tạo tài khoản Quầy và Bếp (đặt mật khẩu). Đăng xuất, thử đăng nhập tài khoản mới.</div>
+        <div class="exp">Tạo được; đăng nhập vào đúng khu theo vai trò. Trùng tên đăng nhập thì <b>báo lỗi</b>.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="F8"></label><div class="body">
+        <div><span class="cid">F8</span><span class="title">Đổi vai trò / mật khẩu / xóa</span></div>
+        <div class="do">Đổi vai trò một nhân viên trong bảng; menu <b>⋯</b> Đổi mật khẩu; thử Xóa.</div>
+        <div class="exp">Đổi vai trò/mật khẩu OK. <b>Không</b> xóa được chính mình và tài khoản <b>admin</b> gốc.</div>
+      </div></div>
+    </section>
+
+    <!-- G -->
+    <section id="G">
+      <div class="grp-h"><h2>G. Cập nhật tức thời &amp; điện thoại</h2><span class="chip-role r-all">Mọi vai trò</span></div>
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="G1"></label><div class="body">
+        <div><span class="cid">G1</span><span class="title">Hai máy tự đồng bộ</span></div>
+        <div class="do">Mở app trên 2 máy (hoặc 2 cửa sổ). Thao tác đổi trạng thái đơn ở máy này.</div>
+        <div class="exp">Máy kia <b>tự cập nhật</b> sau vài giây, không cần bấm tải lại.</div>
+      </div></div>
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="G2"></label><div class="body">
+        <div><span class="cid">G2</span><span class="title">Mất mạng</span></div>
+        <div class="do">Tắt wifi/dữ liệu vài giây rồi bật lại.</div>
+        <div class="exp">Khi mất mạng hiện băng đỏ <b>“⚠️ MẤT KẾT NỐI”</b>; có mạng lại thì băng tự tắt, dữ liệu tải lại.</div>
+      </div></div>
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="G3"></label><div class="body">
+        <div><span class="cid">G3</span><span class="title">Giao diện điện thoại</span></div>
+        <div class="do">Mở app trên điện thoại, xem bảng đơn Quầy và màn Bếp.</div>
+        <div class="exp">Thẻ đơn xếp <b>1 cột</b>, có <b>thanh tab trạng thái</b> để chuyển nhóm; thao tác các nút bình thường.</div>
+      </div></div>
+    </section>
+
+    <div class="note"><b>Xong hết?</b> Nếu thanh tiến độ đạt 100% và không có mục nào lỗi thì bản test coi như đạt. Mục nào lỗi, ghi mã (vd <span class="mono">D7</span>) kèm mô tả gửi người phụ trách.</div>
+
+    <footer class="end">
+      <p><b>Trạm Bánh</b> — Phiếu kiểm thử nghiệp vụ. Có thể in ra (Ctrl/Cmd + P) để tick tay.</p>
+    </footer>
+  </div>
+
+<script>
+  (function(){
+    var KEY = 'tb-kiemthu-nv';
+    var boxes = Array.prototype.slice.call(document.querySelectorAll('input[type=checkbox][data-id]'));
+    var saved = {};
+    try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){ saved = {}; }
+    function paint(cb){ cb.closest('.case').classList.toggle('done', cb.checked); }
+    function stats(){
+      var done = boxes.filter(function(b){return b.checked;}).length;
+      var total = boxes.length;
+      var pct = total ? Math.round(done*100/total) : 0;
+      document.getElementById('pdone').textContent = done;
+      document.getElementById('ptotal').textContent = total;
+      document.getElementById('ppct').textContent = pct;
+      document.getElementById('barfill').style.width = pct + '%';
+    }
+    function save(){
+      var o = {}; boxes.forEach(function(b){ if(b.checked) o[b.dataset.id]=1; });
+      try { localStorage.setItem(KEY, JSON.stringify(o)); } catch(e){}
+    }
+    boxes.forEach(function(b){
+      if (saved[b.dataset.id]) b.checked = true;
+      paint(b);
+      b.addEventListener('change', function(){ paint(b); save(); stats(); });
+    });
+    stats();
+    window.resetAll = function(){
+      if(!confirm('Xóa hết các mục đã tick?')) return;
+      boxes.forEach(function(b){ b.checked=false; paint(b); });
+      try{ localStorage.removeItem(KEY); }catch(e){}
+      stats();
+    };
+  })();
+</script>
+</body>
+</html>

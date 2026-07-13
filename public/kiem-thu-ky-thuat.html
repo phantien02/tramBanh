@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trạm Bánh — Kiểm thử kỹ thuật &amp; nghiệp vụ (đầy đủ)</title>
+<style>
+  :root{
+    --bg:#FBF6EF; --surface:#FFFFFF; --surface-2:#F5ECE0; --line:#E8DAC9;
+    --ink:#2B2119; --muted:#8B7B6C;
+    --gold:#C77A1C; --gold-soft:rgba(217,138,43,.14);
+    --dau:#E24B6A; --dau-soft:rgba(226,75,106,.12);
+    --tra:#2F8A62; --tra-soft:rgba(79,178,134,.16);
+    --alarm:#DC2626; --alarm-soft:rgba(220,38,38,.10);
+    --blue:#2563EB; --blue-soft:rgba(37,99,235,.12);
+    --shadow:0 1px 2px rgba(43,33,25,.06),0 10px 30px rgba(43,33,25,.07);
+    --radius:16px;
+    --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#141210; --surface:#1e1a16; --surface-2:#272019; --line:#3a2e24; --ink:#F2E8DE; --muted:#b3a494;
+      --gold:#E7A24A; --gold-soft:rgba(231,162,74,.16); --dau:#F0708C; --dau-soft:rgba(240,112,140,.16);
+      --tra:#5CC894; --tra-soft:rgba(92,200,148,.16); --alarm:#F16060; --alarm-soft:rgba(241,96,96,.15);
+      --blue:#6AA0FF; --blue-soft:rgba(106,160,255,.16);
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.4); }
+  }
+  :root[data-theme="dark"]{ --bg:#141210; --surface:#1e1a16; --surface-2:#272019; --line:#3a2e24; --ink:#F2E8DE; --muted:#b3a494;
+      --gold:#E7A24A; --gold-soft:rgba(231,162,74,.16); --dau:#F0708C; --dau-soft:rgba(240,112,140,.16);
+      --tra:#5CC894; --tra-soft:rgba(92,200,148,.16); --alarm:#F16060; --alarm-soft:rgba(241,96,96,.15);
+      --blue:#6AA0FF; --blue-soft:rgba(106,160,255,.16); }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{ background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:15.5px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap{max-width:920px; margin:0 auto; padding:0 20px 90px}
+  h1,h2,h3{font-family:var(--serif); font-weight:700; line-height:1.2}
+  a{color:var(--gold)}
+  code,.mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+  code{background:var(--surface-2); border:1px solid var(--line); border-radius:6px; padding:1px 6px; font-size:.88em}
+
+  header.top{ background:var(--ink); color:#F3E9E0; padding:30px 20px 26px; border-bottom:3px solid var(--blue); }
+  .top-inner{max-width:920px; margin:0 auto}
+  .wordmark{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+  .wordmark .name{font-family:var(--serif); font-size:clamp(1.7rem,5.5vw,2.3rem); font-weight:700; color:#fff}
+  .badge{font-family:var(--mono); font-size:.62rem; letter-spacing:.12em; font-weight:700; background:var(--blue); color:#fff; padding:3px 9px; border-radius:999px}
+  header.top p{margin:.5rem 0 0; color:#CDBFB3; font-size:1rem}
+
+  nav.toc{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 20px; margin:22px 0; box-shadow:var(--shadow); }
+  nav.toc h2{font-size:.76rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:0 0 10px; font-family:var(--sans); font-weight:700}
+  nav.toc ol{margin:0; padding:0; list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:5px 20px; counter-reset:t}
+  nav.toc li{counter-increment:t}
+  nav.toc a{display:flex; gap:9px; align-items:baseline; text-decoration:none; color:var(--ink); padding:4px 0}
+  nav.toc a::before{content:counter(t,decimal-leading-zero); font-family:var(--mono); font-size:.72rem; color:var(--blue); font-weight:700}
+
+  section{margin:34px 0; scroll-margin-top:16px}
+  section > h2{ font-size:clamp(1.3rem,4vw,1.7rem); margin:0 0 4px; }
+  .eyebrow{font-family:var(--sans); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; font-weight:700; color:var(--muted); margin:0 0 6px}
+  .lead{color:var(--muted); margin:.2rem 0 1.2rem}
+  h3{font-size:1.08rem; margin:1.5rem 0 .5rem}
+  p{margin:.55rem 0}
+  ul.clean{margin:.5rem 0; padding-left:1.2rem} ul.clean li{margin:.3rem 0}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 20px; box-shadow:var(--shadow); margin:12px 0}
+  .note{border-left:3px solid var(--gold); background:var(--gold-soft); padding:11px 15px; border-radius:0 12px 12px 0; margin:12px 0; font-size:.95rem}
+  .note.warn{border-left-color:var(--dau); background:var(--dau-soft)}
+  .note.info{border-left-color:var(--blue); background:var(--blue-soft)}
+  .note b{color:var(--ink)}
+
+  .scroll{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:12px 0}
+  table.tb{width:100%; border-collapse:collapse; font-size:.9rem; background:var(--surface); border:1px solid var(--line); border-radius:12px; overflow:hidden; min-width:520px}
+  table.tb th,table.tb td{text-align:left; padding:8px 11px; border-bottom:1px solid var(--line); vertical-align:top}
+  table.tb th{background:var(--surface-2); font-family:var(--sans); font-size:.74rem; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); position:sticky; top:0}
+  table.tb tr:last-child td{border-bottom:none}
+  table.tb td.ok{color:var(--tra); font-weight:700} table.tb td.no{color:var(--dau); font-weight:700}
+
+  .case{background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--blue); border-radius:12px; padding:13px 16px; box-shadow:var(--shadow); margin:10px 0}
+  .case .cid{font-family:var(--mono); font-size:.72rem; font-weight:700; color:var(--blue); background:var(--blue-soft); padding:1px 8px; border-radius:6px; margin-right:8px}
+  .case.edge{border-left-color:var(--dau)} .case.edge .cid{color:var(--dau); background:var(--dau-soft)}
+  .case .title{font-weight:700}
+  .case .do{margin:.4rem 0 .1rem; font-size:.93rem}
+  .case .exp{font-size:.9rem; color:var(--muted); border-left:2px solid var(--line); padding-left:10px; margin-top:.35rem}
+  .case .exp b{color:var(--ink)}
+  .tag{display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.04em; padding:2px 7px; border-radius:6px; text-transform:uppercase; vertical-align:middle}
+  .t-nv{background:var(--gold-soft); color:var(--gold)} .t-kt{background:var(--blue-soft); color:var(--blue)} .t-edge{background:var(--dau-soft); color:var(--dau)}
+
+  pre{background:var(--ink); color:#EDE3D8; border-radius:12px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:.82rem; line-height:1.55; margin:10px 0}
+  @media (prefers-color-scheme:dark){ pre{background:#0c0a08; border:1px solid var(--line)} }
+  :root[data-theme="dark"] pre{background:#0c0a08; border:1px solid var(--line)}
+  pre .c{color:#9a8f80}
+
+  footer.end{margin-top:44px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:.9rem}
+  :focus-visible{outline:2px solid var(--blue); outline-offset:2px; border-radius:6px}
+  @media (max-width:640px){ nav.toc ol{grid-template-columns:1fr} }
+  @media print{ header.top{background:#fff;color:#000;border-bottom:2px solid #000} .wordmark .name,header.top p{color:#000} nav.toc{display:none} .card,.case,table.tb{box-shadow:none} pre{background:#f4f4f4;color:#000;border:1px solid #ccc} .case,section{break-inside:avoid} }
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <div class="wordmark"><span class="name">Trạm Bánh</span><span class="badge">KIỂM THỬ · KỸ THUẬT</span></div>
+      <p>Bộ case kiểm thử đầy đủ — nghiệp vụ + kỹ thuật + case biên. Dành cho người phụ trách.</p>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc" aria-label="Mục lục">
+      <h2>Mục lục</h2>
+      <ol>
+        <li><a href="#env">Chuẩn bị môi trường</a></li>
+        <li><a href="#perm">Ma trận phân quyền</a></li>
+        <li><a href="#flow">Vòng đời &amp; chuyển trạng thái</a></li>
+        <li><a href="#money">Giá, phụ thu &amp; tổng tiền</a></li>
+        <li><a href="#edit">Sửa đơn &amp; dọn dữ liệu</a></li>
+        <li><a href="#quanly">Quản lý: vị / phụ kiện / NV</a></li>
+        <li><a href="#api">Phân quyền &amp; lỗi API</a></li>
+        <li><a href="#realtime">Realtime, ảnh, thống kê</a></li>
+        <li><a href="#curl">Test nhanh bằng curl</a></li>
+        <li><a href="#auto">Test tự động &amp; build</a></li>
+        <li><a href="#known">Điểm cần lưu ý</a></li>
+      </ol>
+    </nav>
+
+    <div class="note info">Ký hiệu: <span class="tag t-nv">NV</span> case nghiệp vụ (bấm trên giao diện) · <span class="tag t-kt">KT</span> case kỹ thuật · <span class="tag t-edge">BIÊN</span> case biên/lỗi cần chặn đúng. Bản dành cho nhân viên (thao tác tay) ở <code>/kiem-thu-nhan-vien.html</code>.</div>
+
+    <section id="env">
+      <p class="eyebrow">1</p>
+      <h2>Chuẩn bị môi trường test</h2>
+      <ul class="clean">
+        <li><b>Tài khoản:</b> <code>admin / admin123</code> (quản lý). Tạo thêm tài khoản Quầy &amp; Bếp ở màn Nhân viên để test phân quyền thật.</li>
+        <li><b>Chạy dev:</b> <code>npm run dev</code> (đặt sẵn <code>TZ=Asia/Ho_Chi_Minh</code>). Mở <code>http://localhost:3000</code>.</li>
+        <li><b>Test mobile mạng ngoài:</b> <code>cloudflared tunnel --url http://localhost:3000</code> → dùng URL <code>*.trycloudflare.com</code>. <code>next.config</code> đã whitelist <code>*.trycloudflare.com</code>.</li>
+        <li><b>Reset dữ liệu mẫu:</b> <code>npm run db:seed</code> (bỏ qua nếu đã có dữ liệu — xóa <code>data/tram-banh.db*</code> nếu muốn seed lại từ đầu).</li>
+      </ul>
+      <div class="note warn"><b>Bẫy dev sau khi đổi nhánh / pull:</b> Turbopack có thể giữ cache <code>.next</code> cũ khiến route con API (<code>/api/orders/[id]/chuyen</code>, <code>/xac-nhan-sua</code>) trả <b>404</b> → nút <i>nhận làm / xong / hủy</i> bấm không ăn. Xử lý: dừng dev, <code>rm -rf .next</code>, chạy lại <code>npm run dev</code>. Chỉ xảy ra ở dev; bản Docker build sạch không dính.</div>
+    </section>
+
+    <section id="perm">
+      <p class="eyebrow">2</p>
+      <h2>Ma trận phân quyền chuyển trạng thái <span class="tag t-kt">KT</span></h2>
+      <p class="lead">Nguồn: <code>src/lib/status.ts</code>. <b>Quản lý (quanly) được phép mọi bước hợp lệ.</b> 6 trạng thái: <code>moi · dang_lam · banh_xong · da_nhan · hoan_tat · huy</code>.</p>
+      <div class="scroll">
+        <table class="tb">
+          <thead><tr><th>Từ</th><th>Sang</th><th>Vai trò được bấm</th><th>Nút / ghi chú</th></tr></thead>
+          <tbody>
+            <tr><td>moi</td><td>dang_lam</td><td>bếp, quản lý</td><td>👨‍🍳 Nhận làm</td></tr>
+            <tr><td>moi</td><td>hoan_tat</td><td>quầy, quản lý</td><td>✅ Lấy ngay — hoàn tất (cần <code>ketThucKieu</code>)</td></tr>
+            <tr><td>dang_lam</td><td>banh_xong</td><td>bếp, quản lý</td><td>🎂 Xong (kèm ảnh, tùy chọn)</td></tr>
+            <tr><td>dang_lam</td><td>moi</td><td>bếp, quản lý</td><td>↩ Trả về hàng chờ</td></tr>
+            <tr><td>banh_xong</td><td>dang_lam</td><td>bếp, quản lý</td><td>↩ Hoàn tác — làm lại</td></tr>
+            <tr><td>banh_xong</td><td>da_nhan</td><td>quầy, quản lý</td><td>🤝 Đã nhận bánh</td></tr>
+            <tr><td>da_nhan</td><td>hoan_tat</td><td>quầy, quản lý</td><td>✅ Hoàn tất (cần <code>ketThucKieu</code>)</td></tr>
+            <tr><td>mọi trạng thái trừ <code>hoan_tat</code>/<code>huy</code></td><td>huy</td><td>quầy, quản lý</td><td>🗑 Hủy đơn (cần <code>lyDoHuy</code>)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="case edge"><div><span class="cid">P1</span><span class="title">Sai vai trò bị chặn</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Đăng nhập <b>Quầy</b>, thử ép chuyển <code>moi → dang_lam</code> (chỉ Bếp được). Hoặc Bếp thử <b>Hủy đơn</b>.</div>
+        <div class="exp">API trả <b>409</b> — <b>“Bước chuyển không hợp lệ với vai trò của bạn”</b>. Trên UI nút đó không hiển thị cho vai trò sai.</div>
+      </div>
+      <div class="case edge"><div><span class="cid">P2</span><span class="title">Bước nhảy cóc bị chặn</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Thử chuyển <code>moi → banh_xong</code> hoặc <code>moi → da_nhan</code> (qua API).</div>
+        <div class="exp">Bị từ chối (không có trong danh sách bước hợp lệ) → <b>409</b>.</div>
+      </div>
+      <div class="case"><div><span class="cid">P3</span><span class="title">Quản lý làm được mọi bước</span> <span class="tag t-kt">KT</span></div>
+        <div class="do">Đăng nhập admin, thao tác cả nút của Quầy lẫn Bếp trên cùng một đơn.</div>
+        <div class="exp">Đều thực hiện được.</div>
+      </div>
+      <div class="case edge"><div><span class="cid">P4</span><span class="title">Không có bảo vệ route <code>/quanly</code> phía server</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Đăng nhập Quầy/Bếp rồi gõ thẳng URL <code>/quanly</code>, <code>/quanly/nhan-vien</code>.</div>
+        <div class="exp">Trang mở nhưng <b>rỗng/không dữ liệu</b> vì API trả 403. Bảo vệ nằm ở tầng API, không phải route. (Xem mục Điểm cần lưu ý.)</div>
+      </div>
+    </section>
+
+    <section id="flow">
+      <p class="eyebrow">3</p>
+      <h2>Vòng đời &amp; chuyển trạng thái</h2>
+
+      <div class="case"><div><span class="cid">F1</span><span class="title">Luồng đầy đủ</span> <span class="tag t-nv">NV</span></div>
+        <div class="do">Quầy tạo đơn → Bếp Nhận làm → Xong → Quầy Đã nhận bánh → Hoàn tất (chọn kiểu kết thúc).</div>
+        <div class="exp">Trạng thái đi đúng thứ tự; Nhật ký ghi đủ các mốc kèm người thực hiện &amp; thời điểm.</div>
+      </div>
+      <div class="case edge"><div><span class="cid">F2</span><span class="title">Hoàn tất thiếu kiểu kết thúc</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Gọi chuyển sang <code>hoan_tat</code> mà không kèm <code>ketThucKieu</code> (qua API).</div>
+        <div class="exp">409 — <b>“Chọn hình thức kết thúc (giao khách / đã ship / lên tủ)”</b>. Trên UI luôn phải chọn 1 trong 3.</div>
+      </div>
+      <div class="case edge"><div><span class="cid">F3</span><span class="title">Hủy thiếu lý do</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Bấm Hủy đơn nhưng để trống lý do (hoặc gọi API không <code>lyDoHuy</code>).</div>
+        <div class="exp">UI không chuyển; API 409 — <b>“Nhập lý do hủy”</b>.</div>
+      </div>
+      <div class="case edge"><div><span class="cid">F4</span><span class="title">Hủy đơn đã hoàn tất</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Với đơn <code>hoan_tat</code>, thử hủy.</div>
+        <div class="exp">Không có nút Hủy; API từ chối (điều kiện <code>from ≠ hoan_tat, huy</code>).</div>
+      </div>
+      <div class="case edge"><div><span class="cid">F5</span><span class="title">Chống race — 2 người bấm cùng lúc</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Mở cùng một đơn <code>moi</code> trên 2 máy, cùng bấm Nhận làm gần như đồng thời (hoặc gửi 2 request <code>chuyen</code> liên tiếp).</div>
+        <div class="exp">Chỉ 1 thành công. Người sau nhận <b>“Đơn vừa được người khác xử lý, hãy tải lại”</b> (UPDATE có điều kiện <code>trangThai = from</code>, <code>changes === 0</code>).</div>
+      </div>
+      <div class="case"><div><span class="cid">F6</span><span class="title">Hoàn tác chỉ trước khi Quầy nhận</span> <span class="tag t-nv">NV</span></div>
+        <div class="do">Bếp: <code>banh_xong → dang_lam</code> và <code>dang_lam → moi</code>. Sau khi Quầy đã <code>da_nhan</code> thì thử lại.</div>
+        <div class="exp">Trước <code>da_nhan</code> hoàn tác được; từ <code>da_nhan</code> trở đi không còn bước lùi cho Bếp.</div>
+      </div>
+      <div class="case"><div><span class="cid">F7</span><span class="title">Reset cờ ĐÃ SỬA khi tiến bước</span> <span class="tag t-kt">KT</span></div>
+        <div class="do">Đơn có <code>daSua=1</code>, chuyển sang <code>da_nhan</code> hoặc <code>hoan_tat</code>.</div>
+        <div class="exp"><code>daSua</code> tự về 0 (nhãn ĐÃ SỬA biến mất).</div>
+      </div>
+    </section>
+
+    <section id="money">
+      <p class="eyebrow">4</p>
+      <h2>Giá, phụ thu &amp; tổng tiền</h2>
+      <p class="lead">Nguồn: <code>src/lib/money.ts</code>, <code>orders-service.ts (apGiaMon)</code>. Giá món = base + phụ thu (Cốt/Mứt/Topping). Tổng = Σ món + Σ phụ kiện + phí ship.</p>
+
+      <div class="case"><div><span class="cid">M1</span><span class="title">Phụ thu %</span> <span class="tag t-nv">NV</span></div>
+        <div class="do">Cốt phụ thu 10%, base 200.000đ.</div>
+        <div class="exp">Phụ thu = <b>20.000đ</b> (10% × 200k, làm tròn 1.000đ). Giá cuối 220.000đ.</div>
+      </div>
+      <div class="case"><div><span class="cid">M2</span><span class="title">Phụ thu tiền cố định + làm tròn %</span> <span class="tag t-kt">KT</span></div>
+        <div class="do">Mứt +5.000đ (tiền). Cốt 7% trên base 205.000đ (=14.350 → làm tròn).</div>
+        <div class="exp">Tiền cố định cộng nguyên. % <b>làm tròn về bội số 1.000đ</b> (14.350 → 14.000).</div>
+      </div>
+      <div class="case"><div><span class="cid">M3</span><span class="title">Size không phụ thu</span> <span class="tag t-kt">KT</span></div>
+        <div class="do">Kiểm tra menu ⋮ của Size ở màn Sản phẩm.</div>
+        <div class="exp">Size chỉ có Đổi tên/Xóa, <b>không có mục phụ thu</b>; đổi Size không đổi giá.</div>
+      </div>
+      <div class="case edge"><div><span class="cid">M4</span><span class="title">Giá tính lại ở server</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Gửi API tạo đơn với <code>giaBase</code> hợp lệ nhưng <code>gia</code> sai (thấp/cao bất thường).</div>
+        <div class="exp">Server bỏ qua <code>gia</code> client gửi, tính lại theo <code>giaBase</code> + phụ thu hiện hành (<code>apGiaMon</code>). Tổng lưu đúng.</div>
+      </div>
+      <div class="case"><div><span class="cid">M5</span><span class="title">Ghi đè tổng tiền (giảm giá)</span> <span class="tag t-nv">NV</span></div>
+        <div class="do">Tick “Cho phép sửa giá thủ công”, nhập tổng &lt; tổng tính.</div>
+        <div class="exp">Đơn lưu theo <code>tongTienGhiDe</code>; Còn lại = tổng ghi đè − cọc.</div>
+      </div>
+      <div class="case edge"><div><span class="cid">M6</span><span class="title">Tiền cọc bắt buộc &gt; 0</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Để cọc = 0 hoặc trống.</div>
+        <div class="exp">UI chặn (nút mờ, nhắc “Vui lòng nhập tiền khách đã cọc”); API: <b>“Vui lòng nhập tiền khách đã cọc (lớn hơn 0)”</b>.</div>
+      </div>
+      <div class="case edge"><div><span class="cid">M7</span><span class="title">SĐT khách phải là di động VN 10 số</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Nhập SĐT sai định dạng (vd 8 số, đầu số lạ).</div>
+        <div class="exp">UI báo “Số điện thoại không hợp lệ (di động VN)”; API: <b>“Số điện thoại khách không hợp lệ (số di động VN 10 chữ số)”</b>. SĐT người nhận ship nếu nhập cũng phải hợp lệ.</div>
+      </div>
+    </section>
+
+    <section id="edit">
+      <p class="eyebrow">5</p>
+      <h2>Sửa đơn &amp; dọn dữ liệu</h2>
+      <p class="lead">Nguồn: <code>orders-service.ts (suaDon, chuanHoaShip)</code>.</p>
+      <div class="case"><div><span class="cid">E1</span><span class="title">Sửa đơn đang làm → gắn ĐÃ SỬA</span> <span class="tag t-nv">NV</span></div>
+        <div class="do">Sửa một đơn ở trạng thái <code>dang_lam</code> hoặc <code>banh_xong</code>.</div>
+        <div class="exp"><code>daSua=1</code>, thẻ có nhãn <b>ĐÃ SỬA</b>. Sửa đơn <code>moi</code> thì không gắn (Bếp chưa động vào).</div>
+      </div>
+      <div class="case edge"><div><span class="cid">E2</span><span class="title">Không sửa đơn đã kết thúc</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Thử sửa đơn <code>hoan_tat</code> hoặc <code>huy</code>.</div>
+        <div class="exp">Bị chặn — <b>“Đơn đã kết thúc, không sửa được”</b>.</div>
+      </div>
+      <div class="case edge"><div><span class="cid">E3</span><span class="title">Đổi Ship → Tại tiệm dọn sạch field ship</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Đơn Ship có địa chỉ/người nhận/quà tặng, sửa lại thành <b>Nhận tại tiệm</b>, lưu.</div>
+        <div class="exp"><code>diaChiShip / tenNguoiNhan / sdtNguoiNhan</code> về rỗng, <code>phiShip=0</code>, <code>donQuaTang=false</code> (không còn dữ liệu ship rác). Nhãn 🎁/🛵 biến mất.</div>
+      </div>
+      <div class="case"><div><span class="cid">E4</span><span class="title">Sửa thay toàn bộ món &amp; phụ kiện</span> <span class="tag t-kt">KT</span></div>
+        <div class="do">Sửa đơn: bớt/thêm bánh, đổi ảnh mẫu, đổi phụ kiện.</div>
+        <div class="exp">Món/ảnh/phụ kiện cũ bị thay hoàn toàn bằng dữ liệu mới; tổng tiền tính lại.</div>
+      </div>
+    </section>
+
+    <section id="quanly">
+      <p class="eyebrow">6</p>
+      <h2>Quản lý: vị / phụ kiện / nhân viên</h2>
+      <div class="case"><div><span class="cid">Q1</span><span class="title">Xóa vị / phụ kiện không ảnh hưởng đơn cũ</span> <span class="tag t-kt">KT</span></div>
+        <div class="do">Tạo đơn dùng một vị + phụ kiện. Sau đó xóa vị/phụ kiện đó ở màn Sản phẩm. Mở lại đơn cũ.</div>
+        <div class="exp">Đơn cũ vẫn hiển thị đúng vị/phụ kiện (lưu snapshot tên+giá, không tham chiếu id).</div>
+      </div>
+      <div class="case edge"><div><span class="cid">Q2</span><span class="title">Không tự xóa tài khoản đang đăng nhập</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Admin thử xóa chính mình.</div>
+        <div class="exp">Nút Xóa không hiện với chính mình; API: <b>“Không thể tự xóa tài khoản đang đăng nhập”</b> (400).</div>
+      </div>
+      <div class="case edge"><div><span class="cid">Q3</span><span class="title">Không xóa admin gốc</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Thử xóa tài khoản <code>admin</code>.</div>
+        <div class="exp">API: <b>“Không thể xóa tài khoản admin gốc”</b> (400).</div>
+      </div>
+      <div class="case edge"><div><span class="cid">Q4</span><span class="title">Không xóa NV đã có lịch sử đơn</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Xóa một nhân viên đã tạo/làm/giao đơn.</div>
+        <div class="exp"><b>409 — “Nhân viên đã có lịch sử đơn hàng, không thể xóa — hãy khóa tài khoản thay thế”</b>.</div>
+      </div>
+      <div class="case edge"><div><span class="cid">Q5</span><span class="title">Trùng tên đăng nhập</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Tạo 2 tài khoản cùng username.</div>
+        <div class="exp"><b>409 — “Tên đăng nhập đã tồn tại”</b>.</div>
+      </div>
+      <div class="case"><div><span class="cid">Q6</span><span class="title">Khóa tài khoản / đổi vai trò có hiệu lực ngay</span> <span class="tag t-kt">KT</span></div>
+        <div class="do">Đổi vai trò một NV đang đăng nhập ở máy khác; hoặc set <code>active=0</code> (hiện chỉ qua API/DB — UI chưa có nút khóa).</div>
+        <div class="exp">Lần thao tác kế tiếp của NV đó áp quyền mới ngay; nếu <code>active≠1</code> → coi như chưa đăng nhập (401), không chờ hết hạn token.</div>
+      </div>
+    </section>
+
+    <section id="api">
+      <p class="eyebrow">7</p>
+      <h2>Phân quyền &amp; thông báo lỗi API</h2>
+      <div class="scroll">
+        <table class="tb">
+          <thead><tr><th>Endpoint</th><th>Yêu cầu</th><th>Lỗi khi vi phạm</th></tr></thead>
+          <tbody>
+            <tr><td><code>GET /api/me</code></td><td>đăng nhập</td><td>401 “Chưa đăng nhập”</td></tr>
+            <tr><td><code>GET /api/orders</code></td><td>đăng nhập</td><td>401</td></tr>
+            <tr><td><code>POST /api/orders</code></td><td>quầy / quản lý</td><td>403 “Chỉ quầy hoặc quản lý được tạo đơn”</td></tr>
+            <tr><td><code>POST /api/orders/[id]/chuyen</code></td><td>đăng nhập + đúng vai trò bước</td><td>409 “Bước chuyển không hợp lệ…”</td></tr>
+            <tr><td><code>GET /api/thong-ke</code></td><td>quản lý</td><td>403 “Chỉ quản lý”</td></tr>
+            <tr><td><code>POST/PATCH/DELETE /api/banh-options[/id]</code></td><td>quản lý</td><td>403 “Chỉ quản lý”</td></tr>
+            <tr><td><code>POST/PATCH/DELETE /api/phu-kien[/id]</code></td><td>quản lý</td><td>403 “Chỉ quản lý”</td></tr>
+            <tr><td><code>GET/POST/PATCH/DELETE /api/users[/id]</code></td><td>quản lý</td><td>403 “Chỉ quản lý”</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="case edge"><div><span class="cid">A1</span><span class="title">Gọi API khi chưa đăng nhập</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Xóa cookie <code>session</code>, gọi <code>GET /api/orders</code>.</div>
+        <div class="exp">401 JSON <code>{"error":"Chưa đăng nhập"}</code>. Truy cập trang (không phải /api) khi chưa đăng nhập → chuyển hướng <code>/login</code>.</div>
+      </div>
+      <div class="case"><div><span class="cid">A2</span><span class="title">Trang công khai</span> <span class="tag t-kt">KT</span></div>
+        <div class="do">Khi chưa đăng nhập mở <code>/login</code>, <code>/huong-dan.html</code>, <code>/kiem-thu-nhan-vien.html</code>, <code>/kiem-thu-ky-thuat.html</code>, <code>/logo.svg</code>.</div>
+        <div class="exp">Mở được không cần đăng nhập (whitelist middleware). Các trang khác bị đẩy về /login.</div>
+      </div>
+    </section>
+
+    <section id="realtime">
+      <p class="eyebrow">8</p>
+      <h2>Realtime, ảnh &amp; thống kê</h2>
+      <div class="case"><div><span class="cid">R1</span><span class="title">SSE tự cập nhật &amp; tự kết nối lại</span> <span class="tag t-kt">KT</span></div>
+        <div class="do">2 máy mở app; thao tác 1 bên. Ngắt mạng bên kia rồi nối lại.</div>
+        <div class="exp">Bên kia tự <code>taiDon()</code> khi có sự kiện; mất mạng hiện băng <b>“⚠️ MẤT KẾT NỐI — dữ liệu không còn cập nhật”</b>, nối lại thì băng tắt &amp; tải lại ngay.</div>
+      </div>
+      <div class="case"><div><span class="cid">R2</span><span class="title">Chuông khi bánh xong (máy Quầy)</span> <span class="tag t-nv">NV</span></div>
+        <div class="do">Máy Quầy mở bảng đơn; Bếp bấm Xong.</div>
+        <div class="exp">Quầy kêu chuông (chỉ với sự kiện <code>chuyen_trang_thai → banh_xong</code>). Cần đã tương tác với trang để trình duyệt cho phát âm.</div>
+      </div>
+      <div class="case"><div><span class="cid">R3</span><span class="title">Giới hạn ảnh</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Ảnh mẫu: tải &gt; 5 ảnh/bánh. Ảnh thành phẩm: tải &gt; 3 ảnh.</div>
+        <div class="exp">Ảnh mẫu chặn ở <b>5</b> (“Mỗi bánh chỉ tải tối đa 5 ảnh mẫu”); ảnh thành phẩm chặn ở <b>3</b> (“Tối đa 3 ảnh thành phẩm”).</div>
+      </div>
+      <div class="case"><div><span class="cid">R4</span><span class="title">Thống kê đúng định nghĩa</span> <span class="tag t-kt">KT</span></div>
+        <div class="do">Tạo vài đơn: hoàn tất (có đơn hoàn tất trễ giờ hẹn), hủy, đang xử lý. Xem Thống kê.</div>
+        <div class="exp"><b>Doanh thu/món bán chạy/khách mua nhiều</b> chỉ tính đơn <code>hoan_tat</code>; <b>Số đơn</b> đếm mọi trạng thái; <b>Đơn hủy</b> đếm <code>huy</code>; <b>Tỉ lệ trễ hạn</b> = đơn hoàn tất sau giờ hẹn / tổng đơn hoàn tất.</div>
+      </div>
+      <div class="case"><div><span class="cid">R5</span><span class="title">Xuất Excel</span> <span class="tag t-nv">NV</span></div>
+        <div class="do">Màn Đơn hàng (desktop) → ⬇ Xuất Excel.</div>
+        <div class="exp">File <code>don-hang-{tu}-den-{den}.xlsx</code> với cột Mã/Ngày giờ/Khách/SĐT/Nguồn/Trạng thái/Món/Tổng/Cọc. Ẩn nút trên điện thoại.</div>
+      </div>
+    </section>
+
+    <section id="curl">
+      <p class="eyebrow">9</p>
+      <h2>Test nhanh bằng curl</h2>
+      <p class="lead">Dùng để kiểm tra API và tái hiện case biên mà không cần bấm tay. Chạy trên máy đang chạy dev (cổng 3000).</p>
+      <pre><span class="c"># 1) Đăng nhập, lưu cookie phiên</span>
+curl -s -c cj.txt -X POST http://localhost:3000/api/login \
+  -H "content-type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+
+<span class="c"># 2) Danh sách đơn hôm nay</span>
+curl -s -b cj.txt "http://localhost:3000/api/orders?trangThai=moi,dang_lam,banh_xong,da_nhan"
+
+<span class="c"># 3) Chuyển trạng thái (nhận làm đơn id=4)</span>
+curl -s -b cj.txt -X POST http://localhost:3000/api/orders/4/chuyen \
+  -H "content-type: application/json" -d '{"to":"dang_lam"}'
+
+<span class="c"># 4) Hoàn tất — bắt buộc ketThucKieu (thiếu sẽ 409)</span>
+curl -s -b cj.txt -X POST http://localhost:3000/api/orders/4/chuyen \
+  -H "content-type: application/json" \
+  -d '{"to":"hoan_tat","ketThucKieu":"giao_khach"}'
+
+<span class="c"># 5) Hủy — bắt buộc lyDoHuy</span>
+curl -s -b cj.txt -X POST http://localhost:3000/api/orders/4/chuyen \
+  -H "content-type: application/json" \
+  -d '{"to":"huy","lyDoHuy":"khách đổi ý"}'</pre>
+      <div class="note">Giá trị hợp lệ: <code>to</code> ∈ moi/dang_lam/banh_xong/da_nhan/hoan_tat/huy · <code>ketThucKieu</code> ∈ giao_khach/da_ship/len_tu · <code>nguon</code> ∈ tai_quay/zalo/messenger/dien_thoai/khac · <code>hinhThucNhan</code> ∈ tai_tiem/ship · <code>kieuPhiShip</code> ∈ freeship/theo_app.</div>
+    </section>
+
+    <section id="auto">
+      <p class="eyebrow">10</p>
+      <h2>Test tự động &amp; build</h2>
+      <pre>npm test          <span class="c"># vitest — logic tiền/trạng thái/đơn (src/lib, src/db)</span>
+npm run lint      <span class="c"># eslint</span>
+npm run build     <span class="c"># next build (standalone) — nên chạy trước khi deploy</span></pre>
+      <div class="note">Chạy <code>npm test</code> trước khi coi như xong một thay đổi có ảnh hưởng logic. Test đặt cạnh file nguồn: <code>money.test.ts</code>, <code>status.test.ts</code>, <code>logic.test.ts</code>, <code>orders-service.test.ts</code>.</div>
+    </section>
+
+    <section id="known">
+      <p class="eyebrow">11</p>
+      <h2>Điểm cần lưu ý (đã biết)</h2>
+      <ul class="clean">
+        <li><b>Route <code>/quanly</code> không chặn phía server</b> — bảo vệ dựa vào API trả 403. Người không phải quản lý mở trang sẽ thấy trang rỗng chứ không bị chặn URL. Cân nhắc thêm kiểm tra vai trò ở tầng trang nếu cần chặt hơn.</li>
+        <li><b>Khóa tài khoản chưa có nút trên UI</b> — schema/API hỗ trợ <code>active</code>, nhưng màn Nhân viên chỉ có Sửa tên / Đổi mật khẩu / Xóa. Thông báo lỗi xóa lại gợi ý “hãy khóa tài khoản” → nên bổ sung nút khóa/mở.</li>
+        <li><b>API <code>/api/products</code> chưa gắn UI</b> — bánh mẫu là 1 sản phẩm cố định (“Bánh kem sinh nhật theo mẫu”); màn Sản phẩm chỉ cấu hình vị + phụ kiện.</li>
+        <li><b>Phí ship chỉ 2 lựa chọn, đều = 0đ</b> — Freeship / Theo app ship, không nhập số. Đơn cũ có thể còn <code>phiShip &gt; 0</code> (hiện dòng cảnh báo khi sửa).</li>
+        <li><b>Mật khẩu admin mặc định công khai</b> (<code>admin/admin123</code>, có in trong HDSD) — đổi ngay sau khi deploy thật.</li>
+        <li><b>Quick tunnel cloudflared là tạm</b> — URL đổi mỗi lần khởi động lại, không cam kết uptime; deploy thật dùng Docker + named tunnel/domain.</li>
+      </ul>
+    </section>
+
+    <footer class="end">
+      <p><b>Trạm Bánh</b> — Kiểm thử kỹ thuật &amp; nghiệp vụ. In ra bằng Ctrl/Cmd + P. Bản nghiệp vụ cho nhân viên: <a href="/kiem-thu-nhan-vien.html">/kiem-thu-nhan-vien.html</a> · Hướng dẫn sử dụng: <a href="/huong-dan.html">/huong-dan.html</a>.</p>
+    </footer>
+  </div>
+</body>
+</html>
