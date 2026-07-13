@@ -5,14 +5,14 @@ import { banhOptions, products } from '@/db/schema'
 import { layUser, loiJson } from '@/lib/api-helpers'
 import { SAN_PHAM_MAU } from '@/lib/seed-const'
 
-type Loai = 'cot' | 'mut' | 'topping' | 'size'
-const LOAI: Loai[] = ['cot', 'mut', 'topping', 'size']
+type Loai = 'cot' | 'mut' | 'topping' | 'size' | 'kem'
+const LOAI: Loai[] = ['cot', 'mut', 'topping', 'size', 'kem']
 
 export async function GET() {
   const user = await layUser()
   if (!user) return loiJson(401, 'Chưa đăng nhập')
   const all = db.select().from(banhOptions).orderBy(asc(banhOptions.thuTu), asc(banhOptions.id)).all()
-  const nhom: Record<Loai, typeof all> = { cot: [], mut: [], topping: [], size: [] }
+  const nhom: Record<Loai, typeof all> = { cot: [], mut: [], topping: [], size: [], kem: [] }
   for (const o of all) nhom[o.loai as Loai].push(o)
   const sp = db.select().from(products).where(eq(products.ten, SAN_PHAM_MAU)).get()
   return NextResponse.json({ ...nhom, sanPhamMau: sp ? { id: sp.id, ten: sp.ten } : null })

@@ -6,12 +6,14 @@ import { hashPassword } from '../lib/auth'
 import { SAN_PHAM_MAU } from '../lib/seed-const'
 
 // Danh sách vị mặc định cho sản phẩm mẫu (kèm phụ thu theo bảng giá — quản lý sửa được sau)
-type ViSeed = { loai: 'cot' | 'mut' | 'topping' | 'size'; ten: string; phuThuKieu?: 'phan_tram' | 'tien'; phuThuGiaTri?: number }
+type ViSeed = { loai: 'cot' | 'mut' | 'topping' | 'size' | 'kem'; ten: string; phuThuKieu?: 'phan_tram' | 'tien'; phuThuGiaTri?: number }
 const VI_MAC_DINH: ViSeed[] = [
   { loai: 'cot', ten: 'Vanilla' },
   { loai: 'cot', ten: 'Chocolate', phuThuKieu: 'phan_tram', phuThuGiaTri: 10 },
   { loai: 'cot', ten: 'Matcha', phuThuKieu: 'phan_tram', phuThuGiaTri: 10 },
   { loai: 'cot', ten: 'Red Velvet', phuThuKieu: 'phan_tram', phuThuGiaTri: 10 },
+  // Kem (phủ) — mới, chưa dùng nhiều: sẵn 1 option miễn phí, thêm vị + phụ thu sau
+  { loai: 'kem', ten: 'Kem mặc định' },
   { loai: 'mut', ten: 'Chanh leo' },
   { loai: 'mut', ten: 'Dâu tây' },
   { loai: 'mut', ten: 'Xoài' },
@@ -53,7 +55,14 @@ export function seedNeuTrong(db: BetterSQLite3Database<typeof schema>): void {
   // 3) Danh sách vị mặc định
   if (db.select().from(banhOptions).all().length === 0) {
     VI_MAC_DINH.forEach((v, i) => db.insert(banhOptions).values({ ...v, thuTu: i }).run())
-    console.log(`Seed: tạo ${VI_MAC_DINH.length} vị mặc định (cốt/mứt/topping/size).`)
+    console.log(`Seed: tạo ${VI_MAC_DINH.length} vị mặc định (cốt/kem/mứt/topping/size).`)
+  }
+
+  // 3b) Đảm bảo luôn có sẵn 1 vị "Kem mặc định" (miễn phí) — chạy cả trên DB cũ đã có
+  //     dữ liệu (nơi bước 3 bị bỏ qua). Idempotent: chỉ thêm khi chưa có vị kem nào.
+  if (db.select().from(banhOptions).where(eq(banhOptions.loai, 'kem')).all().length === 0) {
+    db.insert(banhOptions).values({ loai: 'kem', ten: 'Kem mặc định', thuTu: 0 }).run()
+    console.log('Seed: tạo vị "Kem mặc định" (miễn phí).')
   }
 
   // 4) Phụ kiện mặc định

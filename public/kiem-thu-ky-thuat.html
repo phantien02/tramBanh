@@ -224,6 +224,10 @@
         <div class="do">Kiểm tra menu ⋮ của Size ở màn Sản phẩm.</div>
         <div class="exp">Size chỉ có Đổi tên/Xóa, <b>không có mục phụ thu</b>; đổi Size không đổi giá.</div>
       </div>
+      <div class="case"><div><span class="cid">M3b</span><span class="title">Danh mục Kem — như Cốt</span> <span class="tag t-kt">KT</span></div>
+        <div class="do">Kem là vị mới (loai <code>kem</code> trong <code>banh_options</code>, cột <code>order_items.kem</code>). Có sẵn <b>“Kem mặc định”</b> (miễn phí). Đặt phụ thu %/tiền cho một vị kem, tạo đơn chọn vị đó.</div>
+        <div class="exp">Phụ thu kem cộng đúng vào giá (server tính qua <code>phanTichGiaMon</code>, thứ tự breakdown: cốt → <b>kem</b> → mứt → topping). Chọn kem là <b>tùy chọn</b> (có nút “Không”), không chặn tạo đơn. Đơn cũ (kem null) không ảnh hưởng.</div>
+      </div>
       <div class="case edge"><div><span class="cid">M4</span><span class="title">Giá tính lại ở server</span> <span class="tag t-edge">BIÊN</span></div>
         <div class="do">Gửi API tạo đơn với <code>giaBase</code> hợp lệ nhưng <code>gia</code> sai (thấp/cao bất thường).</div>
         <div class="exp">Server bỏ qua <code>gia</code> client gửi, tính lại theo <code>giaBase</code> + phụ thu hiện hành (<code>apGiaMon</code>). Tổng lưu đúng.</div>

@@ -17,7 +17,7 @@ export function tinhConLai(tongTien: number, tienCoc: number): number {
 
 export type PhuThuKieu = 'phan_tram' | 'tien' | null
 export type ViPhuThu = { loai: string; ten: string; phuThuKieu: PhuThuKieu; phuThuGiaTri: number }
-export type LuaChonVi = { cot?: string | null; mut?: string | null; topping?: string[] }
+export type LuaChonVi = { cot?: string | null; kem?: string | null; mut?: string | null; topping?: string[] }
 
 const lamTronNghin = (x: number) => Math.round(x / 1000) * 1000
 
@@ -41,6 +41,7 @@ export function phanTichGiaMon(base: number, chon: LuaChonVi, dsOpt: ViPhuThu[])
     if (tien > 0) phuThu.push({ loai, ten, tien })
   }
   them('cot', chon.cot)
+  them('kem', chon.kem)
   them('mut', chon.mut)
   ;(chon.topping ?? []).forEach((t) => them('topping', t))
   const tong = base + phuThu.reduce((s, x) => s + x.tien, 0)

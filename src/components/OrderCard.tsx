@@ -7,7 +7,7 @@ export type DonHienThi = {
   nguon: string; hinhThucNhan: string; ketThucKieu?: string | null; ghiChu?: string | null
   donQuaTang?: number
   khach?: { ten: string; sdt: string } | null
-  items: { tenMon: string; coBanh?: string | null; cot?: string | null; mut?: string | null; topping?: string[]; soLuong: number; chuViet?: string | null; anhMau?: string[] }[]
+  items: { tenMon: string; coBanh?: string | null; cot?: string | null; kem?: string | null; mut?: string | null; topping?: string[]; soLuong: number; chuViet?: string | null; anhMau?: string[] }[]
   phuKien?: { ten: string; gia: number; soLuong: number }[]
 }
 
@@ -81,8 +81,8 @@ export default function OrderCard({ don, now, onClick, actions }: { don: DonHien
                   <span className="num font-bold text-sm text-[var(--color-caramel-600)]">×{it.soLuong}</span>
                 )}
                 {it.coBanh && <span className="tb-chip tb-chip-caramel font-bold">📏 {it.coBanh}</span>}
-                {(it.cot || it.mut) && (
-                  <span className="text-[var(--color-caramel-600)] font-medium">{[it.cot, it.mut].filter(Boolean).join(' · ')}</span>
+                {(it.cot || it.kem || it.mut) && (
+                  <span className="text-[var(--color-caramel-600)] font-medium">{[it.cot, it.kem, it.mut].filter(Boolean).join(' · ')}</span>
                 )}
               </div>
               {it.chuViet && <div className="text-[var(--color-dau)] font-semibold text-xs">✍️ &ldquo;{it.chuViet}&rdquo;</div>}

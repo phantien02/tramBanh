@@ -28,7 +28,7 @@ export type DonMoi = {
   hinhThucTt?: HinhThucTt
   ghiChu?: string
   tongTienGhiDe?: number
-  items: { productId?: number; tenMon: string; coBanh?: string; cot?: string; mut?: string; topping?: string[]; soLuong: number; chuViet?: string; ghiChu?: string; giaBase?: number; gia: number; anhMau?: string[] }[]
+  items: { productId?: number; tenMon: string; coBanh?: string; cot?: string; kem?: string; mut?: string; topping?: string[]; soLuong: number; chuViet?: string; ghiChu?: string; giaBase?: number; gia: number; anhMau?: string[] }[]
   phuKien?: { ten: string; gia: number; soLuong: number }[]
 }
 
@@ -41,7 +41,7 @@ function apGiaMon(items: DonMoi['items']): DonMoi['items'] {
     phuThuKieu: banhOptions.phuThuKieu, phuThuGiaTri: banhOptions.phuThuGiaTri,
   }).from(banhOptions).all()
   return items.map((it) => it.giaBase != null
-    ? { ...it, gia: tinhGiaMon(it.giaBase, { cot: it.cot, mut: it.mut, topping: it.topping }, ds) }
+    ? { ...it, gia: tinhGiaMon(it.giaBase, { cot: it.cot, kem: it.kem, mut: it.mut, topping: it.topping }, ds) }
     : it)
 }
 
@@ -62,7 +62,7 @@ function chenItems(orderId: number, items: DonMoi['items']) {
   for (const it of items) {
     const row = db.insert(orderItems).values({
       orderId, productId: it.productId ?? null, tenMon: it.tenMon, coBanh: it.coBanh,
-      cot: it.cot, mut: it.mut, topping: JSON.stringify(it.topping ?? []),
+      cot: it.cot, kem: it.kem, mut: it.mut, topping: JSON.stringify(it.topping ?? []),
       soLuong: it.soLuong, chuViet: it.chuViet, ghiChu: it.ghiChu, giaBase: it.giaBase ?? null, gia: it.gia,
     }).returning().get()
     for (const f of it.anhMau ?? []) {

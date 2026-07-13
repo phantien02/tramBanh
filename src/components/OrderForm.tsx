@@ -6,11 +6,11 @@ import { laSdtVN } from '@/lib/phone'
 import NhapNghin from '@/components/NhapNghin'
 
 type Opt = { id: number; loai: string; ten: string; thuTu: number; active: number; phuThuKieu: 'phan_tram' | 'tien' | null; phuThuGiaTri: number }
-type BanhOptions = { cot: Opt[]; mut: Opt[]; topping: Opt[]; size: Opt[]; sanPhamMau: { id: number; ten: string } | null }
+type BanhOptions = { cot: Opt[]; kem: Opt[]; mut: Opt[]; topping: Opt[]; size: Opt[]; sanPhamMau: { id: number; ten: string } | null }
 type PhuKienOpt = { id: number; ten: string; gia: number; thuTu: number; active: number }
 type MonNhap = {
   productId?: number; tenMon: string; coBanh?: string
-  cot?: string; mut?: string; topping?: string[]
+  cot?: string; kem?: string; mut?: string; topping?: string[]
   soLuong: number; chuViet?: string; ghiChu?: string; giaBase: number; gia: number; anhMau: string[]
 }
 type PhuKienNhap = { ten: string; gia: number; soLuong: number }
@@ -29,7 +29,7 @@ export type GiaTriForm = {
 const NGUON = [['tai_quay', 'Tại quầy'], ['zalo', 'Zalo'], ['messenger', 'Messenger'], ['dien_thoai', 'Điện thoại'], ['khac', 'Khác']]
 const NHAN = [['tai_tiem', 'Nhận tại tiệm'], ['ship', 'Ship']]
 // Nhãn loại vị để ghi rõ khoản phụ thu (vd "Cốt Chocolate", "Mứt Đào")
-const NHAN_LOAI: Record<string, string> = { cot: 'Cốt', mut: 'Mứt', topping: 'Topping' }
+const NHAN_LOAI: Record<string, string> = { cot: 'Cốt', kem: 'Kem', mut: 'Mứt', topping: 'Topping' }
 const TT = [['chua_tt', 'Chưa thanh toán'], ['tien_mat', 'Tiền mặt'], ['chuyen_khoan', 'Chuyển khoản']]
 const NGUON_TEN: Record<string, string> = Object.fromEntries(NGUON)
 const NHAN_TEN: Record<string, string> = Object.fromEntries(NHAN)
@@ -57,7 +57,7 @@ function gopNgayGio(ngay: string, gio: number, phut: string): number {
 export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
   donCu?: GiaTriForm; onLuu: (v: GiaTriForm) => void; dangLuu: boolean; loi?: string
 }) {
-  const [opts, setOpts] = useState<BanhOptions>({ cot: [], mut: [], topping: [], size: [], sanPhamMau: null })
+  const [opts, setOpts] = useState<BanhOptions>({ cot: [], kem: [], mut: [], topping: [], size: [], sanPhamMau: null })
   const [dsPhuKien, setDsPhuKien] = useState<PhuKienOpt[]>([])
   const [v, setV] = useState<GiaTriForm>(donCu ?? {
     khach: { sdt: '', ten: '' }, nguon: 'tai_quay',
@@ -76,6 +76,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
   useEffect(() => {
     fetch('/api/banh-options').then((r) => r.json()).then((d: BanhOptions) => setOpts({
       cot: (d.cot ?? []).filter((o) => o.active === 1),
+      kem: (d.kem ?? []).filter((o) => o.active === 1),
       mut: (d.mut ?? []).filter((o) => o.active === 1),
       topping: (d.topping ?? []).filter((o) => o.active === 1),
       size: (d.size ?? []).filter((o) => o.active === 1),
@@ -106,7 +107,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
       ...x,
       items: [...x.items, {
         productId: opts.sanPhamMau?.id, tenMon: tenMau,
-        coBanh: opts.size[0]?.ten, cot: '', mut: '', topping: [],
+        coBanh: opts.size[0]?.ten, cot: '', kem: '', mut: '', topping: [],
         soLuong: 1, giaBase: 0, gia: 0, anhMau: [],
       }],
     }))
@@ -152,10 +153,10 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
 
   // Danh mục vị + mức phụ thu (phẳng) để tính giá món: giá = base + phụ thu theo cốt/mứt/topping
   const dsPhuThu: ViPhuThu[] = useMemo(
-    () => [...opts.cot, ...opts.mut, ...opts.topping].map((o) => ({ loai: o.loai, ten: o.ten, phuThuKieu: o.phuThuKieu, phuThuGiaTri: o.phuThuGiaTri })),
+    () => [...opts.cot, ...opts.kem, ...opts.mut, ...opts.topping].map((o) => ({ loai: o.loai, ten: o.ten, phuThuKieu: o.phuThuKieu, phuThuGiaTri: o.phuThuGiaTri })),
     [opts],
   )
-  const phanTichMon = (m: MonNhap) => phanTichGiaMon(m.giaBase || 0, { cot: m.cot, mut: m.mut, topping: m.topping }, dsPhuThu)
+  const phanTichMon = (m: MonNhap) => phanTichGiaMon(m.giaBase || 0, { cot: m.cot, kem: m.kem, mut: m.mut, topping: m.topping }, dsPhuThu)
   const itemsTinh = v.items.map((m) => ({ ...m, gia: phanTichMon(m).tong }))
 
   const tongTinh = tinhTongTien(itemsTinh, v.phiShip, v.phuKien ?? [])
@@ -249,6 +250,19 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                   </div>
                   {!m.cot && <p className="text-[var(--color-dau-600)] text-sm mt-1">Vui lòng chọn cốt bánh.</p>}
                 </div>
+
+                {/* Kem */}
+                {opts.kem.length > 0 && (
+                  <div>
+                    <p className="text-xs text-[var(--color-xam)] mb-1">Kem</p>
+                    <div className="flex gap-2 flex-wrap">
+                      <button type="button" onClick={() => suaMon(i, { kem: '' })} className={clsToggle(!m.kem)}>Không</button>
+                      {opts.kem.map((o) => (
+                        <button type="button" key={o.id} onClick={() => suaMon(i, { kem: o.ten })} className={clsToggle(m.kem === o.ten)}>{o.ten}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Mứt */}
                 <div>
@@ -559,6 +573,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                   <div className="flex gap-1.5 flex-wrap text-sm">
                     {m.coBanh && <span className="tb-chip tb-chip-caramel">Size {m.coBanh}</span>}
                     {m.cot && <span className="tb-chip">Cốt {m.cot}</span>}
+                    {m.kem && <span className="tb-chip">Kem {m.kem}</span>}
                     {m.mut && <span className="tb-chip tb-chip-dau">Mứt {m.mut}</span>}
                     {(m.topping ?? []).map((t) => <span key={t} className="tb-chip tb-chip-tra">{t}</span>)}
                   </div>

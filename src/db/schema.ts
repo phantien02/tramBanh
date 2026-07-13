@@ -34,7 +34,7 @@ export const productSizes = sqliteTable('product_sizes', {
 // Danh sách vị cho "Bánh kem sinh nhật theo mẫu" — sửa được ở màn Quản lý > Sản phẩm
 export const banhOptions = sqliteTable('banh_options', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  loai: text('loai', { enum: ['cot', 'mut', 'topping', 'size'] }).notNull(),
+  loai: text('loai', { enum: ['cot', 'mut', 'topping', 'size', 'kem'] }).notNull(),
   ten: text('ten').notNull(),
   thuTu: integer('thu_tu').notNull().default(0),
   active: integer('active').notNull().default(1),
@@ -89,6 +89,7 @@ export const orderItems = sqliteTable('order_items', {
   tenMon: text('ten_mon').notNull(),
   coBanh: text('co_banh'),          // size (T10, C12, T12, … C18, T18)
   cot: text('cot'),                 // vị cốt bánh
+  kem: text('kem'),                 // vị kem (phủ) — có phụ thu như cốt
   mut: text('mut'),                 // vị mứt
   topping: text('topping'),         // JSON mảng topping (chọn nhiều)
   soLuong: integer('so_luong').notNull().default(1),

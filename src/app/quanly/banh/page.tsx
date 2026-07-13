@@ -5,10 +5,11 @@ import NhapNghin from '@/components/NhapNghin'
 import { dinhDangTien } from '@/lib/time'
 import type { SessionUser } from '@/lib/session'
 
-type Loai = 'cot' | 'mut' | 'topping' | 'size'
+type Loai = 'cot' | 'mut' | 'topping' | 'size' | 'kem'
 type Opt = { id: number; loai: Loai; ten: string; thuTu: number; active: number; phuThuKieu: 'phan_tram' | 'tien' | null; phuThuGiaTri: number }
 type BanhOptions = {
   cot: Opt[]
+  kem: Opt[]
   mut: Opt[]
   topping: Opt[]
   size: Opt[]
@@ -18,6 +19,7 @@ type PhuKien = { id: number; ten: string; gia: number; thuTu: number; active: nu
 
 const KHOI: { loai: Loai; ten: string; goiYThem: string }[] = [
   { loai: 'cot', ten: 'Cốt bánh', goiYThem: 'Thêm vị cốt bánh…' },
+  { loai: 'kem', ten: 'Kem', goiYThem: 'Thêm vị kem… (vd Kem bơ, Kem dâu)' },
   { loai: 'mut', ten: 'Mứt', goiYThem: 'Thêm vị mứt…' },
   { loai: 'topping', ten: 'Topping', goiYThem: 'Thêm topping…' },
   { loai: 'size', ten: 'Size', goiYThem: 'Thêm size…' },
@@ -63,7 +65,7 @@ function MucMenu({ onClick, danger, children }: { onClick: () => void; danger?: 
 export default function BanhPage() {
   const [user, setUser] = useState<SessionUser | null>(null)
   const [data, setData] = useState<BanhOptions | null>(null)
-  const [them, setThem] = useState<Record<Loai, string>>({ cot: '', mut: '', topping: '', size: '' })
+  const [them, setThem] = useState<Record<Loai, string>>({ cot: '', kem: '', mut: '', topping: '', size: '' })
   const [dsPhuKien, setDsPhuKien] = useState<PhuKien[]>([])
   const [pkMoi, setPkMoi] = useState<{ ten: string; gia: number }>({ ten: '', gia: 0 })
   const [menuMo, setMenuMo] = useState<string | null>(null) // key dòng đang mở menu ⋮

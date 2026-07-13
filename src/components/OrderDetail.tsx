@@ -11,7 +11,7 @@ type ChiTiet = {
   phiShip: number; kieuPhiShip?: 'freeship' | 'theo_app' | null; donQuaTang?: number; tongTien: number; tienCoc: number; hinhThucTt: string; ghiChu?: string | null
   daSua: number; lyDoHuy?: string | null
   khach?: { ten: string; sdt: string } | null
-  items: { id: number; tenMon: string; coBanh?: string | null; cot?: string | null; mut?: string | null; topping?: string[]; soLuong: number; chuViet?: string | null; ghiChu?: string | null; gia: number; anhMau: string[] }[]
+  items: { id: number; tenMon: string; coBanh?: string | null; cot?: string | null; kem?: string | null; mut?: string | null; topping?: string[]; soLuong: number; chuViet?: string | null; ghiChu?: string | null; gia: number; anhMau: string[] }[]
   phuKien?: { id: number; ten: string; gia: number; soLuong: number }[]
   anhThanhPham?: string[]
   events: { id: number; hanhDong: string; chiTiet?: string | null; thoiDiem: number; userId?: number | null; tenNguoiThucHien: string }[]
@@ -143,10 +143,11 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
               </div>
               <div className="num text-[var(--color-caphe)]">{dinhDangTien(it.gia)}</div>
             </div>
-            {(it.coBanh || it.cot || it.mut || (it.topping && it.topping.length > 0)) && (
+            {(it.coBanh || it.cot || it.kem || it.mut || (it.topping && it.topping.length > 0)) && (
               <div className="flex flex-wrap gap-1.5">
                 {it.coBanh && <span className="tb-chip tb-chip-caramel text-sm font-semibold">📏 Size: {it.coBanh}</span>}
                 {it.cot && <span className="tb-chip text-sm font-semibold">🎂 Cốt: {it.cot}</span>}
+                {it.kem && <span className="tb-chip text-sm font-semibold">🍦 Kem: {it.kem}</span>}
                 {it.mut && <span className="tb-chip tb-chip-dau text-sm font-semibold">🍓 Mứt: {it.mut}</span>}
                 {it.topping && it.topping.length > 0 && <span className="tb-chip tb-chip-tra text-sm font-semibold">✨ Topping: {it.topping.join(', ')}</span>}
               </div>
