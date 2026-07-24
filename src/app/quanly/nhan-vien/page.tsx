@@ -48,7 +48,9 @@ export default function NhanVienPage() {
   return (
     <AppShell user={user} tieuDe="Nhân viên">
       <form onSubmit={them} className="tb-card p-4 flex gap-2 flex-wrap items-end mb-4">
-        <input required className="tb-input w-auto" placeholder="Tên đăng nhập" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+        <input required className="tb-input w-auto" placeholder="Tên đăng nhập" value={form.username}
+          pattern="[a-z0-9._-]+" title="Chỉ gồm chữ thường không dấu, số và . _ - (không dấu cách, không tiếng Việt)"
+          onChange={(e) => setForm({ ...form, username: e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, '') })} />
         <input required className="tb-input w-auto" placeholder="Mật khẩu" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
         <input required className="tb-input w-auto" placeholder="Họ tên" value={form.hoTen} onChange={(e) => setForm({ ...form, hoTen: e.target.value })} />
         <select className="tb-input w-auto" value={form.vaiTro} onChange={(e) => setForm({ ...form, vaiTro: e.target.value })}>
@@ -56,6 +58,7 @@ export default function NhanVienPage() {
         </select>
         <button className="btn-primary">＋ Thêm</button>
         {loi && <span className="text-[var(--color-dau)]">{loi}</span>}
+        <p className="w-full text-xs text-[var(--color-xam)]">Tên đăng nhập chỉ gồm chữ thường không dấu, số và <span className="num">. _ -</span> — không dấu cách, không tiếng Việt.</p>
       </form>
 
       <div className="tb-card">

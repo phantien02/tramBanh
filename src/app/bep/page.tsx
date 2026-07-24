@@ -34,8 +34,9 @@ export default function BepPage() {
       fetch(`/api/orders?tu=${tuCanLam}&den=${cuoi}&trangThai=moi,dang_lam`).then((r) => r.json()),
       fetch(`/api/orders?tu=${dau}&den=${cuoi}&trangThai=banh_xong,da_nhan,hoan_tat`).then((r) => r.json()),
     ])
-    setCanLam(dCan.orders)
-    setDaXong(dXong.orders)
+    // Phòng khi API lỗi/timeout trả về không có mảng orders → tránh crash "not iterable"
+    setCanLam(Array.isArray(dCan?.orders) ? dCan.orders : [])
+    setDaXong(Array.isArray(dXong?.orders) ? dXong.orders : [])
   }, [lechNgay])
 
   useEffect(() => { taiDon() }, [taiDon])

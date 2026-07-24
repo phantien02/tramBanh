@@ -73,7 +73,12 @@ export default function ChupAnhThanhPham({ maDon, dangGui, onXacNhan, onDong }: 
               className="tb-btn-ghost py-4 text-lg border-dashed disabled:opacity-40">🖼 Tải ảnh lên</button>
           </div>
         )}
-        {dangTai && <p className="text-sm text-[var(--color-xam)] text-center">Đang tải ảnh…</p>}
+        {dangTai && (
+          <p className="text-sm text-[var(--color-caramel-600)] flex items-center justify-center gap-2">
+            <span className="inline-block h-4 w-4 rounded-full border-2 border-[var(--color-caramel)] border-t-transparent animate-spin" />
+            Đang tải ảnh lên…
+          </p>
+        )}
 
         <div className="space-y-2 pt-2">
           <button type="button" disabled={dangGui || dangTai || anh.length === 0} onClick={() => onXacNhan(anh)}

@@ -67,6 +67,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
   const [ghiDeTien, setGhiDeTien] = useState(donCu?.tongTienGhiDe != null)
   const [xacNhan, setXacNhan] = useState(false)
   const [phongTo, setPhongTo] = useState<string | null>(null)
+  const [dangTaiAnh, setDangTaiAnh] = useState<Record<number, number>>({}) // số ảnh đang tải theo từng bánh
 
   const init0 = tachNgayGio(v.ngayGioNhan)
   const [ngay, setNgay] = useState(init0.ngay)
@@ -107,7 +108,7 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
       ...x,
       items: [...x.items, {
         productId: opts.sanPhamMau?.id, tenMon: tenMau,
-        coBanh: opts.size[0]?.ten, cot: '', kem: '', mut: '', topping: [],
+        coBanh: opts.size[0]?.ten, cot: '', kem: opts.kem[0]?.ten ?? '', mut: '', topping: [],
         soLuong: 1, giaBase: 0, gia: 0, anhMau: [],
       }],
     }))
@@ -144,11 +145,18 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
 
   async function themAnh(i: number, file: File) {
     if (v.items[i].anhMau.length >= 5) { alert('Mỗi bánh chỉ tải tối đa 5 ảnh mẫu.'); return }
-    const fd = new FormData(); fd.append('file', file)
-    const res = await fetch('/api/upload', { method: 'POST', body: fd })
-    const data = await res.json()
-    if (!res.ok) { alert(`Tải ảnh thất bại: ${data.error}`); return }
-    suaMon(i, { anhMau: [...v.items[i].anhMau, data.filePath] })
+    setDangTaiAnh((s) => ({ ...s, [i]: (s[i] ?? 0) + 1 }))
+    try {
+      const fd = new FormData(); fd.append('file', file)
+      const res = await fetch('/api/upload', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) { alert(`Tải ảnh thất bại: ${data.error}`); return }
+      suaMon(i, { anhMau: [...v.items[i].anhMau, data.filePath] })
+    } catch {
+      alert('Tải ảnh thất bại. Kiểm tra kết nối mạng và thử lại.')
+    } finally {
+      setDangTaiAnh((s) => ({ ...s, [i]: Math.max(0, (s[i] ?? 1) - 1) }))
+    }
   }
 
   // Danh mục vị + mức phụ thu (phẳng) để tính giá món: giá = base + phụ thu theo cốt/mứt/topping
@@ -256,7 +264,6 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                   <div>
                     <p className="text-xs text-[var(--color-xam)] mb-1">Kem</p>
                     <div className="flex gap-2 flex-wrap">
-                      <button type="button" onClick={() => suaMon(i, { kem: '' })} className={clsToggle(!m.kem)}>Không</button>
                       {opts.kem.map((o) => (
                         <button type="button" key={o.id} onClick={() => suaMon(i, { kem: o.ten })} className={clsToggle(m.kem === o.ten)}>{o.ten}</button>
                       ))}
@@ -348,6 +355,12 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                         className="absolute -top-1.5 -right-1.5 bg-[var(--color-dau)] text-white rounded-full w-5 h-5 text-xs leading-none flex items-center justify-center">✕</button>
                     </span>
                   ))}
+                  {(dangTaiAnh[i] ?? 0) > 0 && (
+                    <span className="h-16 w-16 flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-[var(--color-caramel)] bg-[var(--color-surface)] text-[var(--color-caramel-600)]">
+                      <span className="inline-block h-5 w-5 rounded-full border-2 border-[var(--color-caramel)] border-t-transparent animate-spin" />
+                      <span className="text-[10px] leading-none">Đang tải…</span>
+                    </span>
+                  )}
                   {m.anhMau.length < 5 && (
                     <label className="border-2 border-dashed border-[var(--color-line)] hover:border-[var(--color-caramel)] rounded-lg h-16 w-16 flex items-center justify-center cursor-pointer text-[var(--color-xam)] hover:text-[var(--color-caramel-600)] transition-colors bg-[var(--color-surface)]">
                       <span className="text-xl">📷</span>

@@ -18,6 +18,9 @@ export async function POST(req: NextRequest) {
   if (!username || !password || !hoTen || !['quay', 'bep', 'quanly'].includes(vaiTro)) {
     return loiJson(400, 'Thiếu hoặc sai thông tin')
   }
+  if (!/^[a-z0-9._-]{3,32}$/.test(String(username))) {
+    return loiJson(400, 'Tên đăng nhập chỉ gồm chữ thường không dấu, số và . _ - (3–32 ký tự, không dấu cách, không tiếng Việt).')
+  }
   try {
     const u = db.insert(users).values({ username, passwordHash: hashPassword(password), hoTen, vaiTro }).returning().get()
     return NextResponse.json({ id: u.id }, { status: 201 })
