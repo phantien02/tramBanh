@@ -8,7 +8,9 @@ import { loiJson } from '@/lib/api-helpers'
 
 export async function POST(req: NextRequest) {
   const { username, password } = await req.json()
-  const user = db.select().from(users).where(eq(users.username, String(username ?? ''))).get()
+  // trim() để bỏ khoảng trắng thừa (bàn phím mobile hay tự thêm dấu cách/đầu-cuối)
+  const tenDangNhap = String(username ?? '').trim()
+  const user = db.select().from(users).where(eq(users.username, tenDangNhap)).get()
   if (!user || !user.active || !verifyPassword(String(password ?? ''), user.passwordHash)) {
     return loiJson(401, 'Sai tên đăng nhập hoặc mật khẩu')
   }
