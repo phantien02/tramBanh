@@ -98,18 +98,43 @@ lại) và khôi phục thư mục `data/` từ bản sao lưu.
 Toàn bộ dữ liệu nằm trong thư mục `data/` (cơ sở dữ liệu + ảnh). Sao lưu định kỳ
 bằng cách copy thư mục này sang nơi lưu trữ khác, ví dụ:
 
+**Đừng copy thẳng `data/` khi app đang chạy.** SQLite dùng chế độ WAL: dữ liệu
+mới nằm tạm ở `tram-banh.db-wal` rồi mới gộp vào file chính, nên `cp` giữa chừng
+có thể ra bản sao thiếu hoặc hỏng — mà lúc copy **không báo lỗi gì**, tới khi cần
+khôi phục mới biết. Dùng `VACUUM INTO` để lấy bản chụp nhất quán:
+
 ```bash
-cp -r data data-backup-$(date +%Y%m%d)
+# 1) Chụp DB (an toàn kể cả khi app đang ghi)
+docker compose exec -T tram-banh node -e \
+  'new (require("better-sqlite3"))("/app/data/tram-banh.db",{readonly:true}).exec("VACUUM INTO '"'"'/tmp/snap.db'"'"'")'
+docker compose cp tram-banh:/tmp/snap.db ./backup-$(date +%Y%m%d).db
+docker compose exec -T tram-banh rm -f /tmp/snap.db
+
+# 2) Ảnh upload (file tĩnh, copy thẳng được)
+tar czf ./backup-uploads-$(date +%Y%m%d).tar.gz -C data uploads
 ```
 
-Khôi phục: dừng container (`docker compose down`), thay thế thư mục `data/`
-bằng bản sao lưu, rồi `docker compose up -d` lại.
+Nếu dừng hẳn container (`docker compose down`) thì copy cả thư mục `data/` cũng
+an toàn, vì không còn tiến trình nào ghi vào.
+
+Khôi phục: dừng container (`docker compose down`), thay `data/tram-banh.db` bằng
+file backup (xóa kèm `-wal`/`-shm` cũ nếu có) và giải nén lại `uploads/`, rồi
+`docker compose up -d`.
+
+> ⚠️ Hiện **chưa có backup tự động** trên máy chủ, và các bản copy tay đều nằm
+> cùng ổ đĩa với dữ liệu gốc. Xem [docs/van-de-ton-dong.md](docs/van-de-ton-dong.md)
+> để biết hiện trạng và hướng xử lý.
 
 ### HTTPS
 
 Container chỉ phục vụ HTTP ở cổng 3000. Nếu cần HTTPS, đặt ứng dụng sau một
 reverse proxy như nginx hoặc Caddy và trỏ tên miền/cổng 443 về `localhost:3000`
-trên máy chủ.
+trên máy chủ, hoặc dùng Cloudflare Tunnel (có sẵn HTTPS, đồng thời không phải mở
+cổng ra internet).
+
+HTTPS cũng là **điều kiện bắt buộc** nếu sau này muốn làm thông báo đẩy cho nhân
+viên (Web Push không chạy trên HTTP) — xem
+[docs/van-de-ton-dong.md](docs/van-de-ton-dong.md).
 
 ## Cấu trúc dữ liệu
 
