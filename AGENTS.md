@@ -97,5 +97,14 @@ Test viết bằng vitest, đặt cạnh file nguồn (`*.test.ts`) trong `src/l
 ## Triển khai
 
 Bằng Docker Compose — chi tiết đầy đủ trong `README.md` (mục "Triển khai bằng
-Docker"). Trên Windows có `docker-compose.override.yml` bắt dùng named volume vì
-bind mount không hỗ trợ shared-memory của SQLite WAL.
+Docker").
+
+- **Linux (máy chủ thật):** `docker compose up -d --build` — dữ liệu ở bind
+  mount `./data`.
+- **Windows (Docker Desktop):** phải thêm file override tường minh:
+  `docker compose -f docker-compose.yml -f docker-compose.windows.yml up -d --build`
+  (bind mount không hỗ trợ shared-memory của SQLite WAL → dùng named volume).
+
+Đừng đổi tên `docker-compose.windows.yml` thành `docker-compose.override.yml`:
+tên đó Compose tự nạp trên **mọi** hệ điều hành, máy chủ Linux `git pull` về sẽ
+đổi sang named volume và chạy với DB rỗng.

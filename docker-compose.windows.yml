@@ -1,0 +1,18 @@
+# Override cho Windows (Docker Desktop): bind mount ./data không hỗ trợ
+# shared-memory file của SQLite WAL (SQLITE_IOERR_SHMOPEN) → dùng named volume.
+#
+# CHỈ dùng trên Windows, phải gọi tên tường minh:
+#   docker compose -f docker-compose.yml -f docker-compose.windows.yml up -d --build
+#
+# File này CỐ TÌNH không đặt tên "docker-compose.override.yml": tên đó được
+# Docker Compose tự nạp trên MỌI hệ điều hành, nên khi máy chủ Linux `git pull`
+# về là nó lặng lẽ đổi bind mount ./data sang named volume → app chạy với DB
+# rỗng, tưởng như mất sạch đơn. Trên Linux cứ dùng docker-compose.yml, không
+# cần và không được nạp file này.
+services:
+  tram-banh:
+    volumes: !override
+      - tram-banh-data:/app/data
+
+volumes:
+  tram-banh-data:

@@ -65,6 +65,11 @@ npm run lint    # kiểm tra lint
    Đăng nhập lần đầu bằng `admin` / `admin123` — **đổi mật khẩu ngay** trong
    mục quản lý nhân viên.
 
+   > **Chạy thử trên Windows (Docker Desktop)** thì phải thêm file override:
+   > `docker compose -f docker-compose.yml -f docker-compose.windows.yml up -d --build`
+   > — bind mount `./data` trên Windows không hỗ trợ shared-memory của SQLite
+   > WAL. Trên máy chủ Linux **không** dùng file này.
+
 4. Xem log / dừng / khởi động lại:
 
    ```bash
@@ -72,6 +77,21 @@ npm run lint    # kiểm tra lint
    docker compose restart
    docker compose down
    ```
+
+### Nâng cấp lên phiên bản mới
+
+Migration cơ sở dữ liệu **tự chạy** khi container khởi động, nhưng vẫn sao lưu
+trước cho chắc:
+
+```bash
+cp -r data data-backup-$(date +%Y%m%d-%H%M)
+git pull
+docker compose up -d --build
+docker compose logs -f --tail=50
+```
+
+Nếu bản mới có lỗi, quay lại commit cũ (`git checkout <commit-cũ>` rồi build
+lại) và khôi phục thư mục `data/` từ bản sao lưu.
 
 ### Sao lưu (backup)
 
