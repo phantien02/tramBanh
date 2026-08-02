@@ -13,11 +13,11 @@ export const TEN_TRANG_THAI: Record<TrangThai, string> = {
 // các bước chuyển hợp lệ + vai trò được bấm (quanly luôn được)
 const BUOC: { from: TrangThai; to: TrangThai; roles: VaiTro[] }[] = [
   { from: 'moi', to: 'dang_lam', roles: ['bep'] },
-  { from: 'moi', to: 'hoan_tat', roles: ['quay'] }, // đơn lấy ngay
+  { from: 'moi', to: 'hoan_tat', roles: ['quay'] },      // đơn lấy ngay
   { from: 'dang_lam', to: 'banh_xong', roles: ['bep'] },
-  { from: 'banh_xong', to: 'da_nhan', roles: ['quay'] },
-  { from: 'da_nhan', to: 'hoan_tat', roles: ['quay'] },
-  // hoàn tác khi bếp bấm nhầm — chỉ được trước khi quầy nhận bánh (da_nhan)
+  { from: 'banh_xong', to: 'hoan_tat', roles: ['quay'] }, // bánh xong → giao thẳng, bỏ bước quầy nhận
+  { from: 'da_nhan', to: 'hoan_tat', roles: ['quay'] },   // đơn cũ còn kẹt ở "Quầy đã nhận" vẫn kết thúc được
+  // hoàn tác khi bếp bấm nhầm — chỉ được trước khi đơn kết thúc
   { from: 'banh_xong', to: 'dang_lam', roles: ['bep'] }, // lỡ bấm "Xong"
   { from: 'dang_lam', to: 'moi', roles: ['bep'] },       // trả về hàng chờ
 ]

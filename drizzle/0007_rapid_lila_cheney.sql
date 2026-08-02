@@ -1,0 +1,1 @@
+ALTER TABLE `phu_kien` ADD `anh` text;

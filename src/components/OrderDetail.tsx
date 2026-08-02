@@ -26,13 +26,14 @@ function nutKhaDung(tt: TrangThai, vaiTro: VaiTro): { to: TrangThai; ten: string
   if (tt === 'dang_lam' && la('bep')) nut.push({ to: 'moi', ten: '↩ Trả về hàng chờ' })
   if (tt === 'dang_lam' && la('bep')) nut.push({ to: 'banh_xong', ten: '🎂 Xong' })
   if (tt === 'banh_xong' && la('bep')) nut.push({ to: 'dang_lam', ten: '↩ Hoàn tác — làm lại' })
-  if (tt === 'banh_xong' && la('quay')) nut.push({ to: 'da_nhan', ten: '🤝 Đã nhận bánh' })
+  // Bánh xong là giao thẳng cho khách, không còn bước "quầy nhận bánh"
+  if (tt === 'banh_xong' && la('quay')) nut.push({ to: 'hoan_tat', ten: '✅ Hoàn tất', can: 'ketThucKieu' })
   if (tt === 'da_nhan' && la('quay')) nut.push({ to: 'hoan_tat', ten: '✅ Hoàn tất', can: 'ketThucKieu' })
   if (tt !== 'hoan_tat' && tt !== 'huy' && la('quay')) nut.push({ to: 'huy', ten: '🗑 Hủy đơn', can: 'lyDoHuy' })
   return nut
 }
 
-const TEN_KET_THUC = [['giao_khach', 'Giao khách tại tiệm'], ['da_ship', 'Đã ship'], ['len_tu', 'Lên tủ trưng bày']]
+const TEN_KET_THUC = [['giao_khach', 'Giao khách tại tiệm'], ['da_ship', 'Đã ship']]
 
 export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: number; vaiTro: VaiTro; onDong?: () => void; onChuyenXong?: (to: TrangThai) => void }) {
   const [don, setDon] = useState<ChiTiet | null>(null)
@@ -41,9 +42,16 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
   const [hoiAnhXong, setHoiAnhXong] = useState(false) // đang chờ chụp ảnh thành phẩm trước khi Xong
   const [dangGuiAnh, setDangGuiAnh] = useState(false)
   const [anhPhongTo, setAnhPhongTo] = useState<string | null>(null) // ảnh mẫu đang mở lightbox
+  const [anhPhuKien, setAnhPhuKien] = useState<Record<string, string>>({}) // tên phụ kiện → ảnh minh họa
 
   const tai = useCallback(() => { fetch(`/api/orders/${id}`).then((r) => r.json()).then(setDon) }, [id])
   useEffect(() => { tai() }, [tai])
+
+  // Đơn chỉ lưu snapshot tên + giá phụ kiện, ảnh lấy từ danh mục theo tên
+  useEffect(() => {
+    fetch('/api/phu-kien').then((r) => r.json()).then((d: { items?: { ten: string; anh?: string | null }[] }) =>
+      setAnhPhuKien(Object.fromEntries((d.items ?? []).filter((p) => p.anh).map((p) => [p.ten, p.anh as string]))))
+  }, [])
 
   async function goiChuyen(to: TrangThai, opts?: { ketThucKieu?: string; lyDoHuy?: string; anhThanhPham?: string[] }) {
     const res = await fetch(`/api/orders/${id}/chuyen`, {
@@ -186,11 +194,18 @@ export default function OrderDetail({ id, vaiTro, onDong, onChuyenXong }: { id: 
           <h3 className="text-[var(--color-caramel-600)] text-sm font-semibold uppercase tracking-wider">Phụ kiện mua thêm</h3>
           <div className="bg-[var(--color-surface-2)] border border-[var(--color-line)] rounded-xl p-4 space-y-2">
             {don.phuKien.map((p) => (
-              <div key={p.id} className="flex justify-between items-center">
-                <span className="text-[var(--color-caphe)] font-medium">
-                  <span className="num text-[var(--color-caramel-600)] mr-2">{p.soLuong}×</span>🕯 {p.ten}
+              <div key={p.id} className="flex justify-between items-center gap-3">
+                <span className="text-[var(--color-caphe)] font-medium flex items-center gap-2 min-w-0">
+                  {anhPhuKien[p.ten]
+                    ? <button type="button" onClick={() => setAnhPhongTo(anhPhuKien[p.ten])} title="Bấm để phóng to"
+                        className="shrink-0 rounded-lg overflow-hidden border border-[var(--color-line)] cursor-zoom-in">
+                        <img src={`/api/uploads/${anhPhuKien[p.ten]}`} alt={p.ten} className="h-12 w-12 object-cover" />
+                      </button>
+                    : <span className="shrink-0 w-12 text-center">🕯</span>}
+                  <span className="num text-[var(--color-caramel-600)]">{p.soLuong}×</span>
+                  <span className="truncate">{p.ten}</span>
                 </span>
-                <span className="num text-[var(--color-caphe)]">{dinhDangTien(p.gia * p.soLuong)}</span>
+                <span className="num text-[var(--color-caphe)] whitespace-nowrap">{dinhDangTien(p.gia * p.soLuong)}</span>
               </div>
             ))}
           </div>

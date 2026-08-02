@@ -12,6 +12,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const set: Record<string, unknown> = {}
   if (typeof body.ten === 'string' && body.ten.trim()) set.ten = body.ten.trim()
   if (typeof body.gia === 'number' && body.gia >= 0) set.gia = body.gia
+  // anh: chuỗi = đặt ảnh mới, chuỗi rỗng / null = gỡ ảnh
+  if (typeof body.anh === 'string') set.anh = body.anh.trim() || null
+  if (body.anh === null) set.anh = null
   if (typeof body.active === 'boolean') set.active = body.active ? 1 : 0
   if (typeof body.active === 'number') set.active = body.active
   if (typeof body.thuTu === 'number') set.thuTu = body.thuTu

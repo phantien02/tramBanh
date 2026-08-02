@@ -84,7 +84,7 @@ describe('chuyenTrangThai', () => {
     expect(chuyenTrangThai(id, 'dang_lam', bep).ok).toBe(true)
     expect(chuyenTrangThai(id, 'dang_lam', bep).ok).toBe(false) // bấm lần 2 → đơn đã chuyển rồi
     expect(chuyenTrangThai(id, 'banh_xong', bep).ok).toBe(true)
-    expect(chuyenTrangThai(id, 'da_nhan', quay).ok).toBe(true)
+    expect(chuyenTrangThai(id, 'da_nhan', quay).ok).toBe(false) // bỏ bước quầy nhận bánh
     expect(chuyenTrangThai(id, 'hoan_tat', quay, { ketThucKieu: 'giao_khach' }).ok).toBe(true)
   })
   it('bấm Xong kèm ảnh thành phẩm → ảnh lưu vào đơn; không ảnh → không lưu', () => {
@@ -99,6 +99,12 @@ describe('chuyenTrangThai', () => {
     chuyenTrangThai(id2, 'dang_lam', bep)
     expect(chuyenTrangThai(id2, 'banh_xong', bep).ok).toBe(true)
     expect(db.select().from(orderAnhThanhPham).where(eq(orderAnhThanhPham.orderId, id2)).all().length).toBe(0)
+  })
+  it('bỏ "lên tủ trưng bày": hoan_tat với len_tu bị chặn, giao_khach vẫn được', () => {
+    const quay = { id: quayId, username: 'q1', hoTen: 'Quầy 1', vaiTro: 'quay' as const }
+    const { id } = taoDon(donMau(Date.now() + 86400000), quayId)
+    expect(chuyenTrangThai(id, 'hoan_tat', quay, { ketThucKieu: 'len_tu' }).ok).toBe(false)
+    expect(chuyenTrangThai(id, 'hoan_tat', quay, { ketThucKieu: 'giao_khach' }).ok).toBe(true)
   })
   it('hoàn tất thiếu ketThucKieu hoặc hủy thiếu lý do → lỗi', () => {
     const { id } = taoDon(donMau(Date.now() + 86400000), quayId)

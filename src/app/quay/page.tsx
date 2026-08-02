@@ -9,7 +9,8 @@ import { dauCuoiNgay, dinhDangNgay } from '@/lib/time'
 import type { SessionUser } from '@/lib/session'
 import { TEN_TRANG_THAI, type TrangThai } from '@/lib/status'
 
-const COT: TrangThai[] = ['moi', 'dang_lam', 'banh_xong', 'da_nhan']
+// Luồng mới bỏ bước "Quầy đã nhận" — cột đó chỉ hiện khi còn đơn cũ kẹt ở trạng thái này
+const COT_CHINH: TrangThai[] = ['moi', 'dang_lam', 'banh_xong']
 
 const MAU_COT: Partial<Record<TrangThai, string>> = {
   moi: 'var(--color-dau)',
@@ -72,6 +73,10 @@ export default function QuayPage() {
   const dsLoc = locGiao === 'ship' ? dangXuLy.filter((d) => laShip(d.hinhThucNhan))
     : locGiao === 'taiquan' ? dangXuLy.filter((d) => !laShip(d.hinhThucNhan))
     : dangXuLy
+  const COT: TrangThai[] = dsLoc.some((d) => d.trangThai === 'da_nhan')
+    ? [...COT_CHINH, 'da_nhan'] : COT_CHINH
+  // cột "Quầy đã nhận" có thể biến mất khi đơn cũ cuối cùng kết thúc → quay về cột đầu
+  const cotDangXem = COT.includes(cotMobile) ? cotMobile : COT[0]
 
   if (!user) return null
   return (
@@ -128,7 +133,7 @@ export default function QuayPage() {
             <div className="flex gap-2 overflow-x-auto pb-2 mb-3 -mx-1 px-1">
               {COT.map((tt) => {
                 const n = dsLoc.filter((d) => d.trangThai === tt).length
-                const active = cotMobile === tt
+                const active = cotDangXem === tt
                 return (
                   <button key={tt} onClick={() => setCotMobile(tt)}
                     className={`whitespace-nowrap rounded-xl px-3 py-2 text-sm font-bold border transition-colors ${active ? 'text-white' : 'bg-[var(--color-surface)] text-[var(--color-caphe)] border-[var(--color-line)]'}`}
@@ -139,17 +144,17 @@ export default function QuayPage() {
               })}
             </div>
             <div className="space-y-3">
-              {dsLoc.filter((d) => d.trangThai === cotMobile).map((d) => (
+              {dsLoc.filter((d) => d.trangThai === cotDangXem).map((d) => (
                 <OrderCard key={d.id} don={d} now={now} onClick={() => router.push(`/quay/don/${d.id}`)} />
               ))}
-              {dsLoc.filter((d) => d.trangThai === cotMobile).length === 0 && (
+              {dsLoc.filter((d) => d.trangThai === cotDangXem).length === 0 && (
                 <p className="text-center text-[var(--color-xam)] mt-8">Không có đơn ở trạng thái này.</p>
               )}
             </div>
           </div>
 
-          {/* Máy tính: kanban 4 cột */}
-          <div className="hidden lg:grid lg:grid-cols-4 gap-3 items-start">
+          {/* Máy tính: kanban theo số cột đang hiện */}
+          <div className={`hidden lg:grid gap-3 items-start ${COT.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
             {COT.map((tt) => {
               const ds = dsLoc.filter((d) => d.trangThai === tt)
               return (

@@ -15,7 +15,7 @@ type BanhOptions = {
   size: Opt[]
   sanPhamMau: { id: number; ten: string } | null
 }
-type PhuKien = { id: number; ten: string; gia: number; thuTu: number; active: number }
+type PhuKien = { id: number; ten: string; gia: number; anh?: string | null; thuTu: number; active: number }
 
 const KHOI: { loai: Loai; ten: string; goiYThem: string }[] = [
   { loai: 'cot', ten: 'Cốt bánh', goiYThem: 'Thêm vị cốt bánh…' },
@@ -69,6 +69,7 @@ export default function BanhPage() {
   const [dsPhuKien, setDsPhuKien] = useState<PhuKien[]>([])
   const [pkMoi, setPkMoi] = useState<{ ten: string; gia: number }>({ ten: '', gia: 0 })
   const [menuMo, setMenuMo] = useState<string | null>(null) // key dòng đang mở menu ⋮
+  const [dangTaiAnhPk, setDangTaiAnhPk] = useState<number | null>(null) // id phụ kiện đang tải ảnh
 
   useEffect(() => { fetch('/api/me').then((r) => r.json()).then(setUser) }, [])
   const tai = useCallback(async () => {
@@ -141,6 +142,33 @@ export default function BanhPage() {
   async function xoaPhuKien(p: PhuKien) {
     if (!confirm(`Xóa phụ kiện "${p.ten}"? (Đơn cũ đã lưu phụ kiện này không bị ảnh hưởng)`)) return
     await fetch(`/api/phu-kien/${p.id}`, { method: 'DELETE' })
+    tai()
+  }
+
+  // Tải ảnh minh họa cho phụ kiện — quầy nhìn ảnh để không chọn nhầm
+  async function doiAnhPhuKien(p: PhuKien, file: File) {
+    setDangTaiAnhPk(p.id)
+    try {
+      const fd = new FormData(); fd.append('file', file)
+      const res = await fetch('/api/upload', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) { alert(`Tải ảnh thất bại: ${data.error}`); return }
+      await fetch(`/api/phu-kien/${p.id}`, {
+        method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ anh: data.filePath }),
+      })
+      tai()
+    } catch {
+      alert('Tải ảnh thất bại. Kiểm tra kết nối mạng và thử lại.')
+    } finally {
+      setDangTaiAnhPk(null)
+    }
+  }
+
+  async function goAnhPhuKien(p: PhuKien) {
+    if (!confirm(`Gỡ ảnh của "${p.ten}"?`)) return
+    await fetch(`/api/phu-kien/${p.id}`, {
+      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ anh: null }),
+    })
     tai()
   }
 
@@ -257,6 +285,20 @@ export default function BanhPage() {
               key={p.id}
               className="flex items-center gap-2 rounded-lg border border-[var(--color-line)] px-3 py-2"
             >
+              {/* Ảnh minh họa: bấm để chọn/đổi ảnh ngay tại dòng */}
+              <label className="shrink-0 cursor-pointer" title={p.anh ? 'Bấm để đổi ảnh' : 'Bấm để thêm ảnh'}>
+                {dangTaiAnhPk === p.id ? (
+                  <span className="h-11 w-11 flex items-center justify-center rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-2)]">
+                    <span className="inline-block h-4 w-4 rounded-full border-2 border-[var(--color-caramel)] border-t-transparent animate-spin" />
+                  </span>
+                ) : p.anh ? (
+                  <img src={`/api/uploads/${p.anh}`} alt={p.ten} className="h-11 w-11 object-cover rounded-lg border border-[var(--color-line)]" />
+                ) : (
+                  <span className="h-11 w-11 flex items-center justify-center rounded-lg border border-dashed border-[var(--color-line)] text-[var(--color-xam)] hover:border-[var(--color-caramel)] hover:text-[var(--color-caramel-600)] transition-colors">📷</span>
+                )}
+                <input type="file" accept="image/*" hidden
+                  onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) doiAnhPhuKien(p, f) }} />
+              </label>
               <span className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-caphe)]">{p.ten}</span>
               <span className="num text-xs shrink-0 text-[var(--color-caramel-600)] font-medium">{dinhDangTien(p.gia)}</span>
               <MenuBaCham moKey={`pk-${p.id}`} menuMo={menuMo} setMenuMo={setMenuMo}>
@@ -266,6 +308,7 @@ export default function BanhPage() {
                   <div className="border-t border-[var(--color-line)] my-2" />
                 </div>
                 <MucMenu onClick={() => { setMenuMo(null); doiTenPhuKien(p) }}>✏️ Đổi tên</MucMenu>
+                {p.anh && <MucMenu onClick={() => { setMenuMo(null); goAnhPhuKien(p) }}>🖼️ Gỡ ảnh</MucMenu>}
                 <MucMenu danger onClick={() => { setMenuMo(null); xoaPhuKien(p) }}>🗑️ Xóa</MucMenu>
               </MenuBaCham>
             </li>
@@ -287,6 +330,7 @@ export default function BanhPage() {
         </div>
         <p className="text-xs text-[var(--color-xam)] mt-2">
           Giá nhập theo nghìn đồng (gõ 5 = {dinhDangTien(5000)}). Giá sửa trực tiếp trong ô, tự lưu.
+          Bấm ô ảnh 📷 bên trái mỗi dòng để thêm/đổi ảnh minh họa.
         </p>
       </div>
     </AppShell>

@@ -49,6 +49,7 @@ export const phuKien = sqliteTable('phu_kien', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   ten: text('ten').notNull(),
   gia: integer('gia').notNull().default(0),
+  anh: text('anh'),                 // ảnh minh họa để quầy không chọn nhầm phụ kiện
   thuTu: integer('thu_tu').notNull().default(0),
   active: integer('active').notNull().default(1),
 })

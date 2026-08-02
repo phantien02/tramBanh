@@ -7,7 +7,7 @@ import NhapNghin from '@/components/NhapNghin'
 
 type Opt = { id: number; loai: string; ten: string; thuTu: number; active: number; phuThuKieu: 'phan_tram' | 'tien' | null; phuThuGiaTri: number }
 type BanhOptions = { cot: Opt[]; kem: Opt[]; mut: Opt[]; topping: Opt[]; size: Opt[]; sanPhamMau: { id: number; ten: string } | null }
-type PhuKienOpt = { id: number; ten: string; gia: number; thuTu: number; active: number }
+type PhuKienOpt = { id: number; ten: string; gia: number; anh?: string | null; thuTu: number; active: number }
 type MonNhap = {
   productId?: number; tenMon: string; coBanh?: string
   cot?: string; kem?: string; mut?: string; topping?: string[]
@@ -37,6 +37,8 @@ const TT_TEN: Record<string, string> = Object.fromEntries(TT)
 const PHUT = ['00', '15', '30', '45']
 
 const TEN_MAU_MAC_DINH = 'Bánh kem sinh nhật theo mẫu'
+// Mứt mặc định: bếp tự chọn vị. Lưu thành giá trị thật để bếp đọc được trên phiếu.
+const MUT_NGAU_NHIEN = 'Ngẫu nhiên'
 
 // Tách timestamp ms thành ngày (YYYY-MM-DD), giờ (0–23), phút (0/15/30/45)
 function tachNgayGio(ms: number) {
@@ -108,10 +110,19 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
       ...x,
       items: [...x.items, {
         productId: opts.sanPhamMau?.id, tenMon: tenMau,
-        coBanh: opts.size[0]?.ten, cot: '', kem: opts.kem[0]?.ten ?? '', mut: '', topping: [],
+        coBanh: opts.size[0]?.ten, cot: '', kem: opts.kem[0]?.ten ?? '', mut: MUT_NGAU_NHIEN, topping: [],
         soLuong: 1, giaBase: 0, gia: 0, anhMau: [],
       }],
     }))
+  }
+
+  // Xóa 1 bánh khỏi đơn. Chỉ hỏi lại khi bánh đã có dữ liệu — bấm nhầm "Thêm bánh" thì xóa luôn.
+  function xoaBanh(i: number) {
+    const m = v.items[i]
+    const daNhap = !!m.cot || (m.giaBase ?? 0) > 0 || !!m.chuViet?.trim() || !!m.ghiChu?.trim()
+      || (m.topping ?? []).length > 0 || m.anhMau.length > 0
+    if (daNhap && !confirm(`Xóa bánh #${i + 1} khỏi đơn?`)) return
+    setV((x) => ({ ...x, items: x.items.filter((_, j) => j !== i) }))
   }
 
   function suaMon(i: number, patch: Partial<MonNhap>) {
@@ -242,11 +253,12 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
 
           <div className="space-y-4">
             {v.items.map((m, i) => (
-              <div key={i} className="bg-[var(--color-surface-2)] border border-[var(--color-line)] rounded-2xl p-5 space-y-4 relative group">
-                <button type="button" onClick={() => setV((x) => ({ ...x, items: x.items.filter((_, j) => j !== i) }))}
-                  className="absolute top-4 right-4 text-[var(--color-xam)] hover:text-[var(--color-dau)] font-bold px-2 py-1 bg-[var(--color-surface)] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+              <div key={i} className="bg-[var(--color-surface-2)] border border-[var(--color-line)] rounded-2xl p-5 space-y-4 relative">
+                {/* Luôn hiện (điện thoại không có hover) — bấm nhầm "Thêm bánh" thì xóa được ngay */}
+                <button type="button" onClick={() => xoaBanh(i)} title={`Xóa bánh #${i + 1}`}
+                  className="absolute -top-2.5 -right-2.5 z-10 w-9 h-9 rounded-full bg-[var(--color-dau)] text-white font-bold text-lg leading-none flex items-center justify-center shadow-[var(--shadow-lift)] hover:bg-[var(--color-dau-600)] transition-colors">✕</button>
 
-                <div className="text-[var(--color-caramel-600)] font-semibold font-display pt-2 md:pt-0">🎂 Bánh #{i + 1} — {tenMau}</div>
+                <div className="text-[var(--color-caramel-600)] font-semibold font-display pr-8">🎂 Bánh #{i + 1} — {tenMau}</div>
 
                 {/* Cốt */}
                 <div>
@@ -275,7 +287,8 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                 <div>
                   <p className="text-xs text-[var(--color-xam)] mb-1">Mứt</p>
                   <div className="flex gap-2 flex-wrap">
-                    <button type="button" onClick={() => suaMon(i, { mut: '' })} className={clsToggle(!m.mut)}>Không</button>
+                    <button type="button" onClick={() => suaMon(i, { mut: MUT_NGAU_NHIEN })}
+                      className={clsToggle(!m.mut || m.mut === MUT_NGAU_NHIEN)}>🎲 {MUT_NGAU_NHIEN}</button>
                     {opts.mut.map((o) => (
                       <button type="button" key={o.id} onClick={() => suaMon(i, { mut: o.ten })} className={clsToggle(m.mut === o.ten)}>{o.ten}</button>
                     ))}
@@ -390,6 +403,10 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" className="w-5 h-5 rounded border-[var(--color-line)] accent-[var(--color-caramel)]"
                         checked={!!chon} onChange={() => togglePhuKien(p)} />
+                      {p.anh
+                        ? <img src={`/api/uploads/${p.anh}`} alt={p.ten} onClick={(e) => { e.preventDefault(); setPhongTo(p.anh!) }}
+                            className="h-12 w-12 shrink-0 object-cover rounded-lg border border-[var(--color-line)] cursor-zoom-in" />
+                        : <span className="h-12 w-12 shrink-0 flex items-center justify-center rounded-lg border border-dashed border-[var(--color-line)] text-lg">🕯</span>}
                       <span className="font-medium text-[var(--color-caphe)] flex-1 truncate">{p.ten}</span>
                       <span className="num text-sm text-[var(--color-caramel-600)] whitespace-nowrap">{dinhDangTien(p.gia)}</span>
                     </label>
@@ -630,12 +647,21 @@ export default function OrderForm({ donCu, onLuu, dangLuu, loi }: {
               <div className="bg-[var(--color-surface-2)] rounded-xl p-4 border border-[var(--color-line)]">
                 <p className="text-xs text-[var(--color-xam)] uppercase tracking-wider mb-2">Phụ kiện mua thêm</p>
                 <div className="space-y-1">
-                  {(v.phuKien ?? []).map((p) => (
-                    <div key={p.ten} className="flex justify-between text-sm">
-                      <span className="text-[var(--color-caphe)]">🕯 {p.ten}</span>
-                      <span className="num text-[var(--color-caphe)]">{p.soLuong} × {dinhDangTien(p.gia)}</span>
-                    </div>
-                  ))}
+                  {(v.phuKien ?? []).map((p) => {
+                    const anh = dsPhuKien.find((k) => k.ten === p.ten)?.anh
+                    return (
+                      <div key={p.ten} className="flex justify-between items-center text-sm gap-2">
+                        <span className="text-[var(--color-caphe)] flex items-center gap-2 min-w-0">
+                          {anh
+                            ? <img src={`/api/uploads/${anh}`} alt={p.ten} onClick={() => setPhongTo(anh)}
+                                className="h-10 w-10 shrink-0 object-cover rounded-lg border border-[var(--color-line)] cursor-zoom-in" />
+                            : <span className="w-10 text-center shrink-0">🕯</span>}
+                          <span className="truncate">{p.ten}</span>
+                        </span>
+                        <span className="num text-[var(--color-caphe)] whitespace-nowrap">{p.soLuong} × {dinhDangTien(p.gia)}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}

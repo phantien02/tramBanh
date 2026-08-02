@@ -14,10 +14,12 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const user = await layUser()
   if (user?.vaiTro !== 'quanly') return loiJson(403, 'Chỉ quản lý')
-  const { ten, gia } = await req.json()
+  const { ten, gia, anh } = await req.json()
   if (!ten?.trim()) return loiJson(400, 'Thiếu tên phụ kiện')
   if (!(Number(gia) >= 0)) return loiJson(400, 'Giá phụ kiện không hợp lệ')
   const max = db.select().from(phuKien).all().reduce((m, o) => Math.max(m, o.thuTu), -1)
-  const row = db.insert(phuKien).values({ ten: ten.trim(), gia: Number(gia), thuTu: max + 1 }).returning().get()
+  const row = db.insert(phuKien).values({
+    ten: ten.trim(), gia: Number(gia), anh: typeof anh === 'string' && anh.trim() ? anh.trim() : null, thuTu: max + 1,
+  }).returning().get()
   return NextResponse.json({ id: row.id }, { status: 201 })
 }

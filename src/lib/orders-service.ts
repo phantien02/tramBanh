@@ -11,7 +11,9 @@ import type { SessionUser } from './session'
 type Nguon = 'tai_quay' | 'zalo' | 'messenger' | 'dien_thoai' | 'khac'
 type HinhThucNhan = 'tai_tiem' | 'ship' | 'tu_trung_bay'
 type HinhThucTt = 'tien_mat' | 'chuyen_khoan' | 'chua_tt'
+// 'len_tu' (lên tủ trưng bày) đã bỏ khỏi luồng — chỉ còn trong đơn cũ, không nhận mới nữa
 type KetThucKieu = 'giao_khach' | 'da_ship' | 'len_tu'
+const KET_THUC_HOP_LE: KetThucKieu[] = ['giao_khach', 'da_ship']
 
 export type DonMoi = {
   khach: { sdt: string; ten: string }
@@ -158,7 +160,10 @@ export function chuyenTrangThai(
   if (!don) return { ok: false, loi: 'Không tìm thấy đơn' }
   const from = don.trangThai as TrangThai
   if (!chuyenHopLe(from, to, user.vaiTro)) return { ok: false, loi: 'Bước chuyển không hợp lệ với vai trò của bạn' }
-  if (to === 'hoan_tat' && !opts?.ketThucKieu) return { ok: false, loi: 'Chọn hình thức kết thúc (giao khách / đã ship / lên tủ)' }
+  if (to === 'hoan_tat' && !opts?.ketThucKieu) return { ok: false, loi: 'Chọn hình thức kết thúc (giao khách / đã ship)' }
+  if (to === 'hoan_tat' && !KET_THUC_HOP_LE.includes(opts!.ketThucKieu!)) {
+    return { ok: false, loi: 'Hình thức kết thúc không hợp lệ (chỉ giao khách / đã ship)' }
+  }
   if (to === 'huy' && !opts?.lyDoHuy) return { ok: false, loi: 'Nhập lý do hủy' }
 
   const set: Record<string, unknown> = { trangThai: to }
