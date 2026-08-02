@@ -174,7 +174,19 @@
       <div class="case"><label class="cbx"><input type="checkbox" data-id="B3"></label><div class="body">
         <div><span class="cid">B3</span><span class="title">Nhiều bánh trong một đơn</span></div>
         <div class="do">Bấm <b>＋ Thêm bánh</b> để có 2–3 bánh, mỗi bánh chọn vị/size riêng.</div>
-        <div class="exp">Mỗi bánh là một khối riêng; xóa bánh bằng dấu <b>✕</b> được; tổng tiền cộng đủ.</div>
+        <div class="exp">Mỗi bánh là một khối riêng; tổng tiền cộng đủ.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="B3b"></label><div class="body">
+        <div><span class="cid">B3b</span><span class="title">Bấm nhầm “Thêm bánh” — xóa lại được</span></div>
+        <div class="do">Bấm <b>＋ Thêm bánh</b> <b>3 lần</b> (giả bộ bấm nhầm), rồi bấm <b>✕</b> ở góc trên bên phải của bánh #2 và #3. <b>Làm thử cả trên điện thoại.</b></div>
+        <div class="exp">Nút ✕ đỏ <b>luôn nhìn thấy</b> (không cần rê chuột), chạm được bằng ngón tay. Bánh trống xóa ngay không hỏi; bánh <b>đã nhập</b> cốt/giá/ghi chú/ảnh thì hỏi <b>“Xóa bánh #N khỏi đơn?”</b> — bấm Hủy thì giữ nguyên. Các bánh còn lại <b>không mất dữ liệu</b> và được đánh số lại.</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="B3c"></label><div class="body">
+        <div><span class="cid">B3c</span><span class="title">Mứt mặc định là “Ngẫu nhiên”</span></div>
+        <div class="do">Thêm một bánh mới, nhìn dòng <b>Mứt</b> mà chưa chạm gì.</div>
+        <div class="exp">Nút <b>🎲 Ngẫu nhiên</b> đang được chọn sẵn. Màn xác nhận và chi tiết đơn hiện <b>🍓 Mứt: Ngẫu nhiên</b> để Bếp biết là tự chọn vị. Không cộng thêm tiền.</div>
       </div></div>
 
       <div class="case"><label class="cbx"><input type="checkbox" data-id="B4"></label><div class="body">
@@ -209,8 +221,8 @@
 
       <div class="case"><label class="cbx"><input type="checkbox" data-id="B8"></label><div class="body">
         <div><span class="cid">B8</span><span class="title">Phụ kiện mua thêm</span></div>
-        <div class="do">Ở khối <b>🕯 Phụ kiện mua thêm</b>, tick nến/mũ/pháo, chỉnh số lượng.</div>
-        <div class="exp">Tổng thanh toán <b>tăng thêm</b> đúng tiền phụ kiện × số lượng.</div>
+        <div class="do">Ở khối <b>🕯 Phụ kiện mua thêm</b>, tick nến/mũ/pháo, chỉnh số lượng. Nếu Quản lý đã gắn ảnh (mục F6b), chạm vào ảnh.</div>
+        <div class="exp">Tổng thanh toán <b>tăng thêm</b> đúng tiền phụ kiện × số lượng. Phụ kiện có ảnh thì hiện <b>ảnh minh họa</b> (chạm phóng to được); chưa có ảnh thì hiện biểu tượng 🕯. Ảnh cũng hiện ở màn xác nhận và <b>chi tiết đơn</b> lúc giao hàng.</div>
       </div></div>
 
       <div class="case"><label class="cbx"><input type="checkbox" data-id="B9"></label><div class="body">
@@ -318,16 +330,21 @@
 
     <!-- E -->
     <section id="E">
-      <div class="grp-h"><h2>E. Quầy nhận bánh &amp; hoàn tất</h2><span class="chip-role r-quay">Quầy</span></div>
+      <div class="grp-h"><h2>E. Quầy giao bánh &amp; hoàn tất</h2><span class="chip-role r-quay">Quầy</span></div>
       <div class="case"><label class="cbx"><input type="checkbox" data-id="E1"></label><div class="body">
-        <div><span class="cid">E1</span><span class="title">Đã nhận bánh</span></div>
-        <div class="do">Mở đơn <b>Bánh xong</b>, bấm <b>🤝 Đã nhận bánh</b>.</div>
-        <div class="exp">Đơn chuyển <b>Quầy đã nhận</b>; màn hình tự quay về bảng đơn.</div>
+        <div><span class="cid">E1</span><span class="title">Bánh xong là hoàn tất thẳng</span></div>
+        <div class="do">Mở đơn <b>Bánh xong</b>, xem các nút đang có.</div>
+        <div class="exp">Chỉ còn <b>✅ Hoàn tất</b> và <b>🗑 Hủy đơn</b> — <b>không còn</b> nút “🤝 Đã nhận bánh”.</div>
       </div></div>
       <div class="case"><label class="cbx"><input type="checkbox" data-id="E2"></label><div class="body">
         <div><span class="cid">E2</span><span class="title">Hoàn tất, chọn hình thức kết thúc</span></div>
-        <div class="do">Mở đơn <b>Quầy đã nhận</b>, bấm <b>✅ Hoàn tất</b>, chọn <b>Giao khách tại tiệm / Đã ship / Lên tủ trưng bày</b>.</div>
-        <div class="exp">Đơn thành <b>Hoàn tất</b>, nằm ở nhóm ✅ Đã giao.</div>
+        <div class="do">Bấm <b>✅ Hoàn tất</b> rồi xem danh sách hình thức kết thúc.</div>
+        <div class="exp">Chỉ có <b>2</b> lựa chọn: <b>Giao khách tại tiệm</b> / <b>Đã ship</b> (đã bỏ “Lên tủ trưng bày”). Chọn xong đơn thành <b>Hoàn tất</b>, màn hình tự quay về bảng đơn, đơn nằm ở nhóm ✅ Đã giao.</div>
+      </div></div>
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="E3"></label><div class="body">
+        <div><span class="cid">E3</span><span class="title">Bảng đơn còn 3 cột</span></div>
+        <div class="do">Về bảng đơn của Quầy, đếm số cột trạng thái (máy tính) hoặc số tab (điện thoại).</div>
+        <div class="exp"><b>3</b>: Mới tạo → Bếp đang làm → Bánh xong. Cột <b>Quầy đã nhận</b> chỉ hiện lại nếu còn đơn cũ kẹt ở trạng thái đó (đơn cũ vẫn bấm Hoàn tất được bình thường).</div>
       </div></div>
     </section>
 
@@ -376,6 +393,12 @@
         <div><span class="cid">F6</span><span class="title">Phụ kiện</span></div>
         <div class="do">Ở <b>🕯 Cấu hình phụ kiện</b>: thêm phụ kiện mới (tên + giá); sửa giá trực tiếp; Đổi tên / Xóa qua ⋮.</div>
         <div class="exp">Thêm/sửa/xóa hoạt động; phụ kiện mới xuất hiện khi tạo đơn (B8).</div>
+      </div></div>
+
+      <div class="case"><label class="cbx"><input type="checkbox" data-id="F6b"></label><div class="body">
+        <div><span class="cid">F6b</span><span class="title">Ảnh minh họa cho phụ kiện</span></div>
+        <div class="do">Bấm ô <b>📷</b> ở đầu một dòng phụ kiện, chọn ảnh từ máy/điện thoại. Bấm lại ô ảnh để đổi ảnh khác. Vào menu <b>⋮</b> bấm <b>🖼️ Gỡ ảnh</b>.</div>
+        <div class="exp">Trong lúc tải hiện vòng xoay, xong thì ảnh thu nhỏ hiện ngay tại dòng. Đổi ảnh thay được ảnh cũ; gỡ ảnh thì quay lại ô 📷 trống. Sang màn tạo đơn (B8) thấy ảnh vừa gắn.</div>
       </div></div>
 
       <div class="case"><label class="cbx"><input type="checkbox" data-id="F7"></label><div class="body">

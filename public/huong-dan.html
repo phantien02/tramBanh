@@ -199,15 +199,13 @@
         <div class="arrow" aria-hidden="true">→</div>
         <div class="step" role="listitem"><div class="st">Bánh xong</div><div class="by"><b>Bếp</b> bấm “Xong” (+ ảnh)</div></div>
         <div class="arrow" aria-hidden="true">→</div>
-        <div class="step" role="listitem"><div class="st">Quầy đã nhận</div><div class="by"><b>Quầy</b> bấm “Đã nhận bánh”</div></div>
-        <div class="arrow" aria-hidden="true">→</div>
-        <div class="step" role="listitem"><div class="st">Hoàn tất</div><div class="by"><b>Quầy</b> giao khách xong</div></div>
+        <div class="step" role="listitem"><div class="st">Hoàn tất</div><div class="by"><b>Quầy</b> bấm “Hoàn tất” khi giao khách</div></div>
       </div>
 
       <ul class="clean">
         <li><b>Đơn lấy ngay:</b> khách mua bánh có sẵn — Quầy mở đơn (trạng thái Mới) và bấm thẳng <b>“✅ Lấy ngay — hoàn tất”</b>, không cần qua Bếp.</li>
         <li><b>Hủy đơn:</b> Quầy/Quản lý hủy được ở <b>mọi trạng thái, trừ đơn đã Hoàn tất hoặc đã Hủy</b>. Luôn phải nhập <b>lý do hủy</b>.</li>
-        <li><b>Bấm nhầm?</b> Bếp <b>hoàn tác</b> được: Bánh xong → Đang làm, hoặc Đang làm → về hàng chờ (Mới). Chỉ được khi Quầy <b>chưa</b> bấm “Đã nhận bánh”.</li>
+        <li><b>Bấm nhầm?</b> Bếp <b>hoàn tác</b> được: Bánh xong → Đang làm, hoặc Đang làm → về hàng chờ (Mới). Chỉ được khi Quầy <b>chưa</b> bấm “Hoàn tất”.</li>
       </ul>
       <div class="note"><b>Chống bấm trùng:</b> nếu hai người cùng xử lý một đơn, người bấm sau sẽ nhận báo <b>“Đơn vừa được người khác xử lý, hãy tải lại”</b> — chỉ cần tải lại trang là thấy trạng thái mới nhất.</div>
     </section>
@@ -245,7 +243,9 @@
       <ol class="steps">
         <li><b>Thông tin Khách hàng:</b> nhập <b>số điện thoại</b> (bắt buộc, di động VN) — nếu là khách quen, <b>tên tự điền</b>. Nhập tên khách. Chọn <b>Nguồn đơn</b>: Tại quầy / Zalo / Messenger / Điện thoại / Khác.</li>
         <li><b>Chọn bánh:</b> mỗi bánh chọn <b>Cốt</b> (bắt buộc), Kem, Mứt, Topping (chọn nhiều), <b>Size</b> (bắt buộc), số lượng và <b>Giá base</b> (bắt buộc). Thêm <b>chữ viết lên bánh</b>, ghi chú món và <b>ảnh mẫu</b> (tối đa <b>5 ảnh/bánh</b>). Nhiều bánh thì bấm <b>“＋ Thêm bánh”</b>. Xem thêm phần <a href="#tien">Giá tiền &amp; phụ thu</a>.</li>
-        <li><b>Phụ kiện mua thêm</b> (nếu có): tick nến / mũ / pháo… và chọn số lượng — tự cộng vào tổng tiền. Không bắt buộc.</li>
+        <li><b>Mứt</b> để mặc định <b>“🎲 Ngẫu nhiên”</b> — Bếp tự chọn vị. Muốn chỉ định thì chạm đúng vị khách yêu cầu.</li>
+        <li><b>Bấm nhầm “＋ Thêm bánh”?</b> Mỗi bánh có <b>nút ✕ đỏ ở góc trên bên phải</b> — chạm để xóa riêng bánh đó, các bánh khác giữ nguyên.</li>
+        <li><b>Phụ kiện mua thêm</b> (nếu có): tick nến / mũ / pháo… và chọn số lượng — tự cộng vào tổng tiền. Phụ kiện nào đã có <b>ảnh minh họa</b> sẽ hiện ảnh (chạm ảnh để phóng to) cho khỏi lấy nhầm. Không bắt buộc.</li>
         <li><b>Giao hàng &amp; Nhận bánh:</b> chọn <b>ngày &amp; giờ</b> khách lấy (nút <b>“Lấy ngay”</b> điền giờ hiện tại). Chọn <b>Nhận tại tiệm</b> hoặc <b>Ship</b>. Nếu Ship: nhập <b>địa chỉ</b> (bắt buộc), tên/SĐT người nhận (nếu khác người đặt), tick <b>🎁 Đơn quà tặng</b> nếu là quà, và chọn phí ship: <b>🆓 Freeship</b> hoặc <b>🛵 Theo app ship</b>.</li>
         <li><b>Thanh toán:</b> hệ thống tự tính <b>Tổng thanh toán</b>; nhập <b>tiền cọc</b> (bắt buộc &gt; 0), chọn hình thức (Chưa thanh toán / Tiền mặt / Chuyển khoản). Cần giảm giá thì tick <b>“Cho phép sửa giá thủ công”</b> để nhập tổng tay.</li>
       </ol>
@@ -256,7 +256,7 @@
       <ul class="clean">
         <li><b>Hôm nay / Sắp tới:</b> chuyển giữa đơn trong ngày và đơn các ngày tới (Sắp tới gom nhóm theo ngày).</li>
         <li><b>Lọc theo giao hàng</b> (chỉ ở tab Hôm nay): <span class="pill" style="background:var(--surface-2)">Tất cả</span> · <span class="pill" style="background:var(--surface-2)">🛵 Cần ship</span> · <span class="pill" style="background:var(--surface-2)">🏠 Tại quán</span> · <span class="pill" style="background:var(--surface-2)">✅ Đã giao</span> — mỗi nút có số đếm.</li>
-        <li><b>Trên máy tính:</b> 4 cột theo trạng thái (Mới tạo → Bếp đang làm → Bánh xong → Quầy đã nhận).</li>
+        <li><b>Trên máy tính:</b> 3 cột theo trạng thái (Mới tạo → Bếp đang làm → Bánh xong).</li>
         <li><b>Trên điện thoại:</b> có <b>thanh tab trạng thái</b> kèm số đếm — chạm để xem từng nhóm.</li>
         <li><b>Tìm kiếm:</b> ô <b>🔍 Tìm mã đơn / tên / SĐT</b>.</li>
       </ul>
@@ -265,14 +265,12 @@
       <p>Chạm vào thẻ để mở <b>trang chi tiết</b>: xem đầy đủ món, ảnh mẫu (phóng to / tải về), ảnh thành phẩm, phụ kiện, tiền nong và <b>Nhật ký hoạt động</b> (ai làm gì, lúc nào). Nút hiện theo trạng thái:</p>
       <div class="btnrow">
         <span class="kbtn tra">✅ Lấy ngay — hoàn tất</span>
-        <span class="kbtn tra">🤝 Đã nhận bánh</span>
         <span class="kbtn dau">✅ Hoàn tất</span>
         <span class="kbtn ghost">🗑 Hủy đơn</span>
         <span class="kbtn ghost">Sửa nội dung đơn</span>
       </div>
       <ul class="clean">
-        <li><b>🤝 Đã nhận bánh:</b> khi Bếp báo xong, Quầy nhận bánh ra quầy. Bấm xong <b>tự quay về bảng đơn</b>.</li>
-        <li><b>✅ Hoàn tất</b> / <b>✅ Lấy ngay — hoàn tất:</b> chọn <b>hình thức kết thúc</b>: Giao khách tại tiệm / Đã ship / Lên tủ trưng bày.</li>
+        <li><b>✅ Hoàn tất</b> / <b>✅ Lấy ngay — hoàn tất:</b> khi Bếp báo xong, Quầy giao bánh cho khách rồi bấm luôn nút này (không còn bước “nhận bánh” riêng). Chọn <b>hình thức kết thúc</b>: Giao khách tại tiệm / Đã ship. Bấm xong <b>tự quay về bảng đơn</b>.</li>
         <li><b>🗑 Hủy đơn:</b> nhập lý do hủy.</li>
         <li><b>Sửa nội dung đơn:</b> link ở cuối trang chi tiết — mở lại form để chỉnh.</li>
       </ul>
@@ -332,7 +330,7 @@
       <p>Màn <b>“Cấu hình sản phẩm”</b> gồm 2 phần:</p>
       <ul class="clean">
         <li><b>🎂 Cấu hình vị bánh</b> — 5 nhóm <b>Cốt · Kem · Mứt · Topping · Size</b>. Mỗi vị: <b>＋ Thêm</b>, menu <b>⋮</b> để <b>Đổi tên</b> / <b>Xóa</b>. Riêng Cốt/Kem/Mứt/Topping có mục <b>“Phụ thu khi khách chọn”</b>: Miễn phí / Theo % / Cộng tiền. <b>Size không có phụ thu.</b> Nhóm <b>Kem</b> sẵn một vị <b>“Kem mặc định”</b> (miễn phí) — thêm các vị kem khác (Kem bơ, Kem dâu…) khi cần.</li>
-        <li><b>🕯 Cấu hình phụ kiện</b> — nến / mũ / pháo…: thêm tên + giá, sửa giá trực tiếp (tự lưu), Đổi tên / Xóa qua menu <b>⋮</b>.</li>
+        <li><b>🕯 Cấu hình phụ kiện</b> — nến / mũ / pháo…: thêm tên + giá, sửa giá trực tiếp (tự lưu), Đổi tên / Xóa qua menu <b>⋮</b>. Bấm ô <b>📷</b> đầu mỗi dòng để tải <b>ảnh minh họa</b> (đổi ảnh bằng cách bấm lại, gỡ ảnh trong menu <b>⋮</b>) — ảnh này hiện cho Quầy lúc chọn phụ kiện và lúc giao hàng.</li>
       </ul>
       <div class="note ok"><b>Yên tâm khi xóa:</b> xóa một vị hay phụ kiện chỉ bỏ nó khỏi danh sách chọn cho đơn <b>mới</b> — <b>các đơn cũ đã lưu không bị ảnh hưởng</b> (lưu theo tên + giá tại thời điểm đặt).</div>
 
@@ -366,7 +364,7 @@
         <p>Mạng tới máy chủ bị gián đoạn nên dữ liệu tạm ngừng cập nhật. App <b>tự kết nối lại</b> khi có mạng — băng đỏ sẽ tự tắt và dữ liệu tải lại. Nếu chờ lâu, chỉ cần <b>refresh</b> trang.</p></details>
 
       <details class="faq"><summary>Bếp lỡ bấm “Xong” nhầm đơn?</summary>
-        <p>Vào tab <b>Đã xong</b>, bấm <b>↩ Hoàn tác</b> để đưa đơn về “Đang làm”. Chỉ làm được khi Quầy chưa bấm “Đã nhận bánh”; nếu đã nhận thì báo Quản lý xử lý.</p></details>
+        <p>Vào tab <b>Đã xong</b>, bấm <b>↩ Hoàn tác</b> để đưa đơn về “Đang làm”. Chỉ làm được khi Quầy chưa bấm “Hoàn tất”; nếu đơn đã hoàn tất thì báo Quản lý xử lý.</p></details>
 
       <details class="faq"><summary>Khách đổi yêu cầu sau khi đã đặt?</summary>
         <p>Mở chi tiết đơn → <b>Sửa nội dung đơn</b>. Nếu Bếp đã bắt tay làm, đơn sẽ gắn nhãn <b>ĐÃ SỬA</b> để Bếp chú ý. Đơn đã <b>Hoàn tất</b> hoặc đã <b>Hủy</b> thì không sửa được.</p></details>

@@ -138,7 +138,7 @@
     <section id="perm">
       <p class="eyebrow">2</p>
       <h2>Ma trận phân quyền chuyển trạng thái <span class="tag t-kt">KT</span></h2>
-      <p class="lead">Nguồn: <code>src/lib/status.ts</code>. <b>Quản lý (quanly) được phép mọi bước hợp lệ.</b> 6 trạng thái: <code>moi · dang_lam · banh_xong · da_nhan · hoan_tat · huy</code>.</p>
+      <p class="lead">Nguồn: <code>src/lib/status.ts</code>. <b>Quản lý (quanly) được phép mọi bước hợp lệ.</b> 6 trạng thái: <code>moi · dang_lam · banh_xong · da_nhan · hoan_tat · huy</code> — trong đó <code>da_nhan</code> là <b>di sản</b>: không đơn mới nào vào được trạng thái này nữa, chỉ còn lối ra sang <code>hoan_tat</code>.</p>
       <div class="scroll">
         <table class="tb">
           <thead><tr><th>Từ</th><th>Sang</th><th>Vai trò được bấm</th><th>Nút / ghi chú</th></tr></thead>
@@ -148,8 +148,8 @@
             <tr><td>dang_lam</td><td>banh_xong</td><td>bếp, quản lý</td><td>🎂 Xong (kèm ảnh, tùy chọn)</td></tr>
             <tr><td>dang_lam</td><td>moi</td><td>bếp, quản lý</td><td>↩ Trả về hàng chờ</td></tr>
             <tr><td>banh_xong</td><td>dang_lam</td><td>bếp, quản lý</td><td>↩ Hoàn tác — làm lại</td></tr>
-            <tr><td>banh_xong</td><td>da_nhan</td><td>quầy, quản lý</td><td>🤝 Đã nhận bánh</td></tr>
-            <tr><td>da_nhan</td><td>hoan_tat</td><td>quầy, quản lý</td><td>✅ Hoàn tất (cần <code>ketThucKieu</code>)</td></tr>
+            <tr><td>banh_xong</td><td>hoan_tat</td><td>quầy, quản lý</td><td>✅ Hoàn tất (cần <code>ketThucKieu</code>) — giao thẳng, đã bỏ bước <code>da_nhan</code></td></tr>
+            <tr><td>da_nhan</td><td>hoan_tat</td><td>quầy, quản lý</td><td>✅ Hoàn tất — chỉ để đơn cũ còn kẹt ở <code>da_nhan</code> kết thúc được</td></tr>
             <tr><td>mọi trạng thái trừ <code>hoan_tat</code>/<code>huy</code></td><td>huy</td><td>quầy, quản lý</td><td>🗑 Hủy đơn (cần <code>lyDoHuy</code>)</td></tr>
           </tbody>
         </table>
@@ -162,6 +162,10 @@
       <div class="case edge"><div><span class="cid">P2</span><span class="title">Bước nhảy cóc bị chặn</span> <span class="tag t-edge">BIÊN</span></div>
         <div class="do">Thử chuyển <code>moi → banh_xong</code> hoặc <code>moi → da_nhan</code> (qua API).</div>
         <div class="exp">Bị từ chối (không có trong danh sách bước hợp lệ) → <b>409</b>.</div>
+      </div>
+      <div class="case edge"><div><span class="cid">P2b</span><span class="title">Bước <code>da_nhan</code> đã bị gỡ</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Với đơn <code>banh_xong</code>, gọi API chuyển sang <code>da_nhan</code> — thử cả vai trò <b>quầy</b> lẫn <b>quản lý</b>.</div>
+        <div class="exp">Cả hai đều <b>409</b> — <b>“Bước chuyển không hợp lệ với vai trò của bạn”</b>. Không còn cách nào đưa đơn mới vào <code>da_nhan</code>.</div>
       </div>
       <div class="case"><div><span class="cid">P3</span><span class="title">Quản lý làm được mọi bước</span> <span class="tag t-kt">KT</span></div>
         <div class="do">Đăng nhập admin, thao tác cả nút của Quầy lẫn Bếp trên cùng một đơn.</div>
@@ -178,12 +182,16 @@
       <h2>Vòng đời &amp; chuyển trạng thái</h2>
 
       <div class="case"><div><span class="cid">F1</span><span class="title">Luồng đầy đủ</span> <span class="tag t-nv">NV</span></div>
-        <div class="do">Quầy tạo đơn → Bếp Nhận làm → Xong → Quầy Đã nhận bánh → Hoàn tất (chọn kiểu kết thúc).</div>
-        <div class="exp">Trạng thái đi đúng thứ tự; Nhật ký ghi đủ các mốc kèm người thực hiện &amp; thời điểm.</div>
+        <div class="do">Quầy tạo đơn → Bếp Nhận làm → Xong → Quầy Hoàn tất (chọn kiểu kết thúc).</div>
+        <div class="exp">Trạng thái đi đúng thứ tự (<b>4 mốc</b>, không còn <code>da_nhan</code>); Nhật ký ghi đủ các mốc kèm người thực hiện &amp; thời điểm.</div>
       </div>
       <div class="case edge"><div><span class="cid">F2</span><span class="title">Hoàn tất thiếu kiểu kết thúc</span> <span class="tag t-edge">BIÊN</span></div>
         <div class="do">Gọi chuyển sang <code>hoan_tat</code> mà không kèm <code>ketThucKieu</code> (qua API).</div>
-        <div class="exp">409 — <b>“Chọn hình thức kết thúc (giao khách / đã ship / lên tủ)”</b>. Trên UI luôn phải chọn 1 trong 3.</div>
+        <div class="exp">409 — <b>“Chọn hình thức kết thúc (giao khách / đã ship)”</b>. Trên UI luôn phải chọn 1 trong 2.</div>
+      </div>
+      <div class="case edge"><div><span class="cid">F2b</span><span class="title"><code>len_tu</code> bị chặn ở server</span> <span class="tag t-edge">BIÊN</span></div>
+        <div class="do">Gọi API chuyển sang <code>hoan_tat</code> với <code>ketThucKieu: "len_tu"</code>.</div>
+        <div class="exp">409 — <b>“Hình thức kết thúc không hợp lệ (chỉ giao khách / đã ship)”</b>. Chỉ nhận <code>giao_khach</code> và <code>da_ship</code>; đơn cũ đã lưu <code>len_tu</code> vẫn đọc/thống kê bình thường.</div>
       </div>
       <div class="case edge"><div><span class="cid">F3</span><span class="title">Hủy thiếu lý do</span> <span class="tag t-edge">BIÊN</span></div>
         <div class="do">Bấm Hủy đơn nhưng để trống lý do (hoặc gọi API không <code>lyDoHuy</code>).</div>
@@ -197,13 +205,17 @@
         <div class="do">Mở cùng một đơn <code>moi</code> trên 2 máy, cùng bấm Nhận làm gần như đồng thời (hoặc gửi 2 request <code>chuyen</code> liên tiếp).</div>
         <div class="exp">Chỉ 1 thành công. Người sau nhận <b>“Đơn vừa được người khác xử lý, hãy tải lại”</b> (UPDATE có điều kiện <code>trangThai = from</code>, <code>changes === 0</code>).</div>
       </div>
-      <div class="case"><div><span class="cid">F6</span><span class="title">Hoàn tác chỉ trước khi Quầy nhận</span> <span class="tag t-nv">NV</span></div>
-        <div class="do">Bếp: <code>banh_xong → dang_lam</code> và <code>dang_lam → moi</code>. Sau khi Quầy đã <code>da_nhan</code> thì thử lại.</div>
-        <div class="exp">Trước <code>da_nhan</code> hoàn tác được; từ <code>da_nhan</code> trở đi không còn bước lùi cho Bếp.</div>
+      <div class="case"><div><span class="cid">F6</span><span class="title">Hoàn tác chỉ trước khi đơn hoàn tất</span> <span class="tag t-nv">NV</span></div>
+        <div class="do">Bếp: <code>banh_xong → dang_lam</code> và <code>dang_lam → moi</code>. Sau khi Quầy đã bấm <code>hoan_tat</code> thì thử lại.</div>
+        <div class="exp">Trước khi hoàn tất thì hoàn tác được; đơn <code>hoan_tat</code> không còn bước lùi nào.</div>
       </div>
       <div class="case"><div><span class="cid">F7</span><span class="title">Reset cờ ĐÃ SỬA khi tiến bước</span> <span class="tag t-kt">KT</span></div>
-        <div class="do">Đơn có <code>daSua=1</code>, chuyển sang <code>da_nhan</code> hoặc <code>hoan_tat</code>.</div>
+        <div class="do">Đơn có <code>daSua=1</code>, chuyển sang <code>hoan_tat</code>.</div>
         <div class="exp"><code>daSua</code> tự về 0 (nhãn ĐÃ SỬA biến mất).</div>
+      </div>
+      <div class="case"><div><span class="cid">F8</span><span class="title">Đơn cũ kẹt ở <code>da_nhan</code> vẫn kết thúc được</span> <span class="tag t-kt">KT</span></div>
+        <div class="do">Đặt tay một đơn về <code>da_nhan</code> trong DB (<code>update orders set trang_thai='da_nhan' where id=?</code>), mở bảng đơn Quầy rồi bấm Hoàn tất.</div>
+        <div class="exp">Cột <b>Quầy đã nhận</b> tự hiện lại (kanban thành 4 cột) khi còn đơn như vậy, bấm <b>✅ Hoàn tất</b> chạy bình thường, xong thì cột tự biến mất (về 3 cột).</div>
       </div>
     </section>
 
@@ -375,7 +387,7 @@ curl -s -b cj.txt -X POST http://localhost:3000/api/orders/4/chuyen \
 curl -s -b cj.txt -X POST http://localhost:3000/api/orders/4/chuyen \
   -H "content-type: application/json" \
   -d '{"to":"huy","lyDoHuy":"khách đổi ý"}'</pre>
-      <div class="note">Giá trị hợp lệ: <code>to</code> ∈ moi/dang_lam/banh_xong/da_nhan/hoan_tat/huy · <code>ketThucKieu</code> ∈ giao_khach/da_ship/len_tu · <code>nguon</code> ∈ tai_quay/zalo/messenger/dien_thoai/khac · <code>hinhThucNhan</code> ∈ tai_tiem/ship · <code>kieuPhiShip</code> ∈ freeship/theo_app.</div>
+      <div class="note">Giá trị hợp lệ: <code>to</code> ∈ moi/dang_lam/banh_xong/hoan_tat/huy (<code>da_nhan</code> không nhận nữa) · <code>ketThucKieu</code> ∈ giao_khach/da_ship (<code>len_tu</code> bị chặn) · <code>nguon</code> ∈ tai_quay/zalo/messenger/dien_thoai/khac · <code>hinhThucNhan</code> ∈ tai_tiem/ship · <code>kieuPhiShip</code> ∈ freeship/theo_app.</div>
     </section>
 
     <section id="auto">
