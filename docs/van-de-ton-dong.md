@@ -255,9 +255,10 @@ subscription.
 
 ---
 
-## 4. Docker build fail ngẫu nhiên
+## 4. Docker build fail ngẫu nhiên — ✅ ĐÃ SỬA 2026-08-31
 
-**Mức độ: gây phiền, không ảnh hưởng bản đang chạy.**
+**Mức độ: gây phiền, không ảnh hưởng bản đang chạy.** *(giữ lại phần phân tích bên
+dưới làm hồ sơ; cách sửa và bằng chứng kiểm chứng ở cuối mục)*
 
 ### Hiện trạng
 
@@ -292,14 +293,62 @@ thực sự *truy vấn* DB (chỉ import module thôi). Nếu có, bỏ `migrat
 
 Sửa nhanh, nhưng nên làm lúc không deploy giữa chừng vì đụng vào logic migration.
 
+### Đã sửa thế nào (2026-08-31)
+
+`migrate()` được đưa vào **cùng khối điều kiện** `NEXT_PHASE` với `seedNeuTrong()`
+trong `src/db/index.ts`. `taoDb()` được export để test được, kèm 2 test trong
+`src/db/index.test.ts`.
+
+### Bằng chứng kiểm chứng
+
+Điều kiện tài liệu đặt ra ở trên **đã được kiểm chứng bằng cách mô phỏng đúng môi
+trường Docker** — chạy `next build` với `DATA_DIR` trỏ vào thư mục rỗng hoàn toàn
+(giống hệt tình huống `data` bị `.dockerignore` loại bỏ):
+
+| Tình huống | Kết quả đo được | Ý nghĩa |
+|---|---|---|
+| `next build`, `DATA_DIR` rỗng | Build **pass**, sinh 23 trang bằng **3 worker song song** | Không route nào lỗi "no such table" → không route nào truy vấn DB lúc build |
+| DB sau khi build xong | **0 bảng** | `migrate()` thật sự không chạy lúc build |
+| `next start`, cùng `DATA_DIR` rỗng đó | **14 bảng + 1 user** đã seed, `GET /login` → 200 | Runtime vẫn migrate & seed bình thường |
+
+Hai dòng đầu chứng minh cái cần sửa đã hết; dòng cuối chứng minh không làm hỏng
+lúc chạy thật. Đây là kiểm chứng **tất định**, không phải "build lại vài lần thấy
+không fail" — vốn vô nghĩa với một lỗi ngẫu nhiên.
+
 ---
 
 ## Việc nhỏ khác
 
-- **`CONG_KHAI` trong `src/proxy.ts` có mục thừa:** liệt kê `/huong-dan` và
-  `/kiem-thu` nhưng hai thư mục `src/app/huong-dan`, `src/app/kiem-thu` không tồn
-  tại — cả hai đường dẫn trả HTTP 404. Nên dọn cho khớp thực tế (kiểm tra luôn
-  `/logo.svg` có trong `public/` không).
+- ~~**`CONG_KHAI` trong `src/proxy.ts` có mục thừa**~~ — **✅ đã xử lý 2026-08-31,
+  và chẩn đoán ban đầu là SAI.** Ghi lại để không ai mắc lại.
+
+  Bản ghi cũ nói `/huong-dan` với `/kiem-thu` là mục thừa vì không có thư mục
+  `src/app/huong-dan` / `src/app/kiem-thu` và cả hai trả 404, nên "dọn cho khớp
+  thực tế". **Xóa đi là hỏng việc.** Middleware khớp theo *tiền tố*
+  (`pathname.startsWith(p)`), còn `public/` thì có sẵn ba file tĩnh:
+  `huong-dan.html`, `kiem-thu-ky-thuat.html`, `kiem-thu-nhan-vien.html`. Chính hai
+  mục đó đang cho phép mở HDSD và 2 phiếu kiểm thử **mà không cần đăng nhập**. Đo
+  thật trên server (không kèm cookie):
+
+  | Đường dẫn | Trước khi sửa | Sau khi sửa |
+  |---|---|---|
+  | `/huong-dan.html` | 200 | 200 |
+  | `/kiem-thu-ky-thuat.html` | 200 | 200 |
+  | `/kiem-thu-nhan-vien.html` | 200 | 200 |
+  | `/logo.svg` | 200 | 200 |
+  | `/huong-dan` (không `.html`) | 404 | 307 → `/login` |
+  | `/login-gia-mao` | **200 — lọt** | 307 → `/login` |
+
+  Sai lầm của bản ghi cũ: chỉ thử đường dẫn **không có `.html`**, thấy 404 rồi kết
+  luận mục đó vô dụng.
+
+  Vấn đề thật nằm chỗ khác: khớp theo tiền tố quá lỏng nên **bất kỳ đường dẫn nào
+  ăn theo cũng thành công khai** — `/login-gia-mao` từng trả 200. Đã đổi sang khớp
+  **chính xác** bằng `Set.has()` với đủ 6 đường dẫn, tách hàm `laCongKhai()` ra
+  cho test được, kèm 12 test trong `src/proxy.test.ts`.
+
+  *Bài học: trước khi xóa một mục cấu hình vì "trông có vẻ thừa", phải thử đúng
+  đường dẫn mà nó đang phục vụ.*
 - **Môi trường test đã mất** cùng máy cũ. `docker-compose.test.yml` chỉ nằm trên
   VM Google Cloud, không commit vào repo, nên **không còn nữa**. Muốn dựng lại
   môi trường test trên VPS mới thì phải viết lại từ đầu — lần này nên commit vào
