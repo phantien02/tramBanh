@@ -21,4 +21,14 @@ export function phatSuKien(e: SuKien): void {
   for (const c of clients) {
     try { c.gui(chunk) } catch { clients.delete(c) }
   }
+
+  // Thông báo đẩy: bắn-và-quên, KHÔNG await. Việc tạo/sửa đơn không được chậm đi
+  // hay hỏng chỉ vì gửi thông báo thất bại. Thiếu khóa VAPID thì bên trong tự
+  // thoát ngay, nên máy chủ chưa cấu hình vẫn chạy bình thường.
+  //
+  // Nạp động để `sse.ts` không kéo theo cả tầng DB — SSE broadcast là việc thuần
+  // bộ nhớ, đừng bắt nó phụ thuộc vào những thứ nặng hơn nó.
+  void import('./push')
+    .then((m) => m.guiPushChoSuKien(e))
+    .catch((err) => console.error('[push] không nạp được module:', err))
 }

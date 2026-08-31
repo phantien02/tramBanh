@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { SessionUser } from '@/lib/session'
+import NutThongBao from './NutThongBao'
 
 // Màu "tuyến" cho từng khu vực
 const MAU_TUYEN: Record<string, string> = {
@@ -96,7 +97,10 @@ export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
               <span className="text-sm font-semibold">{user.hoTen}</span>
               <span className="text-xs text-[var(--color-xam)]">{tieuDe}</span>
             </div>
-            <button onClick={dangXuat} className="text-sm text-[var(--color-dau)] p-2 hover:bg-[rgba(240,107,163,.1)] rounded-lg transition-colors" title="Đăng xuất">Thoát</button>
+            <div className="flex items-center gap-1">
+              <NutThongBao />
+              <button onClick={dangXuat} className="text-sm text-[var(--color-dau)] p-2 hover:bg-[rgba(240,107,163,.1)] rounded-lg transition-colors" title="Đăng xuất">Thoát</button>
+            </div>
           </div>
         </aside>
 
@@ -144,6 +148,7 @@ export default function AppShell({ user, tieuDe, ketNoi = true, children }: {
             <span className="font-semibold text-white text-sm">{tieuDe}</span>
             <span className="text-xs" style={{ color: '#A9D8D5' }}>{user.hoTen}</span>
           </div>
+          <NutThongBao />
           <button onClick={dangXuat} className="text-sm text-[#F7B7D2] hover:text-white px-3 py-1.5 rounded-lg transition-colors font-medium" style={{ background: 'rgba(255,255,255,.06)' }}>Đăng xuất</button>
         </div>
       </header>

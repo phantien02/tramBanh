@@ -130,3 +130,19 @@ export const orderEvents = sqliteTable('order_events', {
   chiTiet: text('chi_tiet'),
   thoiDiem: integer('thoi_diem').notNull(),
 })
+
+// Đăng ký nhận thông báo đẩy (Web Push). Mỗi MÁY một dòng: cùng một nhân viên
+// dùng điện thoại và tablet thì có 2 dòng. `endpoint` do trình duyệt cấp, là khóa
+// định danh máy đó.
+//
+// Cố ý KHÔNG lưu kèm vai trò: lúc gửi thì join sang `users` để lấy vai trò và cờ
+// `active`. Nhờ vậy đổi vai trò nhân viên là push đi đúng chỗ ngay, và nhân viên
+// bị khóa tự động ngừng nhận — thay vì phải nhớ đi sửa hai nơi.
+export const pushSubscriptions = sqliteTable('push_subscriptions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id),
+  endpoint: text('endpoint').notNull().unique(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  taoLuc: integer('tao_luc').notNull(),
+})

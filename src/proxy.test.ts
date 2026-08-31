@@ -10,6 +10,14 @@ describe('laCongKhai', () => {
     '/huong-dan.html',
     '/kiem-thu-ky-thuat.html',
     '/kiem-thu-nhan-vien.html',
+    // PWA: trinh duyet nap nhung file nay o nhung boi canh khong chac co cookie
+    // phien (dang ky service worker, cai vao man hinh chinh). Chung khong chua gi
+    // rieng tu, mo ra la dung.
+    '/manifest.json',
+    '/sw.js',
+    '/icon-192.png',
+    '/icon-512.png',
+    '/icon-512-maskable.png',
   ])('cho qua %s', (p) => {
     expect(laCongKhai(p)).toBe(true)
   })

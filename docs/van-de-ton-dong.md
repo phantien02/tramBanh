@@ -192,9 +192,47 @@ mất, chỉ là không truy cập được cho tới khi bật VM lên lấy ra
 
 ---
 
-## 3. Thông báo cho nhân viên (Web Push)
+## 3. Thông báo cho nhân viên (Web Push) — 🟡 ĐÃ XÂY XONG 2026-08-31, chưa bật ở tiệm
 
 **Mức độ: tính năng mong muốn, chưa cấp bách.**
+
+### Cập nhật 2026-08-31 — code xong cả 7 việc
+
+| Việc trong danh sách bên dưới | Trạng thái |
+|---|---|
+| 1. `public/manifest.json` + icon | ✅ 3 icon sinh từ `logo.svg` |
+| 2. `public/sw.js` | ✅ nhận push, bấm vào mở đúng đơn, ưu tiên focus tab đang mở |
+| 3. Bảng DB lưu subscription | ✅ `push_subscriptions`, migration `0008` |
+| 4. `src/lib/push.ts` + khóa VAPID | ✅ kèm tự xóa endpoint chết |
+| 5. Gọi push trong `phatSuKien()` | ✅ đúng một chỗ, bắn-và-quên |
+| 6. Hai API đăng ký / hủy | ✅ thêm cả API trả khóa công khai |
+| 7. Nút "🔔 Bật thông báo" | ✅ có hướng dẫn riêng cho iPhone/iPad |
+
+**Sửa lại một điểm trong kế hoạch cũ:** mục 3 bên dưới đề nghị lưu `vaiTro` kèm
+subscription. Đã **không làm vậy** — join sang `users` lúc gửi thay thế. Lý do:
+đổi vai trò nhân viên thì push đi đúng chỗ ngay, và nhân viên bị khóa
+(`active = 0`) tự ngừng nhận, khỏi phải nhớ sửa hai nơi.
+
+**Khác kế hoạch cũ:** quản lý **có** nhận cả hai luồng (bếp + quầy). Lý do ban đầu
+định loại quản lý ra là sợ "ù tai", nhưng tính lại thì ở mức ~3–4 đơn/ngày, quản
+lý chỉ nhận ~12–15 thông báo/ngày — không đáng gọi là nhiều. Và nếu chủ tiệm cũng
+đứng quầy/phụ bếp thì chặn là chặn nhầm.
+
+**Còn lại để bật cho tiệm dùng — cả hai đều cần làm ở mục 1:**
+
+1. ❌ **HTTPS trên máy chủ** (mục 1, việc số 4 — Cloudflare Tunnel). Quy định cứng
+   của trình duyệt, không lách được.
+2. ❌ **Sinh khóa VAPID và đặt vào `.env` trên máy chủ** — `npx web-push
+   generate-vapid-keys`, xem README mục "Thông báo đẩy".
+
+Thiếu khóa thì toàn bộ tầng push **tự tắt êm**, app chạy như chưa có tính năng
+này. Deploy trước, bật sau đều được.
+
+**Chưa kiểm chứng được:** thông báo thật sự nổi lên trên điện thoại. Trình duyệt
+trong môi trường phát triển chặn quyền thông báo nên không cấp được. Đã kiểm tới
+mức: request gửi đi có ký VAPID thật và payload mã hóa `aes128gcm` thật (test tích
+hợp `push-integration.test.ts`), nút nhận đúng trạng thái quyền, 3 API trả đúng.
+Chặng cuối phải thử trên một cái điện thoại thật.
 
 ### Hiện trạng
 

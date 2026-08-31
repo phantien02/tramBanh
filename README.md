@@ -173,9 +173,59 @@ reverse proxy như nginx hoặc Caddy và trỏ tên miền/cổng 443 về `loc
 trên máy chủ, hoặc dùng Cloudflare Tunnel (có sẵn HTTPS, đồng thời không phải mở
 cổng ra internet).
 
-HTTPS cũng là **điều kiện bắt buộc** nếu sau này muốn làm thông báo đẩy cho nhân
-viên (Web Push không chạy trên HTTP) — xem
-[docs/van-de-ton-dong.md](docs/van-de-ton-dong.md).
+HTTPS cũng là **điều kiện bắt buộc** để thông báo đẩy chạy được (xem mục dưới):
+service worker không đăng ký được trên HTTP thường, đây là quy định cứng của
+trình duyệt, không lách được.
+
+### Thông báo đẩy cho nhân viên (Web Push)
+
+Báo cho bếp có đơn mới và cho quầy có bánh xong, **kể cả khi tablet đã ngủ hoặc
+đóng app** — khác với tiếng chuông sẵn có, vốn chỉ kêu khi trang đang mở. Push
+**bổ sung** cho chuông chứ không thay thế.
+
+Ai nhận cái gì:
+
+| Sự kiện | Bếp | Quầy | Quản lý |
+|---|:--:|:--:|:--:|
+| Đơn mới | ✅ | | ✅ |
+| Bánh xong | | ✅ | ✅ |
+| Sắp tới giờ giao (còn 2 tiếng) | ✅ | | ✅ |
+| Đơn vừa được sửa | ✅ | | ✅ |
+| Chuyển sang trạng thái khác | | | |
+
+Dòng cuối để trống là cố ý: thông báo không dẫn tới hành động sẽ dạy người ta bỏ
+qua thông báo, rồi bỏ qua luôn cái thật sự gấp.
+
+#### Bật trên máy chủ
+
+```bash
+# 1) Sinh cặp khóa VAPID (khóa của app, không phải tài khoản cá nhân)
+npx web-push generate-vapid-keys
+
+# 2) Thêm vào .env trên máy chủ rồi dựng lại container
+#    VAPID_PUBLIC_KEY=...
+#    VAPID_PRIVATE_KEY=...
+#    VAPID_SUBJECT=mailto:ban@vidu.com
+docker compose up -d --build
+```
+
+**Bỏ trống 2 khóa thì tính năng tự tắt êm** — app chạy y như chưa có nó, nút "Bật
+thông báo" tự ẩn. Deploy lên máy chủ chưa cấu hình không vỡ gì.
+
+#### Nhân viên bật trên máy mình
+
+Bấm nút **🔔 Bật thông báo** trên thanh trên cùng, rồi cho phép. Mỗi máy phải bật
+riêng; đổi điện thoại hoặc xóa dữ liệu trình duyệt thì bật lại.
+
+**Riêng iPhone/iPad:** phải mở bằng **Safari** → **Chia sẻ** → **Thêm vào MH
+chính**, rồi mở app vừa thêm mới bật được. Hạn chế của Apple (iOS 16.4+), không
+bỏ qua được. App tự phát hiện và hiện hướng dẫn từng bước thay vì một cái nút bấm
+vào chẳng có gì xảy ra.
+
+> **Về quyền riêng tư:** thông báo hiện mã đơn, **tên khách** và giờ giao trên màn
+> hình khóa. Nội dung được mã hóa đầu-cuối nên Google/Apple không đọc được, nhưng
+> ai cầm điện thoại nhân viên lên thì đọc được. Muốn kín hơn thì sửa
+> `src/lib/push-routing.ts` — toàn bộ phần soạn chữ nằm gọn trong một hàm.
 
 ## Cấu trúc dữ liệu
 

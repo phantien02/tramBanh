@@ -11,6 +11,13 @@ const CONG_KHAI = new Set([
   '/huong-dan.html',
   '/kiem-thu-ky-thuat.html',
   '/kiem-thu-nhan-vien.html',
+  // PWA: trình duyệt nạp những file này ở bối cảnh không chắc có cookie phiên
+  // (đăng ký service worker, cài vào màn hình chính). Không chứa gì riêng tư.
+  '/manifest.json',
+  '/sw.js',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/icon-512-maskable.png',
 ])
 
 export function laCongKhai(pathname: string) {
