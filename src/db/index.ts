@@ -16,13 +16,17 @@ function taoKetNoi() {
   return conn
 }
 
-function taoDb(conn: Database.Database) {
+export function taoDb(conn: Database.Database) {
   const db = drizzle(conn, { schema })
-  migrate(db, { migrationsFolder: path.join(process.cwd(), 'drizzle') })
-  // Tự tạo admin + sản phẩm mẫu + vị nếu DB trống (deploy mới khỏi seed thủ công).
   // KHÔNG chạy khi `next build`: lúc thu thập page-data, nhiều worker import module này cùng lúc
-  // sẽ đua nhau insert vào cùng file DB → lỗi. Seed chỉ cần chạy lúc server thật khởi động.
-  if (process.env.NEXT_PHASE !== 'phase-production-build') seedNeuTrong(db)
+  // sẽ đua nhau ghi vào cùng một file SQLite → build fail ngẫu nhiên với lỗi
+  // "Failed to collect page data for /api/...". Cả migrate lẫn seed đều chỉ cần chạy lúc
+  // server thật khởi động — khi đó `NEXT_PHASE` rỗng nên vẫn chạy bình thường.
+  if (process.env.NEXT_PHASE !== 'phase-production-build') {
+    migrate(db, { migrationsFolder: path.join(process.cwd(), 'drizzle') })
+    // Tự tạo admin + sản phẩm mẫu + vị nếu DB trống (deploy mới khỏi seed thủ công).
+    seedNeuTrong(db)
+  }
   return db
 }
 
