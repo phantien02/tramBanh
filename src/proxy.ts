@@ -1,11 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { docSession } from '@/lib/session'
 
-const CONG_KHAI = ['/login', '/api/login', '/huong-dan', '/kiem-thu', '/logo.svg']
+// Đường dẫn mở cho người CHƯA đăng nhập. Khớp CHÍNH XÁC, không theo tiền tố:
+// `startsWith` từng khiến mọi đường dẫn ăn theo (vd `/login-gia-mao`) cũng lọt vào đây.
+// Ba file .html là tài liệu tĩnh trong `public/` — HDSD và 2 phiếu kiểm thử, cố ý để mở.
+const CONG_KHAI = new Set([
+  '/login',
+  '/api/login',
+  '/logo.svg',
+  '/huong-dan.html',
+  '/kiem-thu-ky-thuat.html',
+  '/kiem-thu-nhan-vien.html',
+])
+
+export function laCongKhai(pathname: string) {
+  return CONG_KHAI.has(pathname)
+}
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
-  if (CONG_KHAI.some((p) => pathname.startsWith(p))) return NextResponse.next()
+  if (laCongKhai(pathname)) return NextResponse.next()
 
   const user = await docSession(req.cookies.get('session')?.value)
   if (!user) {
