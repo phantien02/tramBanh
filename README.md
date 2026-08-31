@@ -95,35 +95,76 @@ lại) và khôi phục thư mục `data/` từ bản sao lưu.
 
 ### Sao lưu (backup)
 
-Toàn bộ dữ liệu nằm trong thư mục `data/` (cơ sở dữ liệu + ảnh). Sao lưu định kỳ
-bằng cách copy thư mục này sang nơi lưu trữ khác, ví dụ:
+Toàn bộ dữ liệu nằm trong `data/` (cơ sở dữ liệu + ảnh upload).
 
-**Đừng copy thẳng `data/` khi app đang chạy.** SQLite dùng chế độ WAL: dữ liệu
-mới nằm tạm ở `tram-banh.db-wal` rồi mới gộp vào file chính, nên `cp` giữa chừng
-có thể ra bản sao thiếu hoặc hỏng — mà lúc copy **không báo lỗi gì**, tới khi cần
-khôi phục mới biết. Dùng `VACUUM INTO` để lấy bản chụp nhất quán:
+**Đừng bao giờ copy thẳng `data/tram-banh.db` khi app đang chạy.** SQLite dùng chế
+độ WAL: dữ liệu mới nằm tạm ở `tram-banh.db-wal` rồi mới gộp vào file chính. Copy
+thiếu `-wal` là mất phần lớn dữ liệu gần nhất — **và lúc copy không báo lỗi gì**,
+tới khi cần khôi phục mới biết. Đợt chuyển VPS 29/08/2026 đã gặp đúng cảnh này:
+`.db` chỉ 224KB trong khi `-wal` giữ 4.1MB chưa gộp.
+
+#### Chạy backup
 
 ```bash
-# 1) Chụp DB (an toàn kể cả khi app đang ghi)
-docker compose exec -T tram-banh node -e \
-  'new (require("better-sqlite3"))("/app/data/tram-banh.db",{readonly:true}).exec("VACUUM INTO '"'"'/tmp/snap.db'"'"'")'
-docker compose cp tram-banh:/tmp/snap.db ./backup-$(date +%Y%m%d).db
-docker compose exec -T tram-banh rm -f /tmp/snap.db
-
-# 2) Ảnh upload (file tĩnh, copy thẳng được)
-tar czf ./backup-uploads-$(date +%Y%m%d).tar.gz -C data uploads
+npm run backup
 ```
 
-Nếu dừng hẳn container (`docker compose down`) thì copy cả thư mục `data/` cũng
-an toàn, vì không còn tiến trình nào ghi vào.
+Lệnh này làm đủ 4 việc và **an toàn kể cả khi app đang ghi**:
 
-Khôi phục: dừng container (`docker compose down`), thay `data/tram-banh.db` bằng
-file backup (xóa kèm `-wal`/`-shm` cũ nếu có) và giải nén lại `uploads/`, rồi
-`docker compose up -d`.
+1. `VACUUM INTO` → bản chụp DB nhất quán (SQLite tự gộp WAL)
+2. Đối chiếu **số dòng từng bảng** của bản sao với bản gốc + `integrity_check`;
+   lệch hoặc hỏng thì **báo lỗi và không tạo gói**, thay vì im lặng cho ra file rác
+3. Đóng gói kèm `uploads/` thành `backups/tram-banh-backup-YYYY-MM-DD.tar.gz`
+4. Xoay vòng, giữ 30 bản gần nhất
 
-> ⚠️ Hiện **chưa có backup tự động** trên máy chủ, và các bản copy tay đều nằm
-> cùng ổ đĩa với dữ liệu gốc. Xem [docs/van-de-ton-dong.md](docs/van-de-ton-dong.md)
-> để biết hiện trạng và hướng xử lý.
+Chỉnh bằng biến môi trường: `DATA_DIR`, `BACKUP_DIR`, `GIU_LAI`.
+
+> Gói backup **không chứa file `.env`**. `SESSION_SECRET` trong đó phải cất riêng
+> (trình quản lý mật khẩu) — mất nó thì mọi người bị đăng xuất, nhưng đẩy nó lên
+> cùng chỗ với dữ liệu là mở rộng thiệt hại khi kho backup bị lộ.
+
+#### Tự động hằng đêm, đẩy lên Google Drive
+
+`scripts/backup-vps.sh` là điểm vào cho cron: chạy `npm run backup` rồi đẩy lên
+Drive bằng `rclone` và dọn bản cũ hơn 30 ngày ở cả hai đầu.
+
+Cài một lần trên VPS:
+
+```bash
+# 0) Máy chủ cần có Node (kiểm tra trước)
+node -v || { curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt install -y nodejs; }
+
+# 1) Cài rclone và nối với Google Drive (có bước đăng nhập Google trên trình duyệt)
+apt install -y rclone
+rclone config          # tạo remote tên `gdrive`, loại "drive"
+
+# 2) Chạy thử một phát, rồi vào Drive kiểm tra file đã lên chưa
+/opt/apps/tram-banh/scripts/backup-vps.sh
+
+# 3) Đặt lịch 2h sáng hằng ngày
+crontab -e
+# 0 2 * * * /opt/apps/tram-banh/scripts/backup-vps.sh >> /var/log/tram-banh-backup.log 2>&1
+```
+
+Script **cố tình thoát với lỗi** nếu chưa có `rclone`: gói backup nằm cùng ổ đĩa
+với bản gốc thì không phải backup, và im lặng trong trường hợp đó là nguy hiểm.
+
+#### Khôi phục
+
+```bash
+docker compose down
+tar -xzf tram-banh-backup-YYYY-MM-DD.tar.gz -C /tmp/phuc-hoi
+rm -f data/tram-banh.db data/tram-banh.db-wal data/tram-banh.db-shm
+cp /tmp/phuc-hoi/tram-banh.db data/
+rm -rf data/uploads && cp -r /tmp/phuc-hoi/uploads data/
+docker compose up -d
+```
+
+Nhớ xóa cả `-wal`/`-shm` cũ, nếu không SQLite sẽ gộp phần thừa của DB cũ vào bản
+vừa khôi phục.
+
+> **Backup chưa thử khôi phục thì chưa tính là backup.** Thỉnh thoảng giải nén một
+> gói ra thư mục tạm và mở thử, đừng đợi tới lúc sự cố mới biết nó hỏng.
 
 ### HTTPS
 

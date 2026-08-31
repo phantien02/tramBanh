@@ -112,9 +112,30 @@ không còn vấn đề — môi trường test đã bỏ cùng máy cũ.
 
 ---
 
-## 2. Chưa có cơ chế backup
+## 2. Chưa có cơ chế backup — 🟡 XONG MỘT NỬA 2026-08-31
 
 **Mức độ: cần xử lý sớm — và giờ cấp thiết hơn trước.**
+
+### Cập nhật 2026-08-31 — công cụ đã có, chưa cắm vào máy chủ
+
+| Việc | Trạng thái |
+|---|---|
+| Script backup đúng cách (`VACUUM INTO` + kiểm tra + xoay vòng) | ✅ `npm run backup`, 9 test |
+| Điểm vào cho cron + đẩy lên Drive | ✅ `scripts/backup-vps.sh` |
+| Hướng dẫn cài đặt từng bước | ✅ README, mục "Sao lưu" |
+| **Cài rclone + nối Google Drive trên VPS** | ❌ **cần bạn làm** (có bước đăng nhập Google) |
+| **Đặt cron trên VPS** | ❌ **cần bạn làm** |
+| Kiểm tra nhà cung cấp VPS có snapshot không | ❌ chưa |
+
+Đã kiểm chứng ở máy dev, **trong lúc app đang mở DB**: gói ra 3.0MB, giải nén lại
+thì `integrity_check: ok`, 13 bảng / 141 dòng **khớp 100%** bản gốc, 27 ảnh đủ.
+
+Có một giả định **chưa kiểm chứng được** vì đã thống nhất không đụng VPS: máy chủ
+có sẵn Node hay không. `scripts/backup-vps.sh` tự kiểm tra và in lệnh cài nếu
+thiếu, nhưng nên `node -v` một phát trước khi đặt cron.
+
+**Cho tới khi hai dòng ❌ ở trên được làm, tình trạng vẫn y nguyên như mô tả bên
+dưới: cả lịch sử backup của dự án là một file trên một cái laptop.**
 
 ### Hiện trạng
 

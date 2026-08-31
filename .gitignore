@@ -46,3 +46,6 @@ next-env.d.ts
 
 # app data
 data/
+
+# gói backup sinh ra tại chỗ
+backups/

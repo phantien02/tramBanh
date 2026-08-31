@@ -11,7 +11,8 @@
     "db:generate": "drizzle-kit generate",
     "db:seed": "cross-env TZ=Asia/Ho_Chi_Minh tsx src/db/seed.ts",
     "db:seed-orders": "cross-env TZ=Asia/Ho_Chi_Minh tsx src/db/seed-orders.ts",
-    "db:seed-orders-min": "cross-env TZ=Asia/Ho_Chi_Minh tsx src/db/seed-orders-min.ts"
+    "db:seed-orders-min": "cross-env TZ=Asia/Ho_Chi_Minh tsx src/db/seed-orders-min.ts",
+    "backup": "cross-env TZ=Asia/Ho_Chi_Minh tsx scripts/backup.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
