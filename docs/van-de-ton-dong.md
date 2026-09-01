@@ -434,25 +434,45 @@ không fail" — vốn vô nghĩa với một lỗi ngẫu nhiên.
   mục đó đang cho phép mở HDSD và 2 phiếu kiểm thử **mà không cần đăng nhập**. Đo
   thật trên server (không kèm cookie):
 
-  | Đường dẫn | Trước khi sửa | Sau khi sửa |
+  Đo thật ngày 2026-09-01, đặt bản cũ (cổng 3000) cạnh bản mới (cổng 4000), không
+  kèm cookie đăng nhập:
+
+  | Đường dẫn | Bản cũ | Bản mới |
   |---|---|---|
   | `/huong-dan.html` | 200 | 200 |
   | `/kiem-thu-ky-thuat.html` | 200 | 200 |
-  | `/kiem-thu-nhan-vien.html` | 200 | 200 |
   | `/logo.svg` | 200 | 200 |
-  | `/huong-dan` (không `.html`) | 404 | 307 → `/login` |
-  | `/login-gia-mao` | **200 — lọt** | 307 → `/login` |
+  | `/login-gia-mao` | 404 | 307 → `/login` |
+  | `/kiem-thu-noi-bo.html` | 404 | 307 → `/login` |
+  | `/logo.svg.bak` | 404 | 307 → `/login` |
+  | `/api/login-khac` | 404 | 401 |
+  | `/quay` | 307 | 307 |
 
-  Sai lầm của bản ghi cũ: chỉ thử đường dẫn **không có `.html`**, thấy 404 rồi kết
-  luận mục đó vô dụng.
+  Ba dòng đầu là lý do **không được xóa** hai mục `/huong-dan` và `/kiem-thu`.
 
-  Vấn đề thật nằm chỗ khác: khớp theo tiền tố quá lỏng nên **bất kỳ đường dẫn nào
-  ăn theo cũng thành công khai** — `/login-gia-mao` từng trả 200. Đã đổi sang khớp
-  **chính xác** bằng `Set.has()` với đủ 6 đường dẫn, tách hàm `laCongKhai()` ra
-  cho test được, kèm 12 test trong `src/proxy.test.ts`.
+  ### ⚠️ Đính chính lần hai: mức độ nghiêm trọng bị thổi phồng
 
-  *Bài học: trước khi xóa một mục cấu hình vì "trông có vẻ thừa", phải thử đúng
-  đường dẫn mà nó đang phục vụ.*
+  Bản ghi trước của chính mục này (và commit `c472712`) viết `/login-gia-mao`
+  **trả 200 cho người lạ**, hàm ý dữ liệu bị lộ. **Sai** — đo trên chính bản cũ
+  đang chạy thì nó trả **404**.
+
+  Cơ chế thì đúng: **404 chứ không phải 307** chứng minh nó đã **bỏ qua kiểm tra
+  đăng nhập** (nếu bị chặn thì phải bị đá về `/login`). Nhưng không có route thật
+  nào bắt đầu bằng những tiền tố đó, nên **chẳng có gì để lộ**.
+
+  Đây là **cạm bẫy chờ sẵn, không phải lỗ hổng đang rò**: chỉ cần sau này ai đó
+  thêm trang `/login-history` hay `/kiem-thu-doanh-thu` là nó **lặng lẽ thành công
+  khai**, không ai nhận ra. Vẫn đáng sửa, nhưng đừng ghi vào hồ sơ là sự cố lộ dữ
+  liệu.
+
+  Đã đổi sang khớp **chính xác** bằng `Set.has()`, tách hàm `laCongKhai()` ra cho
+  test được, kèm 12 test trong `src/proxy.test.ts`.
+
+  *Hai bài học từ đúng một mục nhỏ này:*
+  1. *Trước khi xóa một mục cấu hình vì "trông có vẻ thừa", phải thử đúng đường
+     dẫn mà nó đang phục vụ.*
+  2. *Suy ra mức độ nghiêm trọng từ đọc code là chưa đủ — phải đo trên bản đang
+     chạy thật. Ở đây suy luận đúng cơ chế nhưng sai hậu quả.*
 - **Môi trường test đã mất** cùng máy cũ. `docker-compose.test.yml` chỉ nằm trên
   VM Google Cloud, không commit vào repo, nên **không còn nữa**. Muốn dựng lại
   môi trường test trên VPS mới thì phải viết lại từ đầu — lần này nên commit vào
