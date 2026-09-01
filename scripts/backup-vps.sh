@@ -15,7 +15,7 @@
 # Biến môi trường (đều có mặc định):
 #   REPO         thư mục mã nguồn      (/opt/apps/tram-banh)
 #   SERVICE      tên service compose   (tram-banh)
-#   DICH_RCLONE  đích trên rclone      (gdrive:tram-banh-backup)
+#   DICH_RCLONE  đích trên rclone      (backup_trambanh_drive:tram-banh-backup)
 #   GIU_NGAY     giữ bao nhiêu ngày trên Drive  (30)
 #   GIU_MAY      giữ bao nhiêu bản trên máy chủ (7)
 #   BACKUP_DIR   nơi để gói            (/opt/backups/tram-banh)
@@ -24,7 +24,7 @@ set -euo pipefail
 
 REPO="${REPO:-/opt/apps/tram-banh}"
 SERVICE="${SERVICE:-tram-banh}"
-DICH_RCLONE="${DICH_RCLONE:-gdrive:tram-banh-backup}"
+DICH_RCLONE="${DICH_RCLONE:-backup_trambanh_drive:tram-banh-backup}"
 GIU_NGAY="${GIU_NGAY:-30}"
 GIU_MAY="${GIU_MAY:-7}"
 # CỐ Ý để ngoài thư mục mã nguồn: `git clean -fdx` trong repo sẽ xoá sạch mọi thứ
@@ -94,7 +94,15 @@ fi
 
 echo "5/5 Đẩy lên $DICH_RCLONE…"
 rclone copy "$BACKUP_DIR" "$DICH_RCLONE" --include "tram-banh-backup-*.tar.gz"
-rclone delete "$DICH_RCLONE" --min-age "${GIU_NGAY}d" --include "tram-banh-backup-*.tar.gz"
 
-echo "Xong. Bản hiện có trên Drive:"
+# --drive-use-trash=false: XÓA THẲNG, không cho vào Thùng rác. Google Drive giữ
+# thùng rác 30 ngày và phần đó VẪN TÍNH vào dung lượng, nên nếu để mặc định thì
+# mỗi gói dọn đi còn ăn chỗ thêm 30 ngày nữa — tốn gấp đôi mà chẳng để làm gì.
+rclone delete "$DICH_RCLONE" --min-age "${GIU_NGAY}d" \
+  --include "tram-banh-backup-*.tar.gz" --drive-use-trash=false
+
+echo
+echo "Xong. Trên Drive hiện có:"
 rclone ls "$DICH_RCLONE" | tail -5
+echo "Dung lượng Drive còn lại:"
+rclone about "$(echo "$DICH_RCLONE" | cut -d: -f1):" 2>/dev/null | grep -E "^(Used|Free):" | sed 's/^/   /'

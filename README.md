@@ -148,9 +148,9 @@ máy chủ** (khôi phục nhanh) và **30 ngày trên Drive** (kho dài hạn).
 Cài một lần trên VPS:
 
 ```bash
-# 1) Cài rclone và nối với Google Drive (có bước đăng nhập Google trên trình duyệt)
+# 1) Cài rclone và nối với Google Drive
 apt install -y rclone
-rclone config          # tạo remote tên `gdrive`, loại "drive"
+rclone config          # xem bảng dưới
 
 # 2) Chạy thử một phát, rồi vào Drive kiểm tra file đã lên chưa
 /opt/apps/tram-banh/scripts/backup-vps.sh
@@ -160,8 +160,34 @@ crontab -e
 # 0 2 * * * /opt/apps/tram-banh/scripts/backup-vps.sh >> /var/log/tram-banh-backup.log 2>&1
 ```
 
+Trả lời `rclone config` (remote hiện dùng tên `backup_trambanh_drive`):
+
+| Câu hỏi | Trả lời |
+|---|---|
+| `name>` | `backup_trambanh_drive` (khớp `DICH_RCLONE` trong script) |
+| `Storage>` | `drive` |
+| `client_id` / `client_secret` | để trống |
+| `scope>` | **`drive.file`** |
+| `root_folder_id`, `service_account_file` | để trống |
+| `Edit advanced config?` | `n` |
+| `Use web browser...?` | `y` — nhưng đọc ghi chú bên dưới |
+| `Shared Drive?` | `n` |
+
+Chọn **`drive.file`** chứ đừng chọn `drive` (toàn quyền): `drive.file` chỉ cho
+rclone thấy đúng những file do chính nó tạo, không đọc/xoá được thứ gì khác trong
+Drive. Backup không cần hơn thế.
+
+> **Bước xác thực trên máy chủ không có trình duyệt:** mở thêm một terminal và
+> chạy `ssh -i ~/.ssh/tram-banh-deploy -L 53682:localhost:53682 root@<ip>`, để
+> nguyên đó. Rồi trả lời `y`, copy địa chỉ `http://127.0.0.1:53682/auth?...`
+> rclone in ra và dán vào trình duyệt trên máy mình.
+
 Script **cố tình thoát với lỗi** nếu chưa có `rclone`: gói backup nằm cùng ổ đĩa
 với bản gốc thì không phải backup, và im lặng trong trường hợp đó là nguy hiểm.
+
+> **Vì sao có `--drive-use-trash=false`:** Google Drive giữ Thùng rác 30 ngày và
+> phần đó **vẫn tính vào dung lượng**. Để mặc định thì mỗi gói dọn đi còn ăn chỗ
+> thêm 30 ngày nữa — tốn gấp đôi mà chẳng để làm gì.
 
 > Logic trong `backup-vps.sh` là bản viết lại cho shell của `src/lib/backup.ts`.
 > Bản TypeScript (`npm run backup`, dùng ở máy dev) mới là bản có unit test. Sửa
