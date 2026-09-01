@@ -193,6 +193,45 @@ với bản gốc thì không phải backup, và im lặng trong trường hợp
 > Bản TypeScript (`npm run backup`, dùng ở máy dev) mới là bản có unit test. Sửa
 > một bên nhớ sửa bên kia.
 
+#### Kiểm gói backup có đúng, đủ không
+
+```bash
+cd /opt/apps/tram-banh-test && ./scripts/kiem-backup.sh
+```
+
+Tải gói mới nhất **từ Google Drive** về, bung ra, rồi so **vân tay từng đơn** với
+bản thật: mã đơn, tổng tiền, tiền cọc, trạng thái, giờ giao, hình thức nhận, SĐT
+và tên khách, số món. Kết quả kiểu:
+
+```
+Đơn trong gói backup : 225
+Đơn ở bản thật       : 226
+
+Đối chiếu 225 đơn trong gói với bản thật:
+   khớp từng trường          : 225
+   LỆCH nội dung             : 0
+   KHÔNG thấy ở bản thật     : 0
+
+Đơn tạo SAU khi backup (bình thường, không phải lỗi): 1
+   #0109-04  giao 06/09 22:00  Nguyễn Hồng Ngọc
+
+✅ GÓI BACKUP CHUẨN
+```
+
+Phép so **cố ý không phải** "hai bên bằng nhau": bản thật vẫn nhận đơn sau lúc
+chụp nên gói *luôn* thiếu vài đơn mới — so kiểu bằng nhau sẽ báo động sai mỗi
+ngày. Đúng phải là **mọi đơn trong gói có y hệt ở bản thật**; đơn mới hơn chỉ
+liệt kê cho biết.
+
+Thoát mã `1` nếu có đơn lệch hoặc thiếu, nên cắm vào cron cảnh báo được.
+
+Tuỳ chọn:
+
+```bash
+./scripts/kiem-backup.sh tram-banh-backup-2026-08-30.tar.gz   # kiểm gói cũ
+NGUON=may ./scripts/kiem-backup.sh                            # kiểm gói trên VPS, khỏi tải
+```
+
 #### Khôi phục
 
 ```bash
