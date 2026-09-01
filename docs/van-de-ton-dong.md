@@ -44,8 +44,8 @@ VM Google Cloud `instance-vibe-apps-server` (IP cũ `35.247.154.93`) bị GCP **
 (`docker compose down`) rồi mới đóng gói cả thư mục `data/` — gồm **cả file
 `-wal` 4.1MB chưa gộp**. Bản sao đó bung ra mở lại thành công, đủ dữ liệu tới đơn
 cuối cùng. Đây là bằng chứng thực tế cho cảnh báo ở mục 2 bên dưới: nếu chỉ copy
-`tram-banh.db` mà bỏ `-wal`, đã mất phần lớn dữ liệu gần nhất mà **không có lỗi
-nào báo ra**.
+`tram-banh.db` mà bỏ `-wal`, đã mất một phần dữ liệu gần nhất mà **không có lỗi
+nào báo ra** (đo thật ngày 01/09: mất 18/219 đơn = 8% — xem mục 2).
 
 ---
 
@@ -127,8 +127,48 @@ không còn vấn đề — môi trường test đã bỏ cùng máy cũ.
 | **Đặt cron trên VPS** | ❌ **cần bạn làm** |
 | Kiểm tra nhà cung cấp VPS có snapshot không | ❌ chưa |
 
-Đã kiểm chứng ở máy dev, **trong lúc app đang mở DB**: gói ra 3.0MB, giải nén lại
-thì `integrity_check: ok`, 13 bảng / 141 dòng **khớp 100%** bản gốc, 27 ảnh đủ.
+### Đã kiểm chứng ở quy mô thật (2026-09-01)
+
+Chạy script trên **chính dữ liệu thật**, lấy từ `tram-banh-backup-20260829.tar.gz`
+bung vào thư mục tạm (không đụng bản gốc lẫn `data/` của máy dev):
+
+| | |
+|---|---|
+| Thời gian | 8 giây, gói ra 63.2MB |
+| Giải nén lại | `integrity_check: ok` |
+| Đối chiếu | 13 bảng / **2203 dòng**, lệch **0** |
+| So nội dung thật | chuỗi mã đơn + tổng tiền của cả 219 đơn **khớp từng ký tự**; chuỗi SĐT + tên của cả 207 khách cũng vậy |
+| Ảnh | **426/426** |
+
+Gói ra chỉ còn **một file `.db` 233KB**, WAL đã gộp vào — khỏi phải nhớ mang theo
+`-wal` khi khôi phục.
+
+### Nhân tiện: bản backup 29/08 vẫn còn tốt
+
+Đã kiểm luôn cái "phao duy nhất" nói ở mục 0: mở ra đủ **219 đơn / 207 khách /
+224 dòng hàng / 14 nhân viên / 426 ảnh**, `integrity_check: ok` — khớp đúng bảng
+số liệu ở đầu file này.
+
+### ⚠️ Đính chính con số: "mất phần lớn" là nói quá
+
+File này (và README) từng viết copy thiếu `-wal` là "mất **phần lớn** dữ liệu gần
+nhất", suy ra từ tỉ lệ dung lượng: `-wal` 4.1MB so với `.db` 224KB. **Đo thật thì
+không phải vậy** — WAL chứa cả các trang bị ghi đè lại, nên dung lượng không phản
+ánh số dòng:
+
+| | Đầy đủ (`.db` + `-wal`) | Chỉ copy `.db` |
+|---|---|---|
+| `integrity_check` | ok | **ok** |
+| Đơn hàng | 219 | 201 |
+| Khách hàng | 207 | 190 |
+| Nhân viên | 14 | 12 |
+
+Mất **18 đơn / 219 = 8%**, không phải "phần lớn".
+
+Nhưng chỗ nguy hiểm thật lại **không nằm ở con số**: bản thiếu `-wal` vẫn báo
+`integrity_check: ok`. Nó **không hỏng** — nó chỉ thiếu, và không có gì báo cho
+bạn biết. 8% số đơn biến mất trong im lặng vẫn là hỏng việc, và tệ hơn là bạn sẽ
+tin bản backup đó là tốt.
 
 Có một giả định **chưa kiểm chứng được** vì đã thống nhất không đụng VPS: máy chủ
 có sẵn Node hay không. `scripts/backup-vps.sh` tự kiểm tra và in lệnh cài nếu
@@ -149,8 +189,9 @@ Ba điểm yếu, cập nhật cho hạ tầng mới:
    giờ còn tệ hơn: gần như không có bản nào cả.
 2. **Cách backup `cp -r data` vẫn sai với SQLite** — và đợt chuyển VPS vừa rồi đã
    chứng minh bằng số liệu thật: file `-wal` giữ **4.1MB chưa gộp** vào DB chính,
-   trong khi `tram-banh.db` chỉ 224KB. Copy thiếu `-wal` là mất phần lớn dữ liệu
-   gần nhất, và **lúc copy không báo lỗi gì**. Cách đúng: `VACUUM INTO` khi app
+   trong khi `tram-banh.db` chỉ 224KB. Copy thiếu `-wal` là mất một phần dữ liệu
+   gần nhất (đo thật: 8% số đơn, và bản thiếu vẫn trả `integrity_check: ok`),
+   và **lúc copy không báo lỗi gì**. Cách đúng: `VACUUM INTO` khi app
    đang chạy, hoặc `docker compose down` rồi copy trọn thư mục `data/`.
 3. **Chưa rõ nhà cung cấp VPS mới có dịch vụ snapshot/backup không** — cần kiểm
    tra trong bảng điều khiển của họ. Đây là việc đầu tiên nên làm ở mục này.
@@ -192,9 +233,51 @@ mất, chỉ là không truy cập được cho tới khi bật VM lên lấy ra
 
 ---
 
-## 3. Thông báo cho nhân viên (Web Push)
+## 3. Thông báo cho nhân viên (Web Push) — 🅿️ ĐÃ CODE XONG, ĐANG GÁC LẠI
 
 **Mức độ: tính năng mong muốn, chưa cấp bách.**
+
+### Đang ở đâu (2026-09-01)
+
+Đã code xong cả 7 việc trong danh sách bên dưới, **nhưng đã gỡ khỏi nhánh chính**
+vì chưa chạy được trên máy thật. Code nằm nguyên ở nhánh **`web-push-tam-gac`**:
+
+```bash
+git log --oneline web-push-tam-gac -3   # xem lại
+git merge web-push-tam-gac              # lấy về làm tiếp
+```
+
+Ba commit: bản chính, cộng 2 bản sửa tìm ra trong lúc gỡ lỗi.
+
+**Kẹt ở đâu:** thử trên Android — bấm nút, trình duyệt hỏi quyền, đã cho phép,
+nhưng **không có thông báo nào tới**. Truy ra: DB không có dòng đăng ký nào, và
+**chưa từng có `POST /api/push/dang-ky`** nào chạm tới máy chủ. Tức luồng chết ở
+phía client, tại `pushManager.subscribe()`.
+
+**Đã loại trừ được** (kiểm từ máy dev, đều khỏe):
+
+| Nghi can | Kết quả |
+|---|---|
+| Cú pháp `sw.js` | sạch |
+| Content-Type `/sw.js` | `application/javascript` |
+| Cloudflare can thiệp nội dung qua tunnel | không |
+| Đăng ký service worker | OK, scope `/` |
+| Chuyển đổi khóa VAPID | 87 ký tự → 65 byte, byte đầu `0x04` (đúng chuẩn P-256) |
+| 3 API push | 200 / 401 / 404 đúng |
+| Nút hiện ở khổ điện thoại | có, không phải cuộn |
+
+**Việc đầu tiên khi quay lại:** lấy cho được **nguyên văn lỗi từ máy thật**. Hai
+commit sửa trên nhánh gác đã dọn đường sẵn cho việc đó:
+
+1. Nút không còn nuốt lỗi im lặng — hiện hẳn hộp thoại kèm nguyên văn, chữ copy
+   được. (Chính cái nuốt lỗi này làm mất trắng lượt thử đầu tiên.)
+2. Nút không còn báo "Đang bật" khi máy chủ chưa biết — mỗi lần mở app thì gửi
+   lại đăng ký để hai bên tự khớp.
+
+Không đoán mò tiếp trước khi có câu lỗi đó.
+
+**Hai điều kiện để bật thật ở tiệm vẫn còn nguyên:** HTTPS trên máy chủ (mục 1,
+việc 4) và sinh khóa VAPID đặt vào `.env`.
 
 ### Hiện trạng
 

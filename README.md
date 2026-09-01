@@ -99,9 +99,19 @@ Toàn bộ dữ liệu nằm trong `data/` (cơ sở dữ liệu + ảnh upload)
 
 **Đừng bao giờ copy thẳng `data/tram-banh.db` khi app đang chạy.** SQLite dùng chế
 độ WAL: dữ liệu mới nằm tạm ở `tram-banh.db-wal` rồi mới gộp vào file chính. Copy
-thiếu `-wal` là mất phần lớn dữ liệu gần nhất — **và lúc copy không báo lỗi gì**,
-tới khi cần khôi phục mới biết. Đợt chuyển VPS 29/08/2026 đã gặp đúng cảnh này:
-`.db` chỉ 224KB trong khi `-wal` giữ 4.1MB chưa gộp.
+thiếu `-wal` là mất một phần dữ liệu gần nhất — **và lúc copy không báo lỗi gì**,
+tới khi cần khôi phục mới biết.
+
+Đo thật trên gói dữ liệu ngày 29/08/2026 (`.db` 224KB, `-wal` 4.1MB chưa gộp):
+
+| | Đầy đủ | Chỉ copy `.db` |
+|---|---|---|
+| `integrity_check` | ok | **ok** |
+| Đơn hàng | 219 | 201 |
+| Khách hàng | 207 | 190 |
+
+Mất 18 đơn, mà bản thiếu **vẫn báo `integrity_check: ok`**. Nó không hỏng — nó chỉ
+thiếu, và không có gì báo cho bạn biết.
 
 #### Chạy backup
 
