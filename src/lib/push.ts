@@ -46,6 +46,45 @@ export function layDangKyTheoVaiTro(vaiTro: readonly VaiTro[]): DangKy[] {
     .all()
 }
 
+export type DangKyTuTrinhDuyet = {
+  endpoint: string
+  keys: { p256dh: string; auth: string }
+}
+
+/**
+ * Ghi nhận một máy muốn nhận thông báo. Khóa theo  — định danh duy nhất
+ * của máy đó — nên gọi lại bao nhiêu lần cũng chỉ có một dòng.
+ *
+ * Tính chất gọi-lại-được là CỐ Ý và cần thiết: mỗi lần mở app, client gửi lại
+ * đăng ký nó đang có để hai bên tự khớp. Nếu không, chỉ cần một lần lưu hụt là
+ * trình duyệt có đăng ký mà máy chủ không biết — giao diện báo "Đang bật" trong
+ * khi thực tế chẳng bao giờ nhận được gì.
+ *
+ * Cùng một máy mà người khác đăng nhập thì ĐỔI CHỦ, để người cũ không nhận nhầm
+ * thông báo của người mới.
+ */
+/**
+ * Ghi nhận một máy muốn nhận thông báo. Khóa theo `endpoint` — định danh duy nhất
+ * của máy đó — nên gọi lại bao nhiêu lần cũng chỉ có một dòng.
+ *
+ * Tính chất gọi-lại-được là CỐ Ý và cần thiết: mỗi lần mở app, client gửi lại
+ * đăng ký nó đang có để hai bên tự khớp. Nếu không, chỉ cần một lần lưu hụt là
+ * trình duyệt có đăng ký mà máy chủ không biết — giao diện báo "Đang bật" trong
+ * khi thực tế chẳng bao giờ nhận được gì.
+ *
+ * Cùng một máy mà người khác đăng nhập thì ĐỔI CHỦ, để người cũ không nhận nhầm
+ * thông báo của người mới.
+ */
+export function luuDangKy(userId: number, sub: DangKyTuTrinhDuyet): void {
+  db.insert(pushSubscriptions)
+    .values({ userId, endpoint: sub.endpoint, p256dh: sub.keys.p256dh, auth: sub.keys.auth, taoLuc: Date.now() })
+    .onConflictDoUpdate({
+      target: pushSubscriptions.endpoint,
+      set: { userId, p256dh: sub.keys.p256dh, auth: sub.keys.auth, taoLuc: Date.now() },
+    })
+    .run()
+}
+
 /**
  * Gửi tới tất cả các máy, không để một máy hỏng chặn các máy còn lại.
  *

@@ -5,7 +5,7 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'trambanh-push-test-'))
 
-const { guiToiCacMay, layDangKyTheoVaiTro, pushDaCauHinh } = await import('./push')
+const { guiToiCacMay, layDangKyTheoVaiTro, luuDangKy, pushDaCauHinh } = await import('./push')
 const { db } = await import('@/db')
 const { pushSubscriptions, users } = await import('@/db/schema')
 
@@ -118,5 +118,31 @@ describe('guiToiCacMay', () => {
     })
 
     expect(kq.thanhCong).toBe(2)
+  })
+})
+
+describe('luuDangKy', () => {
+  const sub = { endpoint: 'may-cua-toi', keys: { p256dh: 'khoa-1', auth: 'auth-1' } }
+
+  it('lưu đăng ký mới', () => {
+    luuDangKy(bepId, sub)
+
+    expect(layDangKyTheoVaiTro(['bep']).map((d) => d.endpoint)).toEqual(['may-cua-toi'])
+  })
+
+  it('gọi lại cùng một máy thì CẬP NHẬT, không đẻ dòng thừa', () => {
+    luuDangKy(bepId, sub)
+    luuDangKy(bepId, sub)
+    luuDangKy(bepId, sub)
+
+    expect(layDangKyTheoVaiTro(['bep'])).toHaveLength(1)
+  })
+
+  it('cùng máy nhưng người khác đăng nhập thì chuyển chủ, không để người cũ nhận nhầm', () => {
+    luuDangKy(bepId, sub)
+    luuDangKy(quayId, sub)
+
+    expect(layDangKyTheoVaiTro(['bep'])).toEqual([])
+    expect(layDangKyTheoVaiTro(['quay']).map((d) => d.endpoint)).toEqual(['may-cua-toi'])
   })
 })

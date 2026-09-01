@@ -56,7 +56,19 @@ export default function NutThongBao() {
 
       const dk = await navigator.serviceWorker.getRegistration()
       const sub = await dk?.pushManager.getSubscription()
-      setTt(sub ? 'bat' : 'tat')
+      if (!sub) return setTt('tat')
+
+      // Máy đang giữ một đăng ký. KHÔNG tin ngay là đã bật: chỉ cần một lần lưu
+      // hụt trước đó là máy chủ không hề biết đến nó, và nút sẽ báo 'Đang bật'
+      // trong khi chẳng bao giờ có thông báo nào tới. Gửi lại để hai bên tự khớp
+      // (API lưu theo endpoint nên gọi lại không đẻ dòng thừa).
+      const r2 = await fetch('/api/push/dang-ky', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sub),
+      }).catch(() => null)
+      if (huy) return
+      setTt(r2?.ok ? 'bat' : 'tat')
     })()
     return () => {
       huy = true
