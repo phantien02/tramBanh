@@ -1,0 +1,22 @@
+# Môi trường TEST — chạy song song với bản thật, cổng 4000.
+#
+#   cd /opt/apps/tram-banh-test
+#   docker compose -f docker-compose.test.yml up -d --build
+#
+# Phải nêu file này TƯỜNG MINH bằng -f. Đừng đổi tên thành
+# docker-compose.override.yml: tên đó Compose tự nạp trên MỌI máy, máy chủ thật
+# git pull về là chạy nhầm cấu hình test.
+#
+# Cô lập với bản thật nhờ nằm ở thư mục khác (Compose lấy tên project theo tên
+# thư mục) và có data/ riêng. Dữ liệu được nạp từ bản thật bằng
+# scripts/sync-tu-prod.sh — một chiều, chỉ đọc bản thật.
+services:
+  tram-banh-test:
+    build: .
+    ports:
+      - "4000:3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - SESSION_SECRET=${SESSION_SECRET:?Đặt SESSION_SECRET trong file .env}
+    restart: unless-stopped

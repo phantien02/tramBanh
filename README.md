@@ -135,15 +135,15 @@ Chỉnh bằng biến môi trường: `DATA_DIR`, `BACKUP_DIR`, `GIU_LAI`.
 
 #### Tự động hằng đêm, đẩy lên Google Drive
 
-`scripts/backup-vps.sh` là điểm vào cho cron: chạy `npm run backup` rồi đẩy lên
-Drive bằng `rclone` và dọn bản cũ hơn 30 ngày ở cả hai đầu.
+`scripts/backup-vps.sh` là điểm vào cho cron: chụp DB, đối chiếu, đóng gói kèm
+ảnh, rồi đẩy lên Drive bằng `rclone` và dọn bản cũ hơn 30 ngày ở cả hai đầu.
+
+Máy chủ **không cần cài Node**: mọi thao tác SQLite chạy bên trong container
+(container có sẵn Node + better-sqlite3).
 
 Cài một lần trên VPS:
 
 ```bash
-# 0) Máy chủ cần có Node (kiểm tra trước)
-node -v || { curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt install -y nodejs; }
-
 # 1) Cài rclone và nối với Google Drive (có bước đăng nhập Google trên trình duyệt)
 apt install -y rclone
 rclone config          # tạo remote tên `gdrive`, loại "drive"
@@ -158,6 +158,10 @@ crontab -e
 
 Script **cố tình thoát với lỗi** nếu chưa có `rclone`: gói backup nằm cùng ổ đĩa
 với bản gốc thì không phải backup, và im lặng trong trường hợp đó là nguy hiểm.
+
+> Logic trong `backup-vps.sh` là bản viết lại cho shell của `src/lib/backup.ts`.
+> Bản TypeScript (`npm run backup`, dùng ở máy dev) mới là bản có unit test. Sửa
+> một bên nhớ sửa bên kia.
 
 #### Khôi phục
 
@@ -175,6 +179,50 @@ vừa khôi phục.
 
 > **Backup chưa thử khôi phục thì chưa tính là backup.** Thỉnh thoảng giải nén một
 > gói ra thư mục tạm và mở thử, đừng đợi tới lúc sự cố mới biết nó hỏng.
+
+### Môi trường test (cổng 4000)
+
+Chạy song song với bản thật để thử phiên bản mới **trên dữ liệu thật**, mà không
+đụng gì tới bản đang phục vụ tiệm.
+
+```
+/opt/apps/tram-banh        ← THẬT, cổng 3000
+/opt/apps/tram-banh-test   ← TEST, cổng 4000, data/ riêng
+```
+
+Hai thư mục tách hẳn nên Compose tự đặt tên project khác nhau, hai bộ container
+không giẫm nhau. **Không bao giờ cho hai bản dùng chung `data/`** — bản test có
+schema mới sẽ chạy migration lên chính DB của tiệm, và mọi thao tác thử nghiệm
+sẽ ghi vào đơn thật.
+
+Dựng lần đầu:
+
+```bash
+git clone -b xay-dung-app https://github.com/phantien02/tramBanh.git /opt/apps/tram-banh-test
+cd /opt/apps/tram-banh-test
+cp /opt/apps/tram-banh/.env .env        # dùng chung SESSION_SECRET cho đỡ phải đăng nhập lại
+./scripts/sync-tu-prod.sh               # nạp dữ liệu lần đầu (tự dựng container)
+docker compose -f docker-compose.test.yml up -d --build
+```
+
+Nạp lại dữ liệu mới bất cứ lúc nào:
+
+```bash
+cd /opt/apps/tram-banh-test && ./scripts/sync-tu-prod.sh
+```
+
+Sync là **một chiều, thật → test**, và bản thật chỉ bị *đọc*: bản chụp lấy bằng
+`VACUUM INTO` chạy bên trong container thật nên nó không phải dừng phút nào.
+Script tự thoát nếu `PROD_DIR` và `TEST_DIR` trỏ cùng một chỗ.
+
+**Bản test là tấm gương, không phải sân chơi.** Mỗi lần sync sẽ ghi đè toàn bộ
+DB test — đơn bạn tạo thử ở đó biến mất. Sync chạy tay, không có cron, nên bạn
+chủ động lúc nào muốn làm mới.
+
+> ⚠️ Cổng 4000 mở công khai và chứa **dữ liệu khách thật** (tên, số điện thoại).
+> Đây là lựa chọn có cân nhắc để tiện thử trên điện thoại, đổi lại là nhân đôi
+> chỗ có thể rò rỉ thông tin khách. Xong việc thì tắt đi:
+> `docker compose -f docker-compose.test.yml down`
 
 ### HTTPS
 
