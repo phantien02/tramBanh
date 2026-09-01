@@ -123,9 +123,76 @@ không còn vấn đề — môi trường test đã bỏ cùng máy cũ.
 | Script backup đúng cách (`VACUUM INTO` + kiểm tra + xoay vòng) | ✅ `npm run backup`, 9 test |
 | Điểm vào cho cron + đẩy lên Drive | ✅ `scripts/backup-vps.sh` |
 | Hướng dẫn cài đặt từng bước | ✅ README, mục "Sao lưu" |
-| **Cài rclone + nối Google Drive trên VPS** | ❌ **cần bạn làm** (có bước đăng nhập Google) |
-| **Đặt cron trên VPS** | ❌ **cần bạn làm** |
-| Kiểm tra nhà cung cấp VPS có snapshot không | ❌ chưa |
+| Cài rclone + nối Google Drive trên VPS | ✅ remote `backup_trambanh_drive`, scope `drive.file` |
+| Đặt cron 2h sáng | ✅ |
+| Kiểm tra nhà cung cấp VPS có snapshot không | 🟡 họ **quảng cáo** "Backup 1 lần/ngày" — còn 5 câu chưa hỏi, xem dưới |
+
+### Chạy thật trên VPS (2026-09-01) — đã đi hết cả 5 bước
+
+| | |
+|---|---|
+| Thời gian | 28 giây, gói 66MB |
+| Đối chiếu bản chụp | 13 bảng khớp, 225 đơn |
+| Đẩy lên Drive | ✅ `backup_trambanh_drive:tram-banh-backup` |
+| **Tải ngược từ Drive về** | md5 **khớp từng byte** với bản trên VPS |
+| Giải nén bản tải từ Drive | `integrity_check: ok`, 225 đơn / 212 khách / 440 ảnh, đọc tới đơn cuối `#0109-03` |
+| Bản thật trong lúc đó | HTTP 200, md5 DB không đổi, container không restart |
+
+**Hạn giữ:** 7 bản trên máy chủ (khôi phục nhanh) + 30 ngày trên Drive (kho dài
+hạn). Gói để ở `/opt/backups/tram-banh`, **ngoài thư mục mã nguồn** — `git clean
+-fdx` trong repo sẽ xoá sạch mọi thứ bị gitignore, kể cả backup.
+
+**Hai cái bẫy phát hiện lúc chạy thật:**
+
+1. `rclone delete` mặc định đưa file vào **Thùng rác**, mà Google Drive giữ thùng
+   rác 30 ngày và phần đó **vẫn tính vào dung lượng** → mỗi gói ăn chỗ 60 ngày,
+   gấp đôi. Đã thêm `--drive-use-trash=false`.
+2. `chmod +x` thủ công làm file thành "đã sửa" trong mắt git và **chặn `git pull`
+   lần sau**. Đã đặt cờ thực thi vào git.
+
+**Dung lượng cần theo dõi:** Drive còn **9.45 GiB trống** / 15 GiB. 30 gói × 66MB
+≈ 2GB (~21% chỗ trống), và gói sẽ phình theo số ảnh. Script in dung lượng còn lại
+sau mỗi lần chạy để thấy sớm khi sắp đầy.
+
+### ⚠️ Một chỗ tạm cần dọn sau
+
+Cron hiện gọi script từ **thư mục test**, trỏ dữ liệu vào bản thật:
+
+```
+0 2 * * * REPO=/opt/apps/tram-banh /opt/apps/tram-banh-test/scripts/backup-vps.sh >> /var/log/tram-banh-backup.log 2>&1
+```
+
+Lý do: bản thật vẫn ở commit `efdb394`, chưa có file script. Cố ý **không**
+`git pull` bên đó để tránh tình trạng "git báo bản mới mà container chạy bản cũ".
+
+**Hệ quả phải nhớ:** nếu xoá thư mục `/opt/apps/tram-banh-test` thì **backup lặng
+lẽ ngừng chạy**. Khi nào nâng cấp bản thật thì đổi cron sang
+`/opt/apps/tram-banh/scripts/backup-vps.sh` và bỏ biến `REPO`.
+
+### 5 câu chưa hỏi nhà cung cấp VPS
+
+Họ quảng cáo gói NVME R1 có "Backup 1 lần/ngày". Soi từ trong máy thì thấy nền
+**VMware** và `open-vm-tools` đang chạy (nhờ đó hypervisor mới đóng băng được hệ
+thống file trước khi chụp). Không có agent backup nào bên trong máy → họ làm ở
+tầng máy ảo.
+
+*Điểm tốt cho SQLite:* snapshot đĩa máy ảo chụp nguyên khối cả ổ trong cùng một
+khoảnh khắc, nên `.db` + `-wal` + `-shm` được lấy đồng thời; SQLite coi như mất
+điện rồi tự replay WAL. An toàn hơn hẳn kiểu `cp` từng file.
+
+Còn phải hỏi hỗ trợ:
+
+1. Gói NVME R1 có bật sẵn backup, hay phải mua thêm?
+2. Giữ bao nhiêu bản / bao nhiêu ngày?
+3. Lưu **ở đâu** — cùng cụm máy chủ đang chạy VPS, hay hệ thống lưu trữ tách riêng?
+4. Tự khôi phục được trong bảng điều khiển hay phải mở ticket? Bao lâu?
+5. Khôi phục là ghi đè cả máy, hay tải được ảnh đĩa về?
+
+Câu 3 và 5 quan trọng nhất. Backup nằm cùng cụm thì chỉ chống hỏng đĩa, không
+chống mất cả cụm.
+
+**Và nó không thay được lớp 2:** đợt GCP vừa rồi chính là ca snapshot nhà cung cấp
+không cứu được — dữ liệu còn nguyên, nhưng nằm sau đúng cánh cửa đang khoá.
 
 ### Đã kiểm chứng ở quy mô thật (2026-09-01)
 
