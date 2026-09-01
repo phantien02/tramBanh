@@ -241,6 +241,18 @@ Nạp lại dữ liệu mới bất cứ lúc nào:
 cd /opt/apps/tram-banh-test && ./scripts/sync-tu-prod.sh
 ```
 
+Đang chạy tự động **0h hằng đêm** (log ở `/var/log/tram-banh-sync.log`):
+
+```
+0 0 * * * cd /opt/apps/tram-banh-test && ./scripts/sync-tu-prod.sh >> /var/log/tram-banh-sync.log 2>&1
+```
+
+Lịch trong đêm: **00:00** sync thật → test, **02:00** backup bản thật lên Drive.
+Hai việc không đụng nhau.
+
+> Sync **tự bật lại container test**. Nếu bạn `docker compose down` bản test cho
+> kín thì nửa đêm nó sống lại. Muốn tắt hẳn thì gỡ luôn dòng cron này.
+
 Sync là **một chiều, thật → test**, và bản thật chỉ bị *đọc*: bản chụp lấy bằng
 `VACUUM INTO` chạy bên trong container thật nên nó không phải dừng phút nào.
 Script tự thoát nếu `PROD_DIR` và `TEST_DIR` trỏ cùng một chỗ.
