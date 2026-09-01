@@ -5,6 +5,9 @@ xử lý đơn theo ngày, quản lý theo dõi sản phẩm/nhân viên/thống
 sở dữ liệu SQLite + ảnh sản phẩm) được lưu cục bộ trong thư mục `data/` để dễ
 sao lưu và triển khai trên một máy chủ nhỏ.
 
+> **Vận hành hằng ngày** (kiểm backup, sync, khôi phục): xem
+> [docs/van-hanh.md](docs/van-hanh.md).
+
 ## Yêu cầu
 
 - Chạy dev: Node.js 22+ và npm.

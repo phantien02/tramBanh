@@ -98,6 +98,31 @@ khách. Riêng SSH mật khẩu root mở ra internet sẽ bị dò tự động
 *Điểm sáng nhỏ:* 19 số điện thoại khách từng bị nhân đôi sang môi trường test giờ
 không còn vấn đề — môi trường test đã bỏ cùng máy cũ.
 
+### Phát hiện 2026-09-01: repo này đang CÔNG KHAI
+
+Kiểm qua GitHub API: `private: false`. Nghĩa là **chính file bạn đang đọc** —
+cùng README — nằm công khai, và nó ghi đủ IP máy chủ, mật khẩu admin kèm ghi chú
+"chưa đổi", việc SSH cho phép đăng nhập bằng mật khẩu, và (từ 2026-09-01) cả môi
+trường test cổng 4000 chứa dữ liệu khách thật.
+
+**Hệ quả quan trọng nhất:** chuyển repo sang private sau này **không thu hồi được**
+những gì đã công khai — có thể đã bị đánh chỉ mục, fork, mirror hoặc cache. Phải
+coi mật khẩu admin và mật khẩu root là **đã lộ**, bất kể sau đó làm gì. Đổi mật
+khẩu là bắt buộc, không phải tuỳ chọn.
+
+Thứ tự giảm rủi ro (nhiều → ít):
+
+1. Đổi mật khẩu admin app — đóng cả cổng 3000 lẫn 4000 cùng lúc
+2. Chạy `sync-tu-prod.sh` ngay sau đó, nếu không bản test vẫn nhận mật khẩu cũ
+   tới 0h (DB test là bản chụp nửa đêm trước, còn giữ hash cũ)
+3. Đổi mật khẩu root VPS + tắt `PasswordAuthentication`
+4. Chuyển repo sang private
+5. Tắt cổng 4000 — ít tác dụng khi cổng 3000 vẫn mở với cùng mật khẩu
+
+**Đã báo cho chủ dự án 2026-09-01, quyết định là để nguyên.** Ghi lại đây để lần
+sau mở tài liệu ra còn nhớ đây là lựa chọn có cân nhắc, và để biết phải bắt đầu
+từ đâu khi muốn xử lý.
+
 ### Hướng giải quyết, theo thứ tự
 
 1. **Đổi mật khẩu root VPS**: `ssh -i ~/.ssh/tram-banh-deploy root@103.20.102.216 passwd`
