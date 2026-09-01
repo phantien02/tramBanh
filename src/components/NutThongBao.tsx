@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { moTaLoi, type BuocPush } from '@/lib/push-loi'
 
 /** Chuỗi base64url của khóa VAPID → Uint8Array cho pushManager. */
 function doiKhoa(base64url: string) {
@@ -33,6 +34,7 @@ export default function NutThongBao() {
   const [khoa, setKhoa] = useState<string | null>(null)
   const [dangXuLy, setDangXuLy] = useState(false)
   const [moHuongDan, setMoHuongDan] = useState(false)
+  const [loi, setLoi] = useState<string | null>(null)
 
   useEffect(() => {
     let huy = false
@@ -64,23 +66,34 @@ export default function NutThongBao() {
   async function bat() {
     if (!khoa) return
     setDangXuLy(true)
+    setLoi(null)
+    // Bọc từng bước riêng để khi hỏng còn biết hỏng ở đâu. Gộp một try/catch to
+    // rồi nuốt lỗi thì người bấm chẳng biết gì mà người sửa cũng không có manh mối.
+    let buoc: BuocPush = 'quyen'
     try {
       const quyen = await Notification.requestPermission()
       if (quyen !== 'granted') return setTt(quyen === 'denied' ? 'biChan' : 'tat')
 
+      buoc = 'dangKySW'
       const dk = await navigator.serviceWorker.register('/sw.js')
       await navigator.serviceWorker.ready
+
+      buoc = 'subscribe'
       const sub = await dk.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: doiKhoa(khoa),
       })
+
+      buoc = 'luuMayChu'
       const r = await fetch('/api/push/dang-ky', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(sub),
       })
-      setTt(r.ok ? 'bat' : 'tat')
-    } catch {
+      if (!r.ok) throw new Error('Máy chủ trả HTTP ' + r.status)
+      setTt('bat')
+    } catch (e) {
+      setLoi(moTaLoi(buoc, e))
       setTt('tat')
     } finally {
       setDangXuLy(false)
@@ -156,10 +169,28 @@ export default function NutThongBao() {
   }
 
   return (
-    <button onClick={tt === 'bat' ? tat : bat} disabled={dangXuLy} className={kieuNut}
-      style={{ ...nen, color: tt === 'bat' ? '#A9D8D5' : '#F7B7D2' }}
-      title={tt === 'bat' ? 'Đang nhận thông báo trên máy này — bấm để tắt' : 'Nhận thông báo cả khi đóng app'}>
-      {dangXuLy ? '…' : tt === 'bat' ? '🔔 Đang bật' : '🔔 Bật thông báo'}
-    </button>
+    <>
+      <button onClick={tt === 'bat' ? tat : bat} disabled={dangXuLy} className={kieuNut}
+        style={{ ...nen, color: tt === 'bat' ? '#A9D8D5' : '#F7B7D2' }}
+        title={tt === 'bat' ? 'Đang nhận thông báo trên máy này — bấm để tắt' : 'Nhận thông báo cả khi đóng app'}>
+        {dangXuLy ? '…' : tt === 'bat' ? '🔔 Đang bật' : '🔔 Bật thông báo'}
+      </button>
+
+      {loi && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setLoi(null)}>
+          <div className="tb-card max-w-sm w-full p-5 text-[var(--color-caphe)]"
+            onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-display text-xl font-semibold mb-2">Chưa bật được thông báo</h3>
+            {/* Chữ chọn được: người dùng cần đọc/chụp lại nguyên văn để báo lỗi. */}
+            <p className="text-sm whitespace-pre-wrap select-text mb-4">{loi}</p>
+            <button onClick={() => setLoi(null)}
+              className="w-full py-2 rounded-lg bg-[var(--color-dau)] text-white font-medium">
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
