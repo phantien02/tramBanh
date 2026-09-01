@@ -141,6 +141,10 @@ Chỉnh bằng biến môi trường: `DATA_DIR`, `BACKUP_DIR`, `GIU_LAI`.
 Máy chủ **không cần cài Node**: mọi thao tác SQLite chạy bên trong container
 (container có sẵn Node + better-sqlite3).
 
+Gói backup để ở `/opt/backups/tram-banh` — **ngoài thư mục mã nguồn**, để một lệnh
+`git clean -fdx` trong repo không thổi bay mất bản lùi cuối cùng. Giữ **7 bản trên
+máy chủ** (khôi phục nhanh) và **30 ngày trên Drive** (kho dài hạn).
+
 Cài một lần trên VPS:
 
 ```bash

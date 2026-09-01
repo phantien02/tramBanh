@@ -16,7 +16,9 @@
 #   REPO         thư mục mã nguồn      (/opt/apps/tram-banh)
 #   SERVICE      tên service compose   (tram-banh)
 #   DICH_RCLONE  đích trên rclone      (gdrive:tram-banh-backup)
-#   GIU_NGAY     giữ bao nhiêu bản     (30)
+#   GIU_NGAY     giữ bao nhiêu ngày trên Drive  (30)
+#   GIU_MAY      giữ bao nhiêu bản trên máy chủ (7)
+#   BACKUP_DIR   nơi để gói            (/opt/backups/tram-banh)
 
 set -euo pipefail
 
@@ -24,7 +26,11 @@ REPO="${REPO:-/opt/apps/tram-banh}"
 SERVICE="${SERVICE:-tram-banh}"
 DICH_RCLONE="${DICH_RCLONE:-gdrive:tram-banh-backup}"
 GIU_NGAY="${GIU_NGAY:-30}"
-BACKUP_DIR="${BACKUP_DIR:-$REPO/backups}"
+GIU_MAY="${GIU_MAY:-7}"
+# CỐ Ý để ngoài thư mục mã nguồn: `git clean -fdx` trong repo sẽ xoá sạch mọi thứ
+# bị gitignore — kể cả backup. Để ở đây thì một lệnh dọn repo không thổi bay được
+# bản lùi cuối cùng. Cũng sống sót khi clone lại repo.
+BACKUP_DIR="${BACKUP_DIR:-/opt/backups/tram-banh}"
 
 export TZ=Asia/Ho_Chi_Minh
 dc() { docker compose --project-directory "$REPO" -f "$REPO/docker-compose.yml" "$@"; }
@@ -72,9 +78,12 @@ dc exec -T "$SERVICE" rm -f /tmp/backup-snap.db
 tar -czf "$BACKUP_DIR/$GOI" -C "$TAM" tram-banh.db -C "$REPO/data" uploads
 echo "      $GOI ($(du -h "$BACKUP_DIR/$GOI" | cut -f1))"
 
-echo "4/5 Dọn bản cũ ở máy chủ…"
+echo "4/5 Dọn bản cũ ở máy chủ (giữ $GIU_MAY bản)…"
+# Trên máy chủ chỉ cần vài bản gần đây để khôi phục nhanh; kho dài hạn nằm trên
+# Drive. Giữ 30 bản ở cả hai nơi là tốn ~2GB đĩa mà chẳng chống thêm được gì —
+# backup nằm cùng ổ với bản gốc vốn không cứu được ca mất cả máy.
 ls -1t "$BACKUP_DIR"/tram-banh-backup-*.tar.gz 2>/dev/null \
-  | tail -n +$((GIU_NGAY + 1)) | xargs -r rm -f
+  | tail -n +$((GIU_MAY + 1)) | xargs -r rm -f
 
 if ! command -v rclone >/dev/null 2>&1; then
   echo "" >&2
